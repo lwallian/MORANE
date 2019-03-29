@@ -77,8 +77,17 @@ I_deter=ILC.deter.I;
 L_deter=ILC.deter.L;
 C_deter=ILC.deter.C;
 
+L_correction = bsxfun(@times, eddy_visco/param.viscosity , L_used );
+
+[U,S,V] = svd(L_correction);
+S = diag(S);
+S(S>0)=0;
+S=diag(S);
+L_correction = U*S*V';
+
 ILC.MEV.I=I_deter;
-ILC.MEV.L=L_deter + bsxfun(@times, eddy_visco/param.viscosity , L_used );
+ILC.MEV.L=L_deter + L_correction;
+% ILC.MEV.L=L_deter + bsxfun(@times, eddy_visco/param.viscosity , L_used );
 ILC.MEV.C=C_deter;
 
 end

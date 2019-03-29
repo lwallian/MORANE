@@ -69,7 +69,7 @@ if param.big_data
             
             % First term of the tensor
             % Reload z_q(i,j)
-%             load(a,'z');
+            %             load(a,'z');
             load(param.name_file_diffusion_mode);
             
             
@@ -95,7 +95,7 @@ if param.big_data
             
             % Secon term of the tensor
             % Reload z_q(i,j)
-%             load(a,'z');
+            %             load(a,'z');
             load(param.name_file_diffusion_mode);
             z=z(:,q,:,:);
             z = permute(z,[2 5 6 3 4 1 ]); % (1) x 1 x d x d x M
@@ -114,7 +114,11 @@ if param.big_data
             % Projection on free divergence space to remove the unknown
             % pressure term
             c_integrand = reshape(c_integrand,[prod(MX) 1 d]);
-            c_integrand = c_integrand - proj_div_propre(c_integrand,MX);
+            if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
+            else
+                c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+            end
             c_integrand = reshape(c_integrand,[1 1 MX d]);
             
             for k = 1:m
@@ -187,7 +191,7 @@ else %% Small data used
     
     % Secon term of the tensor
     % Reload z_q(i,j)
-%     load(a_file,'z');
+    %     load(a_file,'z');
     load(param.name_file_diffusion_mode);
     
     z = permute(z,[5 6 3 4 1 2 ]); % 1 x 1 x d x d x M x (nb_modes_z)
@@ -229,7 +233,11 @@ else %% Small data used
     % pressure term
     c_integrand = reshape(c_integrand,[(m+1)*nb_modes_z prod(MX) d]);% (m+1)*nb_modes_z x M x d
     c_integrand = multitrans(c_integrand);% M x (m+1)*nb_modes_z x d
-    c_integrand = c_integrand - proj_div_propre(c_integrand,MX);
+    if strcmp(param.type_data, 'turb2D_blocks_truncated')
+        c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
+    else
+        c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+    end
     c_integrand = multitrans(c_integrand);% (m+1)*nb_modes_z x M x d
     c_integrand = reshape(c_integrand,[m+1 nb_modes_z MX d]);
     

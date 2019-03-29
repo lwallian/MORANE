@@ -69,8 +69,8 @@ else
                 {name_file_U_temp}];
             
             % Save previous file with subsampled velocity
-            save(name_file_U_temp,'U');
-%             save(name_file_U_temp,'U','-v7.3');
+%             save(name_file_U_temp,'U');
+            save(name_file_U_temp,'U','-v7.3');
 
             % initialization of the index of the snapshot before 
             % subsampling in the file
@@ -92,7 +92,7 @@ else
             load(name_file_U_centered);
             
         end
-        if mod(t,n_subsampl_decor)==1
+        if mod(t,n_subsampl_decor)==0 %CRITICAL PART
             % This snapshot is kept by the subsampling
             t_local_sub=t_local_sub+1;
         else % This snapshot is not kept by the subsampling
@@ -113,6 +113,6 @@ else
              '_U_temp'];      
         param.name_file_U_temp=name_file_U_temp;  
     end
-    save(name_file_U_temp,'U');
+    save(name_file_U_temp,'U', '-v7.3');
     clear U;
 end

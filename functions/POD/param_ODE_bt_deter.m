@@ -95,7 +95,12 @@ if param.big_data
             % pressure term
             if param.eq_proj_div_free
                 c_integrand = reshape(c_integrand,[prod(MX) 1 d]);
-                c_integrand = c_integrand - proj_div_propre(c_integrand,MX);
+                if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                    c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
+                else
+                    c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+                end
+                
                 c_integrand = reshape(c_integrand,[1 1 MX d]);
             end
             
@@ -143,7 +148,11 @@ else %% Small data used
     if param.eq_proj_div_free
         c_integrand = reshape(c_integrand,[ (m+1)^2 prod(MX) d]);% (m+1)^2 x M x d
         c_integrand = multitrans(c_integrand);% M x (m+1)^2 x d
-        c_integrand = c_integrand - proj_div_propre(c_integrand,MX);
+        if strcmp(param.type_data, 'turb2D_blocks_truncated')
+            c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
+        else
+            c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+        end
         c_integrand = multitrans(c_integrand);% (m+1)^2 xM x  d
         c_integrand = reshape(c_integrand,[(m+1) (m+1) MX d]);
     end
@@ -257,10 +266,25 @@ I=zeros(m,1);
 for i=1:m
     I=I-lambda(i)*squeeze(C(i,i,:));
 end
-L = L + squeeze(C(m+1,1:m,:))+squeeze(C(1:m,m+1,:)) ; % m x m
 % Keep the unused part of C for other off-line calculation
-param.C_deter_residu=squeeze(C(m+1,1:m,:))+squeeze(C(1:m,m+1,:));
+C_deter_residu = squeeze(C(m+1,1:m,:))+squeeze(C(1:m,m+1,:));
+L = L + C_deter_residu ; % m x m
+param.C_deter_residu = C_deter_residu;
 
 C = C(1:end-1,1:end-1,:); % m x m x m
 
+
+%% Adding terms to take forcing into account
+if isfield(param,'forcing')
+    disp('Forcing taken into consideration')
+    % new term in L
+    L = L + param.forcing.on_T * eye(m); % BETA : Memin's convention is with a +
 end
+
+%% Save
+% name_file_ILC_deter=[ param.folder_results 'ILC_deter_' ...
+name_file_ILC_deter=[ param.folder_data 'ILC_deter_' ...
+    param.type_data '_' num2str(k) '_modes.mat'];
+L_deter = L; C_deter = C;
+save(name_file_ILC_deter,'L_deter','C_deter','C_deter_residu');
+

@@ -33,12 +33,16 @@ else
             param_ref.data_in_blocks.bool
         % if data are saved in several files
         len_blocks=param.data_in_blocks.len_blocks;
+%         param_temp = read_data_blocks(...
+%             [ param.type_whole_data(1:(end-10)) '_test_basis' ],...
+%             param.folder_data);
         param_temp = read_data_blocks(...
             [ param.type_data(1:(end-10)) '_test_basis' ],...
-            folder_data);
+            param.folder_data);
         N_tot= param_temp.data_in_blocks.nb_blocks ...
             * param_temp.data_in_blocks.len_blocks;
         clear param_temp
+        N_tot= floor(N_tot/n_subsampl);
     else
 %         param.data_in_blocks.bool = false;
 %         len_blocks=inf;

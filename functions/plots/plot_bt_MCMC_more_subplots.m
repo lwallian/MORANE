@@ -117,16 +117,25 @@ elseif strcmp(param.type_data, 'incompact3d_wake_episode3_cut')
 %     warning('no values for the total energy and the energy of the mean')
 %     norm0=0;
 %     nrj_varying_tot=0;
+% elseif strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
+    % param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data '0.mat'];
+    % load(param.file_nrj_mU, 'nrj_mU');
+    % norm0=nrj_mU;
+    % param.name_file_pre_c = [param.folder_data param.type_data '_pre_c'];
+    % load(param.name_file_pre_c,'c');
+    % c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    % nrj_varying_tot=trace(c);
 else
-    if param.data_in_blocks.bool % if data are saved in several files
-        % Get some information on how the data are saved
-%         param_blocks=read_data_blocks(param.type_data,param.folder_data);
-%         nb_blocks = param_blocks.data_in_blocks.nb_blocks;
-        nb_blocks = param.data_in_blocks.nb_blocks;
-        param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data num2str(nb_blocks) '.mat'];
-    else
-        param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data '0.mat'];        
-    end
+    % if param.data_in_blocks.bool % if data are saved in several files
+        % % Get some information on how the data are saved
+        % %         param_blocks=read_data_blocks(param.type_data,param.folder_data);
+        % %         nb_blocks = param_blocks.data_in_blocks.nb_blocks;
+        % nb_blocks = param.data_in_blocks.nb_blocks;
+        % param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data num2str(nb_blocks) '.mat'];
+    % else
+        % param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data '0.mat'];
+    % end
+    param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data '0.mat'];
     load(param.file_nrj_mU, 'nrj_mU');
     norm0=nrj_mU;
     param.name_file_pre_c = [param.folder_data param.type_data '_pre_c'];
@@ -270,21 +279,21 @@ hold off;
 %     ax=[time(1) time(end) ...
 %         max([max(abs(bt_forecast_deter(:,k))) ...
 %         max(abs(bt_tot(:,k)))])*[0 1] ];
-
-if strcmp(param.type_data, 'incompact3d_wake_episode3_cut')
-    err_min=0.02;
-%     err_min=0.15;
-end
-% err_min=0.13;
-
-if strcmp(param.type_data, 'LES_3D_tot_sub_sample_blurred')
-    err_min=0.3;
-end
-if strcmp(param.type_data, 'inc3D_Re3900_blocks') ...
-    || strcmp(param.type_data, 'inc3D_Re3900_blocks119') ...
-    || strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')
-    err_min=0.4;
-%     err_min=0.5;
+switch param.type_data
+    case 'incompact3d_wake_episode3_cut'
+        err_min=0.02;
+        %     err_min=0.15;
+        
+        % err_min=0.13;
+        
+    case 'LES_3D_tot_sub_sample_blurred'
+        err_min=0.3;
+    case {'inc3D_Re3900_blocks', 'inc3D_Re3900_blocks119', ...
+            'inc3D_Re3900_blocks_truncated'}
+        err_min=0.4;
+        %     err_min=0.5;
+    otherwise
+        err_min = 0;
 end
 ax=[time(1) time(end) err_min 1 ];
 % ax=[time(1) time(end) 0.3 1 ];

@@ -166,6 +166,6 @@ load(param.name_file_mU,'m_U');
 
 phi_m_U(:,param.nb_modes+1,:)= squeeze(m_U); % param.M x (m+1) x param.d
 clear m_U
-save(param.name_file_mode,'phi_m_U');
-% save(param.name_file_mode,'phi_m_U','-v7.3');
+% save(param.name_file_mode,'phi_m_U');
+save(param.name_file_mode,'phi_m_U','-v7.3');
 

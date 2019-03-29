@@ -16,6 +16,7 @@ bt = permute(bt,[2 1 4 3]); % m x 1 x 1 x nb_pcl
 C = bsxfun(@times,bt,C); % m x m x m x nb_pcl
 C = permute(sum(C,1),[2 3 1 4]); % m x m x 1 x nb_pcl
 
+
 C = bsxfun(@times,bt,C); % m x m x 1 x nb_pcl
 C = permute(sum(C,1),[2 3 1 4]); % m x 1 x 1 x nb_pcl
 

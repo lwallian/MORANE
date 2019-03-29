@@ -39,7 +39,7 @@ clear m_U
 % % save(param.name_file_U_temp,'U','-v7.3');
 % save(param.name_file_U_centered,'U','-v7.3');
 if isfield(param_ref.data_in_blocks,'type_whole_data') % if data are saved in several files
-    save(param.name_file_U_centered,'U')
+    save(param.name_file_U_centered,'U', '-v7.3')
 else
     save(param.name_file_U_centered,'U','-v7.3')
 end

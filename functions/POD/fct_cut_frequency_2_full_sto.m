@@ -1,7 +1,11 @@
 function [rate_dt, ILC,pchol_cov_noises ] = ...
-    fct_cut_frequency_2_full_sto(bt,ILC,param,pchol_cov_noises)
+    fct_cut_frequency_2_full_sto(bt,ILC,param,pchol_cov_noises,modal_dt)
 % Compute how much we can subsample in time the resolved modes with respect to the Shanon
 % criterion
+
+if nargin < 5
+    modal_dt = true;
+end
 
 [N_tot,nb_modes]=size(bt);
 lambda=param.lambda;
@@ -38,13 +42,14 @@ for k=1:nb_modes % loop on number of modes
     idx_temp = min(idx_temp(end)+1,length(freq));
     freq_cut = freq(idx_temp);
     % If the criterion is on the Chronos
-    if strcmp(param.decor_by_subsampl.test_fct,'b')
-        freq_cut = 2 * freq_cut; % Because the evolution equation of temporals modes are quadratics
-%         So, the maximal frequency of the derivates of temporal modes is the
-%         double of the maximal frequency of the temporal modes
-%         Thus, the minimal frequency one should use is the double of the maximal
-%         frequency of the temporal modes.
-    end
+    
+%     if strcmp(param.decor_by_subsampl.test_fct,'b')
+%         freq_cut = 2 * freq_cut; % Because the evolution equation of temporals modes are quadratics
+% %         So, the maximal frequency of the derivates of temporal modes is the
+% %         double of the maximal frequency of the temporal modes
+% %         Thus, the minimal frequency one should use is the double of the maximal
+% %         frequency of the temporal modes.
+%     end
     
     % Shanon criterion allow the following subsample
     n_subsampl_decor=1./(2*freq_cut); % Shanon criterion
@@ -55,6 +60,10 @@ for k=1:nb_modes % loop on number of modes
     n_subsampl_decor=max(n_subsampl_decor,1);
     
     rate_dt(k)=n_subsampl_decor;
+end
+
+if modal_dt == 2
+    rate_dt = min(rate_dt) * ones(size(rate_dt));
 end
 
 fprintf(['The time step is modulated by ' num2str(rate_dt') '\n']);

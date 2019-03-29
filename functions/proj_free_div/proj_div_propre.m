@@ -1,4 +1,4 @@
-function S = proj_div_propre(S,MX,dX)
+function S = proj_div_propre(S,MX,dX, periodic_condition)
 % proj_div_propre = (Id - proj_free_div)
 % with proj_free_div forcing the constraint div(S) = 0
 % Size(S) = M x N x d
@@ -8,6 +8,9 @@ function S = proj_div_propre(S,MX,dX)
 % axis Ox, Oy and Oz
 % d = 2 or 3 is the dimension
 %
+if nargin < 4
+    periodic_condition = false;
+end
 
 bool_dealiasing = true;
 [M,N,d]=size(S);
@@ -17,8 +20,10 @@ bool_real = all(all(all(isreal(S))));
 S=reshape(S,[M N*d])';
 % Extrapole the function to zero outside the domain in order to be able to
 % use Dirichlet conditions
+if ~periodic_condition
+    [S,MX]=extension_to_zero(S,MX);
+end
 
-[S,MX]=extension_to_zero(S,MX);
 
 M=prod(MX);
 S=reshape(S',[M N d]);
@@ -147,8 +152,10 @@ S = reshape(S,[M N d]); % M x N x d
 
 %% Crop to remove the extrapolation
 S=reshape(S,[M N*d])'; % N*d x M
+if ~periodic_condition
+    [S,MX]=crop_extension(S,MX);
+end
 
-[S,MX]=crop_extension(S,MX);
 
 M=prod(MX);
 S=reshape(S',[M N d]);

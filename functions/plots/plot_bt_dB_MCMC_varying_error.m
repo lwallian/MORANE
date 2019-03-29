@@ -1,24 +1,37 @@
-function plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,...
+function [ idx_min_error, idx_min_err_tot] = ...
+    plot_bt_dB_MCMC_varying_error(...
+    param,bt_forecast_sto_scalar,bt_forecast_sto_beta,...
     bt_forecast_sto_a_cst_modal_dt, bt_forecast_sto_a_NC_modal_dt, bt_forecast_deter, ...
     bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC)
 % Plot the sum of the error along time (in log scale)
 %
 
+clear height
 % logscale =true
 logscale =false
 
-clear height
+LineWidth = 1;
+% FontSize = 6;
+% FontSizeTtitle = 7;
+% width=0.7;
+% height=0.45;
+FontSize = 10;
+FontSizeTtitle = 11;
+width=1;
+height=0.7;
 
-width=2;
-height=1.5;
-% width=6;
-% height=2.4;
-% % width=2;
-% % height=1.6;
-% % % width=2.5;
+height = height*3/2;
+
+% width=2;
+% height=1.5;
+% % width=6;
+% % height=2.4;
+% % % width=2;
 % % % height=1.6;
-% % % % width=1.5;
-% % % % height=1.2;
+% % % % width=2.5;
+% % % % height=1.6;
+% % % % % width=1.5;
+% % % % % height=1.2;
 
 % width=2;
 % % width=1.5;
@@ -51,18 +64,26 @@ bt_MCMC=bt_MCMC(1:N_test,:,:);
 struct_bt_MCMC.tot.mean=struct_bt_MCMC.tot.mean(1:N_test,:);
 struct_bt_MCMC.tot.var=struct_bt_MCMC.tot.var(1:N_test,:);
 struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
-struct_bt_MCMC.fv.mean=struct_bt_MCMC.fv.mean(1:N_test,:);
-struct_bt_MCMC.fv.var=struct_bt_MCMC.fv.var(1:N_test,:);
-struct_bt_MCMC.fv.one_realiz=struct_bt_MCMC.fv.one_realiz(1:N_test,:);
-struct_bt_MCMC.m.mean=struct_bt_MCMC.m.mean(1:N_test,:);
-struct_bt_MCMC.m.var=struct_bt_MCMC.m.var(1:N_test,:);
-struct_bt_MCMC.m.one_realiz=struct_bt_MCMC.m.one_realiz(1:N_test,:);
+% struct_bt_MCMC.fv.mean=struct_bt_MCMC.fv.mean(1:N_test,:);
+% struct_bt_MCMC.fv.var=struct_bt_MCMC.fv.var(1:N_test,:);
+% struct_bt_MCMC.fv.one_realiz=struct_bt_MCMC.fv.one_realiz(1:N_test,:);
+% struct_bt_MCMC.m.mean=struct_bt_MCMC.m.mean(1:N_test,:);
+% struct_bt_MCMC.m.var=struct_bt_MCMC.m.var(1:N_test,:);
+% struct_bt_MCMC.m.one_realiz=struct_bt_MCMC.m.one_realiz(1:N_test,:);
+
+% BETA : confidence interval
+struct_bt_MCMC.qtl = struct_bt_MCMC.qtl(1:N_test,:);
+struct_bt_MCMC.diff = struct_bt_MCMC.diff(1:N_test,:);
+% end BETA
+
 % struct_bt_MCMC=struct_bt_MCMC(1:N_test,:);
 bt_tot=bt_tot(1:N_test,:);
 bt_forecast_deter=bt_forecast_deter(1:N_test,:);
 bt_forecast_MEV=bt_forecast_MEV(1:N_test,:);
 bt_sans_coef1=bt_sans_coef1(1:N_test,:);
-param.truncated_error2=param.truncated_error2(1:N_test,:);
+if ~ param.reconstruction
+    param.truncated_error2=param.truncated_error2(1:N_test,:);
+end
 N_test=N_test-1;
 
 dt_tot=param.dt;
@@ -81,15 +102,37 @@ time_ref = time;
 if strcmp(param.type_data, 'LES_3D_tot_sub_sample_blurred')
     nrj_varying_tot=18.2705;
     load resultats/nrj_mean_LES3900;
+elseif strcmp(param.type_data, 'inc3D_Re300_40dt_blocks_truncated') ...
+        || strcmp(param.type_data, 'inc3D_Re300_40dt_blocks')
+    param.file_nrj_mU=[ param.folder_results '_nrj_mU_' ...
+        param.type_data '0.mat'];
+    load(param.file_nrj_mU, 'nrj_mU');
+    norm0=nrj_mU;
+    param.name_file_pre_c = [param.folder_data param.type_data '_pre_c'];
+    param_ref=param;
+    load(param.name_file_pre_c,'c','param');
+    param_c = param; param=param_ref;clear param_ref;
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    c=c*prod(param.dX)/param_c.N_tot;
+    %     load(param.name_file_pre_c,'c');
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    nrj_varying_tot=trace(c);
+    
 elseif strcmp(param.type_data, 'inc3D_Re3900_blocks') ...
         || strcmp(param.type_data, 'inc3D_Re3900_blocks119')
     %     warning(' the value of nrj_varying_tot is wrong');
     %     nrj_varying_tot=21;
     %     norm0=16;
     load resultats/nrj_mean_DNS3900blurred;
-    load([ param.folder_data 'inc3D_Re3900_blocks_pre_c.mat'],'c');
-    %     c=c*prod(param.dX)/(param.N_tot_old*param.decor_by_subsampl.n_subsampl_decor-1);
-    c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    param.name_file_pre_c = [param.folder_data param.type_data '_pre_c'];
+    param_ref=param;
+    load(param.name_file_pre_c,'c','param');
+    param_c = param; param=param_ref;clear param_ref;
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    c=c*prod(param.dX)/param_c.N_tot;
+    %     load([ param.folder_data 'inc3D_Re3900_blocks_pre_c.mat'],'c');
+    %     %     c=c*prod(param.dX)/(param.N_tot_old*param.decor_by_subsampl.n_subsampl_decor-1);
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
     nrj_varying_tot=trace(c);
     %     keyboard;
 elseif strcmp(param.type_data, 'incompact3d_wake_episode3_cut')
@@ -97,10 +140,15 @@ elseif strcmp(param.type_data, 'incompact3d_wake_episode3_cut')
     load(param.file_nrj_mU, 'nrj_mU');
     norm0=nrj_mU;
     param.name_file_pre_c = [param.folder_data param.type_data '_pre_c'];
-    load(param.name_file_pre_c,'c');
-    %     load(['resultats/nrj_mean_' param.type_data ' .mat']);
-    %     load([ param.folder_data param.type_data ' .mat'],'c');
-    c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    param_ref=param;
+    load(param.name_file_pre_c,'c','param');
+    param_c = param; param=param_ref;clear param_ref;
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    c=c*prod(param.dX)/param_c.N_tot;
+    %     load(param.name_file_pre_c,'c');
+    %     %     load(['resultats/nrj_mean_' param.type_data ' .mat']);
+    %     %     load([ param.folder_data param.type_data ' .mat'],'c');
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
     nrj_varying_tot=trace(c);
     %     keyboard;
     % elseif strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')
@@ -119,30 +167,79 @@ elseif strcmp(param.type_data, 'incompact3d_wake_episode3_cut')
     %     norm0=0;
     %     nrj_varying_tot=0;
 else
-    if param.data_in_blocks.bool % if data are saved in several files
-        % Get some information on how the data are saved
-        %         param_blocks=read_data_blocks(param.type_data,param.folder_data);
-        %         nb_blocks = param_blocks.data_in_blocks.nb_blocks;
-        nb_blocks = param.data_in_blocks.nb_blocks;
-        param.file_nrj_mU=[ param.folder_results '_nrj_mU_' ...
-            param.type_data num2str(nb_blocks) '.mat'];
+    % BETA if param.data_in_blocks.bool % if data are saved in several files
+    % Get some information on how the data are saved
+    %         param_blocks=read_data_blocks(param.type_data,param.folder_data);
+    %         nb_blocks = param_blocks.data_in_blocks.nb_blocks;
+    %         nb_blocks = param.data_in_blocks.nb_blocks;
+    %         param.file_nrj_mU=[ param.folder_results '_nrj_mU_' ...
+    %             param.type_data num2str(nb_blocks) '.mat'];
+    %     else
+    param.file_nrj_mU=[ param.folder_results '_nrj_mU_' ...
+        param.type_data '0.mat'];
+    % BETA end
+    if exist(param.file_nrj_mU,'file')==2
+        load(param.file_nrj_mU, 'nrj_mU');
     else
-        param.file_nrj_mU=[ param.folder_results '_nrj_mU_' ...
-            param.type_data '0.mat'];
+        %         if isfield(param.data_in_blocks,'type_whole_data') % if data are saved in several files
+        %             type_data_mU=[param.data_in_blocks.type_whole_data num2str(0)];
+        %         else
+        %             type_data_mU=[param.type_data num2str(0)];
+        %         end
+        type_data_mU=[param.type_data num2str(0)];
+        param.name_file_mU=[param.folder_data type_data_mU '_U_centered'];
+        load(param.name_file_mU,'m_U');
+        
+        switch param.type_data
+            case {'incompact3d_wake_episode3_cut_truncated',...
+                    'incompact3D_noisy2D_40dt_subsampl',...
+                    'incompact3D_noisy2D_40dt_subsampl_truncated',...
+                    'inc3D_Re300_40dt_blocks', 'inc3D_Re300_40dt_blocks_truncated', 'inc3D_Re300_40dt_blocks_test_basis',...
+                    'inc3D_Re3900_blocks', 'inc3D_Re3900_blocks_truncated', 'inc3D_Re3900_blocks_test_basis',...
+                    'DNS300_inc3d_3D_2017_04_02_blocks', 'DNS300_inc3d_3D_2017_04_02_blocks_truncated',...
+                    'DNS300_inc3d_3D_2017_04_02_blocks_test_basis',...
+                    'test2D_blocks', 'test2D_blocks_truncated', 'test2D_blocks_test_basis',...
+                    'small_test_in_blocks', 'small_test_in_blocks_truncated',...
+                    'small_test_in_blocks_test_basis',...
+                    'DNS100_inc3d_2D_2018_11_16_blocks',...
+                    'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
+                    'DNS100_inc3d_2D_2018_11_16_blocks_test_basis',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis',...
+                    'inc3D_HRLESlong_Re3900_blocks',...
+                    'inc3D_HRLESlong_Re3900_blocks_truncated',...
+                    'inc3D_HRLESlong_Re3900_blocks_test_basis'}
+                m_U(:,:,1)=m_U(:,:,1)-1;
+        end
+        nrj_mU = sum(m_U(:).^2)*prod(param.dX);
+        param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data '.mat'];
+        % param.file_nrj_mU=[ param.folder_results '_nrj_mU_' param.type_data '.mat'];
+        mkdir(param.folder_results)
+        save(param.file_nrj_mU, 'nrj_mU');
     end
-    load(param.file_nrj_mU, 'nrj_mU');
     norm0=nrj_mU;
     param.name_file_pre_c = [param.folder_data param.type_data '_pre_c'];
-    load(param.name_file_pre_c,'c');
-    c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    param_ref=param;
+    load(param.name_file_pre_c,'c','param');
+    param_c = param; param=param_ref;clear param_ref;
+    %     c=c*prod(param.dX)/(param.N_tot*param.decor_by_subsampl.n_subsampl_decor-1);
+    c=c*prod(param.dX)/param_c.N_tot;
     nrj_varying_tot=trace(c);
 end
 
 nrj_mean = norm0; clear norm0;
 nrj_tot=nrj_mean+nrj_varying_tot;
-err_fix =  param.truncated_error2/nrj_tot;
-% err_fix =  (nrj_varying_tot - sum(param.lambda))/nrj_tot
 
+if param.reconstruction
+    err_fix =  ((nrj_varying_tot - sum(param.lambda))/nrj_tot) * ...
+        ones(param.N_test,1) ;
+else
+    err_fix =  param.truncated_error2/nrj_tot ;
+end
+% err_fix =  zeros(size(err_fix));
+
+bt_0 = sum((bt_tot).^2,2)/nrj_tot+err_fix;
 % %     keyboard;
 % % err_fix =  1- (nrj_mean+sum(param.lambda))/nrj_tot;
 % bt_forecast_sto_a_cst_modal_dt = sum((bt_forecast_sto_a_cst_modal_dt-bt_tot).^2,2)/nrj_tot+err_fix;
@@ -155,26 +252,57 @@ bt_sans_coef1 = sum((bt_sans_coef1-bt_tot).^2,2)/nrj_tot+err_fix;
 bt_forecast_MEV = sum((bt_forecast_MEV-bt_tot).^2,2)/nrj_tot+err_fix;
 struct_bt_MCMC.tot.mean = sum((struct_bt_MCMC.tot.mean-bt_tot).^2,2)/nrj_tot+err_fix;
 struct_bt_MCMC.tot.one_realiz = sum((struct_bt_MCMC.tot.one_realiz-bt_tot).^2,2)/nrj_tot+err_fix;
-struct_bt_MCMC.fv.mean = sum((struct_bt_MCMC.fv.mean-bt_tot).^2,2)/nrj_tot+err_fix;
+% struct_bt_MCMC.fv.mean = sum((struct_bt_MCMC.fv.mean-bt_tot).^2,2)/nrj_tot+err_fix;
 
 bt_MCMC = sum(( bsxfun(@minus, bt_MCMC, bt_tot) ).^2,2)/nrj_tot;
-bt_MCMC_min_error = min(bt_MCMC,[],3)+err_fix;
+err_tot = sum(bt_MCMC,1);
+[ err_tot_min, idx_min_err_tot] = min(err_tot,[],3);
+[ bt_MCMC_min_error, idx_min_error] = min(bt_MCMC,[],3);
+bt_MCMC_min_error = bt_MCMC_min_error+err_fix;
+% bt_MCMC_min_error = min(bt_MCMC,[],3)+err_fix;
 bt_MCMC_RMSE = mean(bt_MCMC,3)+err_fix;
 clear bt_MCMC
 struct_bt_MCMC.tot.var = struct_bt_MCMC.tot.var/nrj_tot;
 
 %%
 
-if param.nb_modes==2 || param.nb_modes > 16
+if param.nb_modes==2
+    % if param.nb_modes==2 || param.nb_modes > 16
     figure1=figure(1);
     close(figure1)
     switch param.type_data
+        case {'turb2D_blocks_truncated'}
+            figure('Units','inches', ...
+                'Position',[X0(1) X0(2) 6*width 4*height], ...
+                'PaperPositionMode','auto');
         case 'incompact3d_wake_episode3_cut'
             figure('Units','inches', ...
                 'Position',[X0(1) X0(2) width height], ...
                 'PaperPositionMode','auto');
         case {'incompact3d_wake_episode3_cut_truncated', ...
                 'incompact3d_wake_episode3_cut_test_basis'}
+            figure('Units','inches', ...
+                'Position',[X0(1) X0(2) 6*width 4*height], ...
+                'PaperPositionMode','auto');
+            %             figure('Units','inches', ...
+            %                 'Position',[X0(1) X0(2) 6*width 4*height], ...
+            %                 'PaperPositionMode','auto');
+            % %             figure('Units','inches', ...
+            % %                 'Position',[X0(1) X0(2) 3*width 2*height], ...
+            % %                 'PaperPositionMode','auto');
+        case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'}
+            figure('Units','inches', ...
+                'Position',[X0(1) X0(2) 4*width 4*height], ...
+                'PaperPositionMode','auto');
+            %                 'Position',[X0(1) X0(2) 4*width 4*height], ...
+            %                 'PaperPositionMode','auto');
+            %             %             figure('Units','inches', ...
+            %             %                 'Position',[X0(1) X0(2) 6*width 4*height], ...
+            %             %                 'PaperPositionMode','auto');
+            %             % %             figure('Units','inches', ...
+            %             % %                 'Position',[X0(1) X0(2) 3*width 2*height], ...
+            %             % %                 'PaperPositionMode','auto');
+        case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             figure('Units','inches', ...
                 'Position',[X0(1) X0(2) 4*width 4*height], ...
                 'PaperPositionMode','auto');
@@ -186,7 +314,6 @@ if param.nb_modes==2 || param.nb_modes > 16
             % %                 'PaperPositionMode','auto');
         case {'LES_3D_tot_sub_sample_blurred','inc3D_Re3900_blocks', ...
                 'inc3D_Re3900_blocks119'}
-            close all;
             figure('Units','inches', ...
                 'Position',[X0(1) X0(2) 6*width 8*height], ...
                 'PaperPositionMode','auto');
@@ -199,19 +326,23 @@ if param.nb_modes==2 || param.nb_modes > 16
             %         % %             'Position',[X0(1) X0(2) 2*width 4*height], ...
             %         % %             'PaperPositionMode','auto');
         case 'inc3D_Re3900_blocks_truncated'
-            close all;
             figure('Units','inches', ...
                 'Position',[X0(1) X0(2) 4*width 4*height], ...
                 'PaperPositionMode','auto');
             %             figure('Units','inches', ...
             %                 'Position',[X0(1) X0(2) 3*width 2*height], ...
             %                 'PaperPositionMode','auto');
+        otherwise
+            figure('Units','inches', ...
+                'Position',[X0(1) X0(2) 4*width 4*height], ...
+                'PaperPositionMode','auto');
     end
     %     figure('Units','inches', ...
     %         'Position',[X0(1) X0(2) 4*width 2*height], ...
     %         'PaperPositionMode','auto');
 else
     figure(1);
+    %     figure(param.nb_modes + 1);
 end
 %  if param.nb_modes==4 && strcmp(param.type_data, 'inc3D_Re3900_blocks119')
 %       figure('Units','inches', ...
@@ -226,20 +357,49 @@ if strcmp(param.type_data, 'LES_3D_tot_sub_sample_blurred') ...
     %     subplot(4,4,param.nb_modes/2);
     % %     subplot(2,4,param.nb_modes/2);
     % % %     subplot(4,2,param.nb_modes/2);
-elseif strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')
-    if param.nb_modes<= 16
-        subplot(2,2,log2(param.nb_modes));
-    end
+elseif strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')...
+        || strcmp(param.type_data, 'turb2D_blocks_truncated')
+    %     if param.nb_modes<= 16
+    %         subplot(2,2,log2(param.nb_modes));
+    %     end
+    subplot(2,3,log2(param.nb_modes));
     
     
     %     subplot(2,3,log2(param.nb_modes));
     % %     subplot(4,4,param.nb_modes/2);
     % % %     subplot(2,4,param.nb_modes/2);
     % % % %     subplot(4,2,param.nb_modes/2);
-elseif strcmp(param.type_data, 'incompact3d_wake_episode3_cut_truncated') ...
-        && (param.nb_modes<=16)
-    subplot(2,2,log2(param.nb_modes));
+    
+    % elseif ( strcmp(param.type_data, 'incompact3d_wake_episode3_cut_truncated')  ) ...
+    %         && (param.nb_modes<=16)
     %     subplot(2,3,log2(param.nb_modes));
+    % %     if log2(param.nb_modes) == 3
+    % %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
+    % % %         subplot(2,2,0.51+log2(param.nb_modes));
+    % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
+    % %     end
+elseif strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
+    subplot(2,2,param.nb_modes/2);
+    %     subplot(3,2,log2(param.nb_modes));
+    % % elseif ( strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated') ) ...
+    % %         && (param.nb_modes<=16)
+    % %     subplot(2,2,log2(param.nb_modes));
+    % % %     if log2(param.nb_modes) == 3
+    % % %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
+    % % % %         subplot(2,2,0.51+log2(param.nb_modes));
+    % % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
+    % % %     end
+elseif ( strcmp(param.type_data, 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') ) ...
+        && (param.nb_modes<=16)
+    %     subplot(2,2,(param.nb_modes)/2);
+    subplot(2,2,log2(param.nb_modes));
+    %     if log2(param.nb_modes) == 3
+    %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
+    % %         subplot(2,2,0.51+log2(param.nb_modes));
+    % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
+    %     end
+else
+    subplot(2,2,(param.nb_modes)/2);
 end
 k=1;
 
@@ -247,7 +407,8 @@ k=1;
 
 hold on;
 
-delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
+delta = sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
+% delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
 h = area (time_ref, [sqrt(err_fix), ...
     delta]);
 %     set(h(1),'FaceColor',[0,0.25,0.25]);
@@ -260,33 +421,38 @@ set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
 % from being hidden by the grayed area
 set (gca, 'Layer', 'top');
 
-plot(time,sqrt(struct_bt_MCMC.tot.one_realiz(:,k))','y');
+plot(time,sqrt(bt_0),'k', 'LineWidth', LineWidth);
+% plot(time,sqrt(struct_bt_MCMC.tot.one_realiz(:,k))','y', 'LineWidth', LineWidth);
+plot(time,sqrt(err_fix),'--k', 'LineWidth', LineWidth);
+
 if plot_deter
-    plot(time,sqrt(bt_forecast_deter(:,k))','b');
+    plot(time,sqrt(bt_forecast_deter(:,k))','b', 'LineWidth', LineWidth);
 end
-plot(time,sqrt(bt_sans_coef1(:,k))','r--');
-
-plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g');
-% plot(time,sqrt(struct_bt_MCMC.fv.mean(:,k))','c');
-
-plot(time,sqrt(bt_MCMC_min_error(:,k))','m');
-plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m');
-
 if plot_EV
-    plot(time,sqrt(bt_forecast_MEV(:,k))','g');
+    plot(time,sqrt(bt_forecast_MEV(:,k))','b--', 'LineWidth', LineWidth);
+    %     plot(time,sqrt(bt_forecast_MEV(:,k))','g', 'LineWidth', LineWidth);
 end
+% plot(time,sqrt(bt_sans_coef1(:,k))','r--', 'LineWidth', LineWidth);
+
+plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
+% plot(time,sqrt(struct_bt_MCMC.fv.mean(:,k))','c', 'LineWidth', LineWidth);
+
+plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
+% plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
+plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
+
 % if plot_modal_dt
-%     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or');
-%     plot(time,sqrt(bt_forecast_sto_a_NC_modal_dt(:,k))','om');
+%     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);
+%     plot(time,sqrt(bt_forecast_sto_a_NC_modal_dt(:,k))','om', 'LineWidth', LineWidth);
 % end
-plot([time(1) time(end)],[1 1],'k');
-plot([time(1) time(end)],[1 1]*sqrt((1-nrj_mean/nrj_tot)),'k');
-plot(time,sqrt(err_fix),'--k');
-% plot([time(1) time(end)],[1 1]*sqrt(err_fix),'--k');
 
 hold off;
 
 %%
+
+if ~logscale
+    err_min=0;
+end
 
 %     ax=[time(1) time(end) ...
 %         max([max(abs(bt_forecast_deter(:,k))) ...
@@ -326,22 +492,13 @@ switch param.type_data
         err_min=0;
 end
 ax=[time(1) time(end) err_min 1 ];
-% ax=[time(1) time(end) 0.3 1 ];
-% %     ax=[time(1) time(end) sqrt(0.09) 1 ];
-% % %     ax=[time(1) time(end) 0 40 ];
-YTick=[ax(3) sqrt([err_fix(1) (1-nrj_mean/nrj_tot) 1])];
-%     YTick=[ax(3) sqrt([err_fix bt_sans_coef_a_NC(end) (1-nrj_mean/nrj_tot) 1])];
-%     ax=[time(1) time(end) max(abs(bt_tot(:,k)))*[-1 1] ];
-%     ax=axis;
-%     ax([3 4])=max(abs(bt_tot(:,k)))*[-1 1];
-%             'Position',[.15 .2 .75 .7],...
 axis(ax)
 if logscale
     %     set(gca,...
     %         'Units','normalized',...
     %         'FontUnits','points',...
     %         'FontWeight','normal',...
-    %         'FontSize',11,...
+    %         'FontSize',FontSize,...
     %         'FontName','Times',...
     %         'YTick',YTick,...
     %         'YScale','log')
@@ -350,7 +507,7 @@ if logscale
         'Units','normalized',...
         'FontUnits','points',...
         'FontWeight','normal',...
-        'FontSize',11,...
+        'FontSize',FontSize,...
         'FontName','Times',...
         'YScale','log')
     %     set(gca,...
@@ -358,14 +515,14 @@ if logscale
     %         'Units','normalized',...
     %         'FontUnits','points',...
     %         'FontWeight','normal',...
-    %         'FontSize',11,...
+    %         'FontSize',FontSize,...
     %         'FontName','Times',...
     %         'YTick',YTick,...
     %         'YScale','log')
     ylabel({'error(log)'},...
         'FontUnits','points',...
         'interpreter','latex',...
-        'FontSize',11,...
+        'FontSize',FontSize,...
         'FontName','Times')
 else
     set(gca,...
@@ -373,31 +530,32 @@ else
         'Units','normalized',...
         'FontUnits','points',...
         'FontWeight','normal',...
-        'FontSize',11,...
+        'FontSize',FontSize,...
         'FontName','Times')
     %         'FontName','Times',...
     %         'YTick',YTick)
-    ylabel({'error'},...
+    ylabel({'norm. error'},...
         'FontUnits','points',...
         'interpreter','latex',...
-        'FontSize',11,...
+        'FontSize',FontSize,...
         'FontName','Times')
     
     
     if strcmp(param.type_data,'incompact3d_wake_episode3_cut_truncated')
-        ax=[time(1) time(end) err_min 0.27 ];
+        ax=[time(1) time(end) err_min 0.37 ];
+        %         ax=[time(1) time(end) err_min 0.27 ];
     end
 end
 xlabel('Time',...
     'FontUnits','points',...
     'FontWeight','normal',...
-    'FontSize',11,...
+    'FontSize',FontSize,...
     'FontName','Times')
 title(['$n=' num2str(param.nb_modes) '$'],...
     'FontUnits','points',...
     'FontWeight','normal',...
     'interpreter','latex',...
-    'FontSize',12,...
+    'FontSize',FontSizeTtitle,...
     'FontName','Times')
 
 axis(ax)
@@ -420,7 +578,7 @@ if logscale && strcmp(param.type_data,'inc3D_Re3900_blocks_truncated')
     %         'Units','normalized',...
     %         'FontUnits','points',...
     %         'FontWeight','normal',...
-    %         'FontSize',11,...
+    %         'FontSize',FontSize,...
     %         'FontName','Times',...
     %         'XTickMode','auto',...
     %         'YScale','log')
@@ -429,7 +587,7 @@ if logscale && strcmp(param.type_data,'inc3D_Re3900_blocks_truncated')
         'Units','normalized',...
         'FontUnits','points',...
         'FontWeight','normal',...
-        'FontSize',11,...
+        'FontSize',FontSize,...
         'FontName','Times',...
         'YTick',YTick,...
         'YScale','log')
@@ -447,26 +605,26 @@ threshold(iii)='_';
 
 
 
-warning('Coefficients modified to study sensibility');
-param.folder_results = [param.folder_results 'sensibility_x_' ...
-    num2str(param.coef_sensitivity) '/'];
-
-% eval( ['print -depsc ' param.folder_results 'sum_modes_n=' num2str(param.nb_modes) '.eps']);
-if isfield(param,'test_basis') && param.test_basis
-    eval( ['print -depsc ' param.folder_results ...
-        param.type_data '_' ...
-        'sum_modes_n=' num2str(param.nb_modes) ...
-        '_trshld' threshold ...
-        '_test_basis.eps']);
-    
-else
-    eval( ['print -depsc ' param.folder_results ...
-        param.type_data '_' ...
-        'sum_modes_n=' num2str(param.nb_modes) ...
-        '_trshld' threshold '.eps']);
-end
-% eval( ['print -depsc ' param.folder_results ...
-%     'sum_modes_n=' num2str(param.nb_modes) ...
-%     '_a_t' num2str(param.a_time_dependant) ...
-%     '_trshld' num2str(param.decor_by_subsampl.spectrum_threshold) '.eps']);
+% warning('Coefficients modified to study sensibility');
+% param.folder_results = [param.folder_results 'sensibility_x_' ...
+%     num2str(param.coef_sensitivity) '/'];
+%
+% % eval( ['print -depsc ' param.folder_results 'sum_modes_n=' num2str(param.nb_modes) '.eps']);
+% if isfield(param,'test_basis') && param.test_basis
+%     eval( ['print -depsc ' param.folder_results ...
+%         param.type_data '_' ...
+%         'sum_modes_n=' num2str(param.nb_modes) ...
+%         '_trshld' threshold ...
+%         '_test_basis.eps']);
+%
+% else
+%     eval( ['print -depsc ' param.folder_results ...
+%         param.type_data '_' ...
+%         'sum_modes_n=' num2str(param.nb_modes) ...
+%         '_trshld' threshold '.eps']);
+% end
+% % eval( ['print -depsc ' param.folder_results ...
+% %     'sum_modes_n=' num2str(param.nb_modes) ...
+% %     '_a_t' num2str(param.a_time_dependant) ...
+% %     '_trshld' num2str(param.decor_by_subsampl.spectrum_threshold) '.eps']);
 

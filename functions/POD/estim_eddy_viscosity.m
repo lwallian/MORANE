@@ -76,6 +76,7 @@ clear d_bt_obs d_b_deter
 X=X(:);
 Y=Y(:);
 eddy_visco = (X'*X)\(X'*Y);
+eddy_visco = max([0 eddy_visco]);
 
 I_deter=ILC.deter.I;
 L_deter=ILC.deter.L;

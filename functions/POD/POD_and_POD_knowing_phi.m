@@ -30,6 +30,8 @@ if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
     param.name_file_mode = param_ref.name_file_mode ;
     param.folder_results = param_ref.folder_results ;
     param.folder_data = param_ref.folder_data ;
+    param.adv_corrected = param_ref.adv_corrected;
+    param.save_bi_before_subsampling = param_ref.save_bi_before_subsampling;
     clear param_ref
 else
     [c,param]=fct_c_POD(param_ref);
@@ -89,6 +91,13 @@ end
 bt=bt(:,1:nb_modes);
 lambda=lambda(1:nb_modes);
 param.lambda=lambda;
+
+
+if param.save_bi_before_subsampling
+    save([ param.folder_results 'modes_bi_before_subsampling_' param.type_data ...
+        '_nb_modes_' num2str(nb_modes) '.mat'],'bt','param');
+end
+% keyboard;
 
 disp('SVD of c in POD done')
 
@@ -174,12 +183,17 @@ n_subsampl_decor=param.decor_by_subsampl.n_subsampl_decor
 % param_temp = param;
 % param_temp.a_time_dependant=true;
 % name_file_temp = fct_file_save_1st_result(param_temp);
+
+param = fct_name_file_noise_cov(param);
 param_temp = param;
 param_temp.a_time_dependant = true;
 param = fct_name_file_diffusion_mode(param);
 param_temp = fct_name_file_diffusion_mode(param_temp);
-bool = (exist(param.name_file_diffusion_mode,'file')==2) || ...
-        (exist(param_temp.name_file_diffusion_mode,'file')==2);
+bool = (exist(param.name_file_noise_cov,'file')==2 ) && ( ...
+    (exist(param.name_file_diffusion_mode,'file')==2) || ...
+        (exist(param_temp.name_file_diffusion_mode,'file')==2) );
+% bool = (exist(param.name_file_diffusion_mode,'file')==2) || ...
+%         (exist(param_temp.name_file_diffusion_mode,'file')==2);
 
 % Subsample residual velocity
 if ~ bool
@@ -188,7 +202,7 @@ if ~ bool
     % Subsample snapshots
     param = sub_sample_U(param);
 else
-     param = gen_file_U_temp(param)
+    param = gen_file_U_temp(param);
 end
 
 %     end

@@ -8,7 +8,6 @@ load(param.name_file_mode)
 phi_m_U(:,param.nb_modes+1,:)=[];
 phi=phi_m_U; clear phi_m_U
 
-
 %% Initialization
 t_local=1; % index of the snapshot in a file
 if param.data_in_blocks.bool % if data are saved in several files
@@ -17,7 +16,7 @@ if param.data_in_blocks.bool % if data are saved in several files
 else
     name_file_U_temp=param.name_file_U_temp; % Name of the next file
 end
-
+big_T_max = size(param.name_file_U_temp,2); %BETA PARAMETER
 
 %% Remove resolved modes
 if param.big_data
@@ -27,19 +26,26 @@ if param.big_data
         if t_local > size(U,2) % A new file needs to be loaded
             % Save previous file with residual velocity
             save(name_file_U_temp,'U','-v7.3');
+            
             % initialization of the index of the snapshot in the file
             t_local=1;
             % Incrementation of the file index
             big_T = big_T+1;
+            if big_T > big_T_max % BETA IF CLAUSE
+                break
+            end
             % Name of the new file
             name_file_U_temp=param.name_file_U_temp{big_T};
             % Load new file
             load(name_file_U_temp);
+
+
         end
         for p=1:param.nb_modes
             % Remove p-th resolved mode at time t
             for k=1:param.d
                 U(:,t_local,k) = U(:,t_local,k) - phi(:,p,k)*bt(t,p)';
+%                 U(:,:,k) = U(:,:,k) - phi(:,p,k)*bt(t,p)'
             end
         end
         % Incrementation of the index of the snapshot in the file

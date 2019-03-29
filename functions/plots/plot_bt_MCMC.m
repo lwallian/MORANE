@@ -8,7 +8,8 @@ clear height
 beamer=true;
 
 plot_deter=param.plot.plot_deter;
-plot_EV=false;
+plot_EV=param.plot.plot_EV;
+% plot_EV=false;
 plot_tuned=false;
 plot_modal_dt=false;
 
@@ -50,9 +51,9 @@ param.type_data
 if isfield(param,'N_tot')
     N_tot=param.N_tot;
     N_test=param.N_test;
-else
-    N_tot=300;
-    N_test=299;
+% else
+%     N_tot=300;
+%     N_test=299;
 end
 
 % warning('N_test is changed');
@@ -61,14 +62,21 @@ end
 struct_bt_MCMC.tot.mean=struct_bt_MCMC.tot.mean(1:N_test,:);
 struct_bt_MCMC.tot.var=struct_bt_MCMC.tot.var(1:N_test,:);
 struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
-struct_bt_MCMC.fv.mean=struct_bt_MCMC.fv.mean(1:N_test,:);
-struct_bt_MCMC.fv.var=struct_bt_MCMC.fv.var(1:N_test,:);
-struct_bt_MCMC.fv.one_realiz=struct_bt_MCMC.fv.one_realiz(1:N_test,:);
-struct_bt_MCMC.m.mean=struct_bt_MCMC.m.mean(1:N_test,:);
-struct_bt_MCMC.m.var=struct_bt_MCMC.m.var(1:N_test,:);
-struct_bt_MCMC.m.one_realiz=struct_bt_MCMC.m.one_realiz(1:N_test,:);
+% struct_bt_MCMC.fv.mean=struct_bt_MCMC.fv.mean(1:N_test,:);
+% struct_bt_MCMC.fv.var=struct_bt_MCMC.fv.var(1:N_test,:);
+% struct_bt_MCMC.fv.one_realiz=struct_bt_MCMC.fv.one_realiz(1:N_test,:);
+% struct_bt_MCMC.m.mean=struct_bt_MCMC.m.mean(1:N_test,:);
+% struct_bt_MCMC.m.var=struct_bt_MCMC.m.var(1:N_test,:);
+% struct_bt_MCMC.m.one_realiz=struct_bt_MCMC.m.one_realiz(1:N_test,:);
+
+% BETA : confidence interval
+struct_bt_MCMC.qtl = struct_bt_MCMC.qtl(1:N_test,:);
+struct_bt_MCMC.diff = struct_bt_MCMC.diff(1:N_test,:);
+% end BETA
+
 % struct_bt_MCMC=struct_bt_MCMC(1:N_test,:);
 bt_tot=bt_tot(1:N_test,:);
+bt_forecast_MEV=bt_forecast_MEV(1:N_test,:);
 bt_forecast_deter=bt_forecast_deter(1:N_test,:);
 bt_sans_coef1=bt_sans_coef1(1:N_test,:);
 struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
@@ -80,9 +88,10 @@ time=(1:(N_test+1))*dt_tot;
 time_ref = time;
 
 
-warning('Coefficients modified to study sensibility');
-param.folder_results = [param.folder_results 'sensibility_x_' ...
-    num2str(param.coef_sensitivity) '/'];
+% warning('Coefficients modified to study sensibility');
+% param.folder_results = [param.folder_results 'sensibility_x_' ...
+%     num2str(param.coef_sensitivity) '/'];
+% mkdir(param.folder_results)
 
 for k=1:nb_modes
     
@@ -122,13 +131,16 @@ for k=1:nb_modes
     hold on;
 %     axis([0 10 2*param.lambda(k)*[-1 1]])
     %%
-    delta = 1.96 * sqrt (abs (struct_bt_MCMC.tot.var(:,k)));
+ delta = 1 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
+%  delta = 1.96 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
+
 % %     h(2) = area (time_ref,  2 * delta);
 % %     h(1) = area (time_ref,struct_bt_MCMC.tot.mean(:,k) - delta);
 %     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
 %         struct_bt_MCMC.tot.mean(:,k) + delta]);
-    h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-        2*delta]);
+    h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
+%     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+%         2*delta]); % DEFAULT
 %     set(h(1),'FaceColor',[0,0.25,0.25]);
 %     set(h(2),'FaceColor',[0,0.5,0.5]);
     set (h(1), 'FaceColor', 'none');
@@ -159,7 +171,8 @@ for k=1:nb_modes
 %     plot(time_ref,struct_bt_MCMC.tot.one_realiz(:,k)','y');
 
     if plot_EV
-        plot(time, (bt_forecast_MEV(:,k))','g');
+        plot(time, (bt_forecast_MEV(:,k))','b--');
+%         plot(time, (bt_forecast_MEV(:,k))','g');
     end
     
     
@@ -231,7 +244,8 @@ threshold = num2str(param.decor_by_subsampl.spectrum_threshold);
 iii = (threshold =='.');
 threshold(iii)='_';
 
-
+drawnow;
+pause(0.1)
 
 if isfield(param,'test_basis') && param.test_basis
     eval( ['print -depsc ' param.folder_results ...

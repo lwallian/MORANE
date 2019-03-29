@@ -18,7 +18,6 @@ t_begin = 20;
 %% Load data
 
 switch type_data
-        
     case 'inc3D_HRLESlong_Re3900_blocks1'
         load([ folder_data 'file_HRLES3900_1.mat']);
         
@@ -551,6 +550,24 @@ switch type_data
         
         rho0=1e3;
         
+        
+    case 'test_1_block'
+        load([ folder_data 'data_test_1_block.mat']);
+        
+        N_test = nan;
+        
+        [Mx,My,N_tot,d]=size(U);
+        MX=[Mx My];
+        M=prod(MX);
+        dx=dX(1);
+        dy=dX(2);
+        a = dx*(1:Mx)';
+        b = dy*(1:My);
+        grid = {a b'};
+        clear U
+        
+        rho0=1e3;
+        
     case 'LES_3D_tot_sub_sample_blurred'
         load([ folder_data '3D_LES_sub_sample_total_blurred.mat'])
         
@@ -590,9 +607,30 @@ switch type_data
         end
         
         switch type_whole_data
-            case 'inc3D_Re300_40dt_blocks'
+            case {'inc3D_Re300_40dt_blocks', 'inc3D_Re300_40dt_blocks_truncated',...
+                    'inc3D_Re300_40dt_blocks_test_basis'}
                 folder_data_in_blocks = 'data_test_in_blocks/';
                 file_prefix = 'inc40Dt_';
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks file_prefix idx_block '.mat']);
+                
+                [Mx,My,N_tot,d]=size(U);
+                MX=[Mx My];
+                M=prod(MX);
+                dx=dX(1);
+                dy=dX(2);
+                a = dx*(1:Mx)';
+                b = dy*(1:My);
+                grid = {a b'};
+                clear U
+                
+            case {'small_test_in_blocks', 'small_test_in_blocks_truncated',...
+                    'small_test_in_blocks_test_basis'}
+                folder_data_in_blocks = 'data_small_test_in_blocks/';
+                file_prefix = 'data_test_in_blocks_';
                 
                 idx_char_idx_block=length(type_whole_data)+1;
                 idx_block = type_data(idx_char_idx_block:end);
@@ -675,6 +713,129 @@ switch type_data
 %                 c=dX(3)*(1:MX(3))';
 %                 grid = {a b c};
 %                 clear U
+
+            case {'DNS300_inc3d_3D_2017_04_02_blocks',...
+                    'DNS300_inc3d_3D_2017_04_02_blocks_truncated',...
+                    'DNS300_inc3d_3D_2017_04_02_blocks_test_basis'}
+                
+                folder_data_in_blocks = ...
+                    'folder_DNS300_inc3d_3D_2017_04_02_blocks/';
+                file_prefix = 'file_DNS300_inc3d_3D_2017_04_02_';
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks ...
+                    file_prefix idx_block '.mat']);
+                
+                if ndims(U) ~= 5
+                    error('U does not have the right size. It may already be reshaped');
+                end
+                [Mx, My, Mz, N_tot,d] = size(U);
+                MX=[Mx My Mz];
+                M=prod(MX);
+                a=dX(1)*(1:MX(1))';
+                b=dX(2)*(1:MX(2))';
+                c=dX(3)*(1:MX(3))';
+                grid = {a b c};
+                clear U
+                
+            case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+                
+                folder_data_in_blocks = ...
+                    'folder_DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks/';
+                file_prefix = 'file_DNS300_inc3d_3D_2017_04_02_'
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks ...
+                    file_prefix idx_block '.mat']);
+                
+                if ndims(U) ~= 5
+                    error('U does not have the right size. It may already be reshaped');
+                end
+                [Mx, My, Mz, N_tot,d] = size(U);
+                MX=[Mx My Mz];
+                M=prod(MX);
+                a=dX(1)*(1:MX(1))';
+                b=dX(2)*(1:MX(2))';
+                c=dX(3)*(1:MX(3))';
+                grid = {a b c};
+                clear U
+                
+                
+            case {'turb2D_blocks', 'turb2D_blocks_truncated',...
+                    'turb2D_blocks_test_basis'}
+                folder_data_in_blocks = 'turb2D_blocks/';
+                file_prefix = 'turb2D_';
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks file_prefix idx_block '.mat']);
+                dt = 24*3600;
+                [Mx,My,N_tot,d]=size(U);
+                MX=[Mx My];
+                M=prod(MX);
+                dX = model.grid.dX;
+                dx=dX(1);
+                dy=dX(2);
+                a = dx*(1:Mx)';
+                b = dy*(1:My);
+                grid = {a b'};
+                nu = model.advection.HV.val;
+                forcing = model.advection.forcing;
+                clear U
+                
+            case {'test2D_blocks', 'test2D_blocks_truncated',...
+                    'test2D_blocks_test_basis'}
+                folder_data_in_blocks = 'test2D_blocks/';
+                file_prefix = 'test2D_';
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks file_prefix idx_block '.mat']);
+                dt = 24*3600; % A VERIFIER
+                [Mx,My,N_tot,d]=size(U);
+                MX=[Mx My];
+                M=prod(MX);
+                dX = model.grid.dX;
+                dx=dX(1);
+                dy=dX(2);
+                a = dx*(1:Mx)';
+                b = dy*(1:My);
+                grid = {a b'};
+                nu = model.advection.HV.val;
+                forcing = model.advection.forcing; %BETA
+                clear U
+                
+            case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
+                    'DNS100_inc3d_2D_2018_11_16_blocks', ...
+                    'DNS100_inc3d_2D_2018_11_16_blocks_test_basis'}
+                
+                folder_data_in_blocks = 'folder_DNS100_inc3d_2D_2018_11_16_blocks/';
+                file_prefix = 'file_DNS100_inc3d_2018_11_16_run_';
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks file_prefix idx_block '.mat']);
+                
+                [Mx,My,N_tot,d]=size(U);
+                MX=[Mx My];
+                M=prod(MX);
+                dx=dX(1);
+                dy=dX(2);
+                a = dx*(1:Mx)';
+                b = dy*(1:My);
+                grid = {a b'};
+                U=reshape(U,[Mx*My N_tot d]);
+                clear U
+                
         end
         
         rho0=1e3;
@@ -730,5 +891,8 @@ param.grid=grid;
 param.N_test=N_test;
 param.N_tot=N_tot;
 param.d=d;
-
+% BETA
+if exist('model') && (isfield(model,'advection') && isfield(model.advection, 'forcing'))
+    param.forcing = forcing;
+end
 end

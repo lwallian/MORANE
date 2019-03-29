@@ -89,7 +89,7 @@ else
     load(name_file_U_temp);
     
     z=zeros(M,nb_modes_z,d,d);
-    
+    big_T_max = size(param.name_file_U_temp,2); %BETA PARAMETER
     %% Projection
     if big_data
         for t=1:N_tot
@@ -98,6 +98,9 @@ else
                 t_local=1;
                 % Incrementation of the file index
                 big_T = big_T+1;
+                if big_T > big_T_max %BETA IF CLAUSE
+                    break
+                end
                 % Name of the new file
                 name_file_U_temp=param.name_file_U_temp{big_T};
                 % Load new file

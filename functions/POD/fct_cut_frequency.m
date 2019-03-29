@@ -23,7 +23,7 @@ spectrum=max(spectrum,[],2);
 
 % Threshold to determine the numerical zero
 spectrum_threshold=param.decor_by_subsampl.spectrum_threshold;
-max_s=max(spectrum);
+max_s = max(spectrum);
 threshold=max_s*spectrum_threshold;
 
 % Find from which frequency the maximum spectrum is null
