@@ -1,0 +1,215 @@
+function [param, bt]=POD_and_POD_knowing_phi(param_ref)
+% Compute the spatial modes phi of the POD, the corresponding temporal coefficients bt,
+% the temporal mean m_U, the time subsampling and
+% the residual velocity U neglected by the Galerkin projection
+%
+
+%% Calculation of c
+% c is the two times correlation function of the snapshots
+if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
+    param_ref.name_file_pre_c_blurred = [param_ref.folder_data ...
+        param_ref.type_data '_pre_c'];
+    load(param_ref.name_file_pre_c_blurred,'c','param');
+    param.d = length(param.dX);
+    if isfield(param_ref,'N_particules')
+        param.N_particules = param_ref.N_particules ;
+    end
+    if isfield(param_ref,'N_estim')
+        param.N_estim = param_ref.N_estim ;
+    end
+    param.nb_modes = param_ref.nb_modes ;
+    param.big_data = param_ref.big_data ;
+    param.a_time_dependant = param_ref.a_time_dependant ;
+    if param_ref.a_time_dependant
+        param.type_filter_a=param_ref.type_filter_a;
+    end
+    param.decor_by_subsampl = param_ref.decor_by_subsampl ;
+    param.coef_correctif_estim = param_ref.coef_correctif_estim ;
+    param.eq_proj_div_free = param_ref.eq_proj_div_free ;
+    param.save_all_bi = param_ref.save_all_bi ;
+    param.name_file_mode = param_ref.name_file_mode ;
+    param.folder_results = param_ref.folder_results ;
+    param.folder_data = param_ref.folder_data ;
+    clear param_ref
+else
+    [c,param]=fct_c_POD(param_ref);
+    param.name_file_pre_c_blurred = [param.folder_data param.type_data '_pre_c'];
+    save(param.name_file_pre_c_blurred,'c','param');
+end
+
+c=c*prod(param.dX)/param.N_tot;
+nb_modes=param.nb_modes;
+
+%% Diagonalization of c
+if param.save_all_bi
+    % if param.save_all_bi = true, the N Chronos will be computed and saved
+    % with N = the number of time steps
+    % param.save_all_bi = false in general
+    [W,S]=eig(c);
+    lambda=diag(S);clear S % singular values : energy of each modes
+    lambda=lambda(end:-1:1);
+    lambda=max(lambda,0);
+    W=W(:,end:-1:1);
+else
+    if param.save_all_bi
+        [W,S]=eig(c);
+    else
+        [W,S]=eigs(c,nb_modes);
+    end
+    lambda=diag(S);clear S % singular values : energy of each modes
+end
+trace_c=trace(c); % total energy of the velocity
+clear c;
+
+% Quantity of energy represented by nb_modes Chronos
+el=cumsum(lambda(1:nb_modes))/trace_c;
+disp('Cumulative rate of energy (in %) of the first modes');
+disp(100*el);
+disp(['Here, we use only the ' num2str(nb_modes) ' first modes.']);
+
+%% Computation of the Chronos b(t)
+bt=sqrt(param.N_tot) * W * sqrt(diag(lambda)); % temporal modes % N x nb_modes
+clear W;
+
+% Force the convention: bt(1,:) > 0
+% It is then easier to compare results of several simulation
+idx = bt(1,:)< 0;
+if  any(idx)
+    idx=find(idx);
+    bt(:,idx) = - bt(:,idx);
+end
+
+%% Eventually save all b_i for offline studies
+if param.save_all_bi
+    save([ param.folder_results 'modes_bi_' param.type_data ...
+        '.mat'],'bt','param');
+end
+
+% Keep only the the first nb_modes values
+bt=bt(:,1:nb_modes);
+lambda=lambda(1:nb_modes);
+param.lambda=lambda;
+
+disp('SVD of c in POD done')
+
+%% Computation of phi
+tic
+MAX_possible_nb_modes = 100;
+bool = false;
+k = param.nb_modes;
+while (~ bool) && ( k <= MAX_possible_nb_modes )
+    name_file_mode_temp=[ param.folder_data 'mode_' param.type_data ...
+        '_' num2str(k) '_modes.mat'];
+    bool = ( exist(name_file_mode_temp,'file')==2 );
+    %     bool = bool || bool_local;
+    k = k + 1;
+end
+% toc
+if bool
+    k = k -1;
+    if k > param.nb_modes
+        load(name_file_mode_temp,'phi_m_U');
+        phi_m_U(:,(param.nb_modes+1):k,:)= [];
+        save(param.name_file_mode,'phi_m_U');
+        clear phi_m_U
+    end
+else
+    param=fct_phi_POD(param,bt);
+end
+clear name_file_mode_temp k bool;
+toc
+disp('Topos computed')
+
+%% Time subsampling
+
+%%
+tic
+nn=20;
+vect_threshold = 10.^(-((1:nn)-1));
+vect_threshold(1) = vect_threshold(1)*0.9;
+% vect_threshold = 10.^((1:nn)-1);
+vect_n_subsampl_decor = zeros(1,nn);
+for k=1:nn
+    param_temp=param;
+    param_temp.decor_by_subsampl.spectrum_threshold = vect_threshold(k);
+    vect_n_subsampl_decor(k) ...
+        = fct_cut_frequency(bt,lambda,param_temp);
+end
+figure333=figure(333);
+semilogx(vect_threshold,vect_n_subsampl_decor,'--o');
+ax=axis;axnew=ax;
+axnew(3)=ax(3)-0.1*(ax(4)-ax(3));axnew(4)=ax(4)+0.1*(ax(4)-ax(3));
+axis(axnew);
+drawnow;
+eval( ['print -depsc ' param.folder_results ...
+    'variation_of_n_subsampling_' ...
+    param.type_data '_' ...
+    'modes_n=' num2str(param.nb_modes) '.eps']);
+clear nn vect_threshold vect_n_subsampl_decor param_temp
+close(figure333)
+disp('Variation of time subsampling done')    
+toc
+%%
+
+
+tic
+% Choice of the subsampling rate
+if param.decor_by_subsampl.bool && ...
+        strcmp(param.decor_by_subsampl.choice_n_subsample,'auto_shanon')
+    param.decor_by_subsampl.n_subsampl_decor ...
+        = fct_cut_frequency(bt,lambda,param);
+end
+
+% Subsampling
+% if param.decor_by_subsampl.bool && ...
+%         ( strcmp(param.decor_by_subsampl.meth,'a_estim_decor') || ...
+%         strcmp(param.decor_by_subsampl.meth,'bt_decor') )
+% Subsampling rate
+n_subsampl_decor=param.decor_by_subsampl.n_subsampl_decor
+
+
+%%  Test if the simulation with the same set of parameter
+%%% but with non-stationnary variance tensor has already been done
+
+% param_temp = param;
+% param_temp.a_time_dependant=true;
+% name_file_temp = fct_file_save_1st_result(param_temp);
+param_temp = param;
+param_temp.a_time_dependant = true;
+param = fct_name_file_diffusion_mode(param);
+param_temp = fct_name_file_diffusion_mode(param_temp);
+bool = (exist(param.name_file_diffusion_mode,'file')==2) || ...
+        (exist(param_temp.name_file_diffusion_mode,'file')==2);
+
+% Subsample residual velocity
+if ~ bool
+% if ~ ( exist(name_file_temp,'file')==2 )
+    %     if n_subsampl_decor > 1
+    % Subsample snapshots
+    param = sub_sample_U(param);
+else
+     param = gen_file_U_temp(param)
+end
+
+%     end
+if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
+    % Change the time period
+    param.dt=n_subsampl_decor*param.dt;
+    % Subsample Chronos
+    bt=bt(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+    % Change total numbers of snapshots
+    param.N_tot=ceil(param.N_tot/n_subsampl_decor);
+    param.N_test=ceil((param.N_test+1)/n_subsampl_decor)-1;
+end
+toc
+disp('Subsampling done')
+
+%% Residual velocity
+if ~ bool
+    tic
+    param = residual_U(param,bt);
+    toc
+    disp('Residual velocity computed')
+end
+
+end
