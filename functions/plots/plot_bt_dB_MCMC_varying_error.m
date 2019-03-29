@@ -72,8 +72,8 @@ struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
 % struct_bt_MCMC.m.one_realiz=struct_bt_MCMC.m.one_realiz(1:N_test,:);
 
 % BETA : confidence interval
-struct_bt_MCMC.qtl = struct_bt_MCMC.qtl(1:N_test,:);
-struct_bt_MCMC.diff = struct_bt_MCMC.diff(1:N_test,:);
+% struct_bt_MCMC.qtl = struct_bt_MCMC.qtl(1:N_test,:);
+% struct_bt_MCMC.diff = struct_bt_MCMC.diff(1:N_test,:);
 % end BETA
 
 % struct_bt_MCMC=struct_bt_MCMC(1:N_test,:);

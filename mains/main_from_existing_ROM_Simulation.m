@@ -205,7 +205,7 @@ param.folder_results=param_ref2.folder_results;
 % n_simu=param_ref2.n_simu;
 
 
-struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,4);
+struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 
 
 

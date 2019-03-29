@@ -70,8 +70,8 @@ struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
 % struct_bt_MCMC.m.one_realiz=struct_bt_MCMC.m.one_realiz(1:N_test,:);
 
 % BETA : confidence interval
-struct_bt_MCMC.qtl = struct_bt_MCMC.qtl(1:N_test,:);
-struct_bt_MCMC.diff = struct_bt_MCMC.diff(1:N_test,:);
+% struct_bt_MCMC.qtl = struct_bt_MCMC.qtl(1:N_test,:);
+% struct_bt_MCMC.diff = struct_bt_MCMC.diff(1:N_test,:);
 % end BETA
 
 % struct_bt_MCMC=struct_bt_MCMC(1:N_test,:);
@@ -134,13 +134,13 @@ for k=1:nb_modes
  delta = 1 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
 %  delta = 1.96 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
 
-% %     h(2) = area (time_ref,  2 * delta);
-% %     h(1) = area (time_ref,struct_bt_MCMC.tot.mean(:,k) - delta);
-%     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-%         struct_bt_MCMC.tot.mean(:,k) + delta]);
-    h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
-%     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-%         2*delta]); % DEFAULT
+% % %     h(2) = area (time_ref,  2 * delta);
+% % %     h(1) = area (time_ref,struct_bt_MCMC.tot.mean(:,k) - delta);
+% %     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+% %         struct_bt_MCMC.tot.mean(:,k) + delta]);
+%     h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
+    h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+        2*delta]); % DEFAULT
 %     set(h(1),'FaceColor',[0,0.25,0.25]);
 %     set(h(2),'FaceColor',[0,0.5,0.5]);
     set (h(1), 'FaceColor', 'none');

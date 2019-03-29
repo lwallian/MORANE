@@ -8,7 +8,7 @@ function main_from_existing_ROM(nb_modes,threshold,type_data,...
 
 
 
-% Make the randomness reproductible
+%% Make the randomness reproductible
 stream = RandStream.getGlobalStream;
 reset(stream);
 
@@ -16,69 +16,18 @@ clear param bt_forecast_sto bt_forecast_deter bt_tot
 tic
 
 %% Parameters choice
-
-% Plots to do
-plot_deterministic=true; % deterministic POD-Galerkin
-plot_EV=true; % estimated Eddy Visocvity
-plot_tuned=false; % estimated corrective coefficients
-
-if nargin < 8
-    if strcmp(type_data,'incompact3d_wake_episode3_cut_truncated')
-        modal_dt=false; % different time step (infered by Shanon criterion) for the different modes
-        warning('no modal time step');
-    else
-        modal_dt=false; % different time step (infered by Shanon criterion) for the different modes
-        warning('no modal time step');
-        %     modal_dt=true; % different time step (infered by Shanon criterion) for the different modes
-        %     warning('modal time step');
-    end
-end
-
-plot_each_mode=false;
-
-% Threshold of the Chonos spectrum, used to choice the time step
-% threshold=0.001; % 0.001 or 0.01 for LES 3900 (or inc3D 3900)
-% threshold=0.005; % for LES 3900
-% threshold=0.0005; % for inc3D episode 3
-% threshold=0.00014; % for inc3D 3900
-% threshold=0.000135; % for inc3D 3900
-
-% Number of particle for the MCMC simulation
-%param_ref.N_particules=2;
-% param_ref.N_particules= min(1000, 100*nb_modes);
-% % param_ref.N_particules=100*nb_modes;
-% % param_ref.N_particules=1000;
-% % % param_ref.N_particules=2;
-% % % param.N_particules=2;
-% % % % param.N_particules=1000;
-N_particules=100
-% N_particules=4 % VALUE BY DEFAULT
-% N_particules=2
-% warning('only 4 particles');
+% param_ref.n_simu = 2;
+% N_particules=2;
+param_ref.n_simu = 1e2;
+N_particules=100;
 param_ref.N_particules=N_particules;
 
-% Rate of increase of the time step to simulate accurately the SDE
-% if strcmp( type_data,'DNS100_inc3d_2D_2018_11_16_blocks_truncated')
-%     param_ref.n_simu = 1e1;    
-% else
-    % param_ref.n_simu = 1e7;
-    % param_ref.n_simu = 1e4;
-    param_ref.n_simu = 1e2;
-    % param_ref.n_simu = 1e3;
-    % param_ref.n_simu = 1;
-    % n_simu = 1;
-    % % n_simu = 100;
-% end
+%% Default parameters 
+% Number of POD modes
+if nargin == 0
+    nb_modes = 2;
+end
 
-% On which function the Shanon ctriterion is used
-test_fct='b'; % 'b' is better than db
-
-% Learning duration
-% period_estim=3;
-% % p_estim=13;
-% % N_estim=842;
-% coef_correctif_estim.learning_time='N_estim'; % 'quarter' or 'all'
-% % coef_correctif_estim.learning_time='quarter'; % 'quarter' or 'all'
 
 % Type of data
 if nargin < 3
@@ -99,10 +48,72 @@ if nargin < 3
     %     type_data = 'inc3D_Re3900_blocks';
 end
 
-% Number of POD modes
-if nargin == 0
-    nb_modes = 2;
+% Plots to do
+% plot_deterministic=true; % deterministic POD-Galerkin
+% plot_EV=true; % estimated Eddy Visocvity
+% plot_tuned=false; % estimated corrective coefficients
+
+if nargin < 8
+    if strcmp(type_data,'incompact3d_wake_episode3_cut_truncated')
+        modal_dt=false; % different time step (infered by Shanon criterion) for the different modes
+        warning('no modal time step');
+    else
+        modal_dt=false; % different time step (infered by Shanon criterion) for the different modes
+        warning('no modal time step');
+        %     modal_dt=true; % different time step (infered by Shanon criterion) for the different modes
+        %     warning('modal time step');
+    end
 end
+
+%%
+
+% plot_each_mode=false;
+
+% Threshold of the Chonos spectrum, used to choice the time step
+% threshold=0.001; % 0.001 or 0.01 for LES 3900 (or inc3D 3900)
+% threshold=0.005; % for LES 3900
+% threshold=0.0005; % for inc3D episode 3
+% threshold=0.00014; % for inc3D 3900
+% threshold=0.000135; % for inc3D 3900
+
+% % Number of particle for the MCMC simulation
+% %param_ref.N_particules=2;
+% % param_ref.N_particules= min(1000, 100*nb_modes);
+% % % param_ref.N_particules=100*nb_modes;
+% % % param_ref.N_particules=1000;
+% % % % param_ref.N_particules=2;
+% % % % param.N_particules=2;
+% % % % % param.N_particules=1000;
+% N_particules=100
+% % N_particules=4 % VALUE BY DEFAULT
+% % N_particules=2
+% % warning('only 4 particles');
+% param_ref.N_particules=N_particules;
+
+% % Rate of increase of the time step to simulate accurately the SDE
+% % if strcmp( type_data,'DNS100_inc3d_2D_2018_11_16_blocks_truncated')
+% %     param_ref.n_simu = 1e1;    
+% % else
+%     % param_ref.n_simu = 1e7;
+%     % param_ref.n_simu = 1e4;
+%     param_ref.n_simu = 1e2;
+%     % param_ref.n_simu = 1e3;
+%     % param_ref.n_simu = 1;
+%     % n_simu = 1;
+%     % % n_simu = 100;
+% % end
+
+% On which function the Shanon ctriterion is used
+% test_fct='b'; % 'b' is better than db
+
+% Learning duration
+% period_estim=3;
+% % p_estim=13;
+% % N_estim=842;
+% coef_correctif_estim.learning_time='N_estim'; % 'quarter' or 'all'
+% % coef_correctif_estim.learning_time='quarter'; % 'quarter' or 'all'
+
+
 
 % % On which function the Shanon ctriterion is used
 % decor_by_subsampl.test_fct = 'b';
@@ -110,10 +121,10 @@ end
 %% Parameters already chosen
 % Do not modify the following lines
 
-coef_correctif_estim.learn_coef_a=true; % true false
-coef_correctif_estim.type_estim='vector_b'; % 'scalar' 'vector_z' 'vector_b' 'matrix'
-coef_correctif_estim.beta_min=-inf; % -inf 0 1
-coef_correctif_estim.nb_modes_used=eval('nb_modes'); % 2 eval('nb_modes') for learning the coefficient
+% coef_correctif_estim.learn_coef_a=true; % true false
+% coef_correctif_estim.type_estim='vector_b'; % 'scalar' 'vector_z' 'vector_b' 'matrix'
+% coef_correctif_estim.beta_min=-inf; % -inf 0 1
+% coef_correctif_estim.nb_modes_used=eval('nb_modes'); % 2 eval('nb_modes') for learning the coefficient
 
 folder_results = [ pwd '/resultats/current_results/'];
 current_pwd = pwd; cd ..
@@ -127,14 +138,16 @@ cd(current_pwd);
 param_ref.folder_results=folder_results;
 param_ref.folder_data =folder_data ;
 
-if nargin > 0
-    plot_each_mode=false;
-end
+% if nargin > 0
+%     plot_each_mode=false;
+% end
 
 modal_dt_ref = modal_dt;
 
 %% Get data
 
+% On which function the Shanon ctriterion is used
+test_fct='b'; % 'b' is better than db
 a_t='_a_cst_';
 
 % file_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
@@ -194,7 +207,8 @@ ILC=struct('deter',deter,'sto',sto,'tot',tot);
 ILC_a_cst=ILC;
 % bt_sans_coef_a_cst = bt_forecast_sto;
 
-%%
+%% Redefined path to get acces to data
+param.nb_period_test=nb_period_test;
 param.decor_by_subsampl.test_fct=test_fct;
 
 folder_data = param_ref.folder_data;
@@ -205,7 +219,7 @@ folder_results = param_ref.folder_results;
 
 %     param.folder_results =  [ pwd '/resultats/current_results/'];
 big_data=false;
-plot_bts=false;
+% plot_bts=false;
 
 % coef_correctif_estim=coef_correctif_estim_ref;
 
@@ -213,8 +227,10 @@ param.folder_data = folder_data;
 param.folder_results = folder_results;
 param.big_data=big_data;
 param.plot_bts=plot_bts;
-param.coef_correctif_estim=coef_correctif_estim;
+% param.coef_correctif_estim=coef_correctif_estim;
+
 %% Choice of modal time step
+
 if modal_dt >0
 % if modal_dt
     [rate_dt, ILC_a_cst,pchol_cov_noises] = fct_cut_frequency_2_full_sto( ...
@@ -226,38 +242,39 @@ else
 end
 
 %% Sensibility
-coef_mod = 1;
-if coef_mod ~= 1
-    warning('Coefficients modified to study sentibility');
-end
-param.coef_sensitivity = coef_mod;
-I_deter=ILC_a_cst.deter.I;
-L_deter=ILC_a_cst.deter.L;
-C_deter=ILC_a_cst.deter.C;
-
-I_sto= coef_mod^2 * ILC_a_cst.sto.I;
-L_sto= coef_mod^2 * ILC_a_cst.sto.L;
-C_sto= coef_mod^2 * ILC_a_cst.sto.C;
-pchol_cov_noises = coef_mod * pchol_cov_noises;
-
-ILC_a_cst.modal_dt.I=I_sto+I_deter;
-ILC_a_cst.modal_dt.L=L_sto+L_deter;
-ILC_a_cst.modal_dt.C=C_sto+C_deter;
+% coef_mod = 1;
+% if coef_mod ~= 1
+%     warning('Coefficients modified to study sentibility');
+% end
+% param.coef_sensitivity = coef_mod;
+% I_deter=ILC_a_cst.deter.I;
+% L_deter=ILC_a_cst.deter.L;
+% C_deter=ILC_a_cst.deter.C;
+%
+% I_sto= coef_mod^2 * ILC_a_cst.sto.I;
+% L_sto= coef_mod^2 * ILC_a_cst.sto.L;
+% C_sto= coef_mod^2 * ILC_a_cst.sto.C;
+% pchol_cov_noises = coef_mod * pchol_cov_noises;
+% 
+% ILC_a_cst.modal_dt.I=I_sto+I_deter;
+% ILC_a_cst.modal_dt.L=L_sto+L_deter;
+% ILC_a_cst.modal_dt.C=C_sto+C_deter;
 
 %% Choice the learning duration
-if ~isfield(param.coef_correctif_estim,'learning_time')
-    param.coef_correctif_estim.learning_time='quarter';
-end
-switch param.coef_correctif_estim.learning_time
-    case 'all'
-        param.N_learn_coef_a=size(bt_tot,1);
-    case 'quarter'
-        param.N_learn_coef_a=ceil((size(bt_tot,1)-2)/4);
-    case 'N_estim'
-        param.N_learn_coef_a=param.N_estim;
-    otherwise
-        error('unknown type of duration');
-end
+% if ~isfield(param.coef_correctif_estim,'learning_time')
+%     param.coef_correctif_estim.learning_time='quarter';
+% end
+% switch param.coef_correctif_estim.learning_time
+%     case 'all'
+%         param.N_learn_coef_a=size(bt_tot,1);
+%     case 'quarter'
+%         param.N_learn_coef_a=ceil((size(bt_tot,1)-2)/4);
+%     case 'N_estim'
+%         param.N_learn_coef_a=param.N_estim;
+%     otherwise
+%         error('unknown type of duration');
+% end
+% param.N_learn_coef_a=size(bt_tot,1);
 
 %% Learning corrective coefficients
 % 
@@ -270,41 +287,41 @@ end
 
 %% Duration of the test 
 
-% warning('nb periods changed by hands')
-% param.type_data = [param.type_data '++'];
-% nb_period_test = 5*nb_period_test;
-
-if strcmp(param.type_data, 'inc3D_Re3900_blocks')
-    param.N_test = ceil(5*5/param.dt);
-    warning('simulation on only 5 periods')
-%     param.N_test = ceil(10*5/param.dt);
-%     warning('simulation on only 10 periods')
-end
-if nargin > 3
-    param.nb_period_test=nb_period_test;
-    if strcmp(param.type_data,'incompact3d_wake_episode3_cut_truncated')
-        T_period = 4.1;
-        param.N_test = ceil( T_period * nb_period_test/param.dt);
-        warning(['simulation on only ' num2str(nb_period_test) ' periods']);
-%     else
-%         T_period = 5;
-    end
-%     param.N_test = ceil( T_period * nb_period_test/param.dt);
-%     warning(['simulation on only ' num2str(nb_period_test) ' periods']);    
-end
+% % warning('nb periods changed by hands')
+% % param.type_data = [param.type_data '++'];
+% % nb_period_test = 5*nb_period_test;
+% 
+% if strcmp(param.type_data, 'inc3D_Re3900_blocks')
+%     param.N_test = ceil(5*5/param.dt);
+%     warning('simulation on only 5 periods')
+% %     param.N_test = ceil(10*5/param.dt);
+% %     warning('simulation on only 10 periods')
+% end
+% if nargin > 3
+%     param.nb_period_test=nb_period_test;
+%     if strcmp(param.type_data,'incompact3d_wake_episode3_cut_truncated')
+%         T_period = 4.1;
+%         param.N_test = ceil( T_period * nb_period_test/param.dt);
+%         warning(['simulation on only ' num2str(nb_period_test) ' periods']);
+% %     else
+% %         T_period = 5;
+%     end
+% %     param.N_test = ceil( T_period * nb_period_test/param.dt);
+% %     warning(['simulation on only ' num2str(nb_period_test) ' periods']);    
+% end
 
 %% Do not temporally subsample, in order to prevent aliasing in the results
-% BETA
-if no_subampl_in_forecast & reconstruction
-    error('The recosntruction is only coded with the subsampled data');
-end
+% % BETA
+% if no_subampl_in_forecast & reconstruction
+%     error('The recosntruction is only coded with the subsampled data');
+% end
 if ~ reconstruction
-    if param.decor_by_subsampl.no_subampl_in_forecast
-        param.dt = param.dt / param.decor_by_subsampl.n_subsampl_decor;
-        param.N_test = param.N_test * param.decor_by_subsampl.n_subsampl_decor;
-        param.N_tot = param.N_tot * param.decor_by_subsampl.n_subsampl_decor;
-        param.decor_by_subsampl.n_subsampl_decor = 1;
-    end
+%     if param.decor_by_subsampl.no_subampl_in_forecast
+%         param.dt = param.dt / param.decor_by_subsampl.n_subsampl_decor;
+%         param.N_test = param.N_test * param.decor_by_subsampl.n_subsampl_decor;
+%         param.N_tot = param.N_tot * param.decor_by_subsampl.n_subsampl_decor;
+%         param.decor_by_subsampl.n_subsampl_decor = 1;
+%     end
     
     %% Creation of the test basis
     [param,bt_tot,truncated_error2]=Chronos_test_basis(param);
@@ -328,11 +345,11 @@ bt_tronc=bt_tot(1,:); % Initial condition
 
 param.dt = param.dt/n_simu;
 param.N_test=param.N_test*n_simu;
-% BETA only for test2D
-if strcmp(param.type_data , 'test2D_blocks_truncated')
-    param.N_test = 6e4-1;
-end
-%end BETA
+% % BETA only for test2D
+% if strcmp(param.type_data , 'test2D_blocks_truncated')
+%     param.N_test = 6e4-1;
+% end
+% %end BETA
 % Reconstruction in the deterministic case
 bt_forecast_deter=bt_tronc;
 for l = 1:param.N_test
@@ -423,8 +440,8 @@ struct_bt_MCMC.m.var = var(bt_m,0,3);
 struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
 
 % BETA : confidence interval
-struct_bt_MCMC.qtl = quantile(bt_MCMC, 0.025, 3);
-struct_bt_MCMC.diff = quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
+% struct_bt_MCMC.qtl = quantile(bt_MCMC, 0.025, 3);
+% struct_bt_MCMC.diff = quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
 % end BETA
 if param.igrida
     toc;tic
@@ -496,45 +513,45 @@ end
 % %     end
 % % end
 
-plot_bts = false;
-
-if plot_bts
-    param.folder_data =param_ref.folder_data ;
-    
-    param.plot.plot_deter=plot_deterministic;
-    param.plot.plot_EV=plot_EV;
-    param.plot.plot_tuned=plot_tuned;
-    param.plot_modal_dt = false;
-%     param.plot_modal_dt = plot_modal_dt;
-    
-%     plot_bt_dB_MCMC(param,bt_tot,bt_tot,...
-%             bt_tot, bt_tot, bt_forecast_deter,...
-%             bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
-    
-    zzz = nan(size(bt_tot));
-    param.plot.plot_EV = false;
-    
-    param.test_basis = true;
-    %     param.folder_results = [param.folder_results '_test_basis'];
-    plot_each_mode = true;
-        
-    if plot_each_mode
-        plot_bt_MCMC(param,zzz,zzz,...
-            zzz, zzz, bt_forecast_deter,...
-            zzz,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC)
-        figure;
-    end
-
-%     plot_bt_dB_MCMC(param,zzz,zzz,...
-    plot_bt_dB_MCMC_varying_error(param,zzz,zzz,...
-            zzz, zzz, bt_forecast_deter,...
-            zzz,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
-    
+% plot_bts = false;
 
 % if plot_bts
-%     plot_bt5(param,bt_forecast_sto,bt_forecast_deter,bt_tot)
+%     param.folder_data =param_ref.folder_data ;
+%     
+%     param.plot.plot_deter=plot_deterministic;
+%     param.plot.plot_EV=plot_EV;
+%     param.plot.plot_tuned=plot_tuned;
+%     param.plot_modal_dt = false;
+% %     param.plot_modal_dt = plot_modal_dt;
+%     
+% %     plot_bt_dB_MCMC(param,bt_tot,bt_tot,...
+% %             bt_tot, bt_tot, bt_forecast_deter,...
+% %             bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+%     
+%     zzz = nan(size(bt_tot));
+%     param.plot.plot_EV = false;
+%     
+%     param.test_basis = true;
+%     %     param.folder_results = [param.folder_results '_test_basis'];
+%     plot_each_mode = true;
+%         
+%     if plot_each_mode
+%         plot_bt_MCMC(param,zzz,zzz,...
+%             zzz, zzz, bt_forecast_deter,...
+%             zzz,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC)
+%         figure;
+%     end
+% 
+% %     plot_bt_dB_MCMC(param,zzz,zzz,...
+%     plot_bt_dB_MCMC_varying_error(param,zzz,zzz,...
+%             zzz, zzz, bt_forecast_deter,...
+%             zzz,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
+%     
+% 
+% % if plot_bts
+% %     plot_bt5(param,bt_forecast_sto,bt_forecast_deter,bt_tot)
+% % end
+%     toc;tic
+%     disp('plot done');
 % end
-    toc;tic
-    disp('plot done');
-end
     
