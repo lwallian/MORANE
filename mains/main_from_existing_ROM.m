@@ -8,7 +8,7 @@ function main_from_existing_ROM(nb_modes,threshold,type_data,...
 
 
 
-%% Make the randomness reproductible
+%% Make the randomness reproducible
 stream = RandStream.getGlobalStream;
 reset(stream);
 
@@ -50,17 +50,17 @@ end
 
 % Plots to do
 % plot_deterministic=true; % deterministic POD-Galerkin
-% plot_EV=true; % estimated Eddy Visocvity
+% plot_EV=true; % estimated Eddy Viscosity
 % plot_tuned=false; % estimated corrective coefficients
 
 if nargin < 8
     if strcmp(type_data,'incompact3d_wake_episode3_cut_truncated')
-        modal_dt=false; % different time step (infered by Shanon criterion) for the different modes
+        modal_dt=false; % different time step (inferred by Shanon criterion) for the different modes
         warning('no modal time step');
     else
-        modal_dt=false; % different time step (infered by Shanon criterion) for the different modes
+        modal_dt=false; % different time step (inferred by Shanon criterion) for the different modes
         warning('no modal time step');
-        %     modal_dt=true; % different time step (infered by Shanon criterion) for the different modes
+        %     modal_dt=true; % different time step (inferred by Shanon criterion) for the different modes
         %     warning('modal time step');
     end
 end
@@ -69,7 +69,7 @@ end
 
 % plot_each_mode=false;
 
-% Threshold of the Chonos spectrum, used to choice the time step
+% Threshold of the Chronos spectrum, used to choice the time step
 % threshold=0.001; % 0.001 or 0.01 for LES 3900 (or inc3D 3900)
 % threshold=0.005; % for LES 3900
 % threshold=0.0005; % for inc3D episode 3
@@ -103,7 +103,7 @@ end
 %     % % n_simu = 100;
 % % end
 
-% On which function the Shanon ctriterion is used
+% On which function the Shanon criterion is used
 % test_fct='b'; % 'b' is better than db
 
 % Learning duration
@@ -115,7 +115,7 @@ end
 
 
 
-% % On which function the Shanon ctriterion is used
+% % On which function the Shanon criterion is used
 % decor_by_subsampl.test_fct = 'b';
 
 %% Parameters already chosen
@@ -146,19 +146,22 @@ modal_dt_ref = modal_dt;
 
 %% Get data
 
-% On which function the Shanon ctriterion is used
+% On which function the Shanon criterion is used
 test_fct='b'; % 'b' is better than db
 a_t='_a_cst_';
 
-% file_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-file_res=[ folder_results '1stresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-    a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
-    num2str(threshold) ...
-    'fct_test_' test_fct ];
-if exist('period_estim','var')
-    file_res=[file_res '_p_estim_' num2str(period_estim)];
-end
+a_t = '_a_cst_';
+param_ref.a_time_dependant = 0; % to account for the a_t
+param_ref.decor_by_subsampl.bool = true; % we'll subsample
+param_ref.decor_by_subsampl.choice_n_subsample = 'auto_corr_time'; % for testing
+param_ref.type_data = type_data;
+param_ref.nb_modes = nb_modes;
+param_ref.decor_by_subsampl.meth = 'bt_decor';
+param_ref.decor_by_subsampl.test_fct = 'b';
 
+file_res = fct_file_save_1st_result(param_ref);
+
+file_res = file_res(1:end - 4); % delete the .mat at the end of the filename
 file_res=[file_res '_fullsto'];
 
 if ~ adv_corrected
@@ -167,7 +170,6 @@ end
 
 file_res=[ file_res '.mat'];
 load(file_res)
-
 
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 
@@ -207,7 +209,7 @@ ILC=struct('deter',deter,'sto',sto,'tot',tot);
 ILC_a_cst=ILC;
 % bt_sans_coef_a_cst = bt_forecast_sto;
 
-%% Redefined path to get acces to data
+%% Redefined path to get access to data
 param.nb_period_test=nb_period_test;
 param.decor_by_subsampl.test_fct=test_fct;
 
@@ -313,7 +315,7 @@ end
 %% Do not temporally subsample, in order to prevent aliasing in the results
 % % BETA
 % if no_subampl_in_forecast & reconstruction
-%     error('The recosntruction is only coded with the subsampled data');
+%     error('The reconstruction is only coded with the subsampled data');
 % end
 if ~ reconstruction
 %     if param.decor_by_subsampl.no_subampl_in_forecast

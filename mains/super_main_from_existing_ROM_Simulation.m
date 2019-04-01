@@ -116,9 +116,18 @@ for modal_dt=vect_modal_dt
                 iii = (threshold =='.');
                 threshold(iii)='_';
                 
+%                 switch param.decor_by_subsampl.choice_n_subsample
+%                     case 'auto_shanon'
+%                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
+%                             num2str(nb_modes_max) '_threshold_' threshold ...
+%                             '_fullsto'];
+%                     case 'auto_corr_time'
+%                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
+%                             num2str(nb_modes_max) 'auto_corr_time_fullsto'];
+%                 end
                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-                    num2str(nb_modes_max) '_threshold_' threshold ...
-                    '_fullsto'];
+                    num2str(nb_modes_max) 'auto_corr_time_fullsto'];
+
                 if modal_dt == 1
                     str =[ str '_modal_dt'];
                 elseif modal_dt == 2

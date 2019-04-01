@@ -144,7 +144,9 @@ if ~exist('decor_by_subsampl','var')
         % 'auto_shanon' means that it use a Nyquist-Shanon based criterion
         % 'tuning' means that param.decor_by_subsampl.n_subsampl_decor is
         % set manually
-        param.decor_by_subsampl.choice_n_subsample='auto_shanon';
+        % 'auto_corr_time' uses the autocorrelation time to choose the
+        % subsampling rate.
+        param.decor_by_subsampl.choice_n_subsample='auto_corr_time';
         % param.decor_by_subsampl.spectrum_threshold and param.decor_by_subsampl.test_fct
         % are parameters used in the new time sampling period choice.
         % spectrum_threshold is a threshold to know
@@ -163,22 +165,22 @@ end
 % If coef_correctif_estim.learn_coef_a = true, corrective coefficients are
 % estimated to modify the values of the variance tensor a, in order to
 % improve the results
-param.coef_correctif_estim.learn_coef_a=false;
+param.coef_correctif_estim.learn_coef_a = false;
 
 % whether we want to add advection correction or not
 param.adv_corrected = adv_corrected;
 
 % param.eq_proj_div_free=true if the PDE is
 % projected on the free divergence space
-param.eq_proj_div_free=true;
+param.eq_proj_div_free = true;
 
 % if param.save_all_bi = true, the N Chronos will be computed and saved
 % with N = the number of time steps
 % It can be useful for offline studies
 if ~exist('save_all_bi','var')
-    param.save_all_bi=false;
+    param.save_all_bi = false;
 else % the variable is already defined in a super_main
-    param.save_all_bi=save_all_bi;
+    param.save_all_bi = save_all_bi;
     clear save_all_bi
 end
 param.save_bi_before_subsampling = true;
@@ -217,7 +219,7 @@ param.name_file_mode=[ param.folder_data param.name_file_mode ];
 % Conmputation of each snapshots residual velocities
 % Since Topos and residual velocities are big data, they are saved in
 % specific files
-[param,bt_tot]=POD_and_POD_knowing_phi(param);
+[param,bt_tot] = POD_and_POD_knowing_phi(param);
 if param.big_data
     toc;tic;
     disp('POD done');
@@ -228,7 +230,7 @@ end
 % Computation of the variance tensor a
 % or computation of its parameters z_i(x)
 % Since it is big data, they are saved in specific files
-param=quadratic_variation_estimation(param,bt_tot);
+param = quadratic_variation_estimation(param,bt_tot);
 if param.big_data
     toc;tic;
     disp('Variance tensor estimation done');
@@ -333,7 +335,7 @@ end
 % %     rmdir(fct_folder_temp_(1:(end-1)),'s');
 % end
 
-%% Time integration of the reconstructed Chronos b(t)
+%% Time integration of the reconstructed C hronos b(t)
 if ~param.igrida && reconstruct_chronos
     bt_tot=bt_tot(1:(param.N_test+1),:); % reference Chronos
     bt_tronc=bt_tot(1,:); % Initial condition
@@ -405,12 +407,13 @@ if ~param.igrida && reconstruct_chronos
         else
             char_filter = [];
         end
-        file_save=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
-            dependance_on_time_of_a char_filter ...
-            '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
-            '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
-            '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
-            'fct_test_' param.decor_by_subsampl.test_fct ];
+        param = fct_name_2nd_result(param, modal_dt, reconstruction);
+%         file_save=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
+%             dependance_on_time_of_a char_filter ...
+%             '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
+%             '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
+%             '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
+%             'fct_test_' param.decor_by_subsampl.test_fct ];
     else
         file_save=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
             dependance_on_time_of_a ];
