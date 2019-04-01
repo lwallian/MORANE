@@ -398,9 +398,9 @@ elseif ( strcmp(param.type_data, 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') 
     % %         subplot(2,2,0.51+log2(param.nb_modes));
     % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
     %     end
-else
-    subplot(2,2,(param.nb_modes)/2);
-end
+% else
+%     subplot(2,2,(param.nb_modes)/2);
+ end
 k=1;
 
 % Real values

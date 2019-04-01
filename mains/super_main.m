@@ -7,8 +7,8 @@ init;
 igrida=false;
 
 %% Number of modes for the the ROM
-% vect_nb_modes = 2 % For debugging
-vect_nb_modes = [ 16 8 6 4 2] % For a full test
+vect_nb_modes = 8 % For debugging
+% vect_nb_modes = [ 16 8 6 4 2] % For a full test
 % % vect_nb_modes = 2.^(4:-1:1)
 no_subampl_in_forecast = false;
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM

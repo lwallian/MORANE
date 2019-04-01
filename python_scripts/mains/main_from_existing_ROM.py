@@ -25,8 +25,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     # Parameters choice
     param_ref = {}
-    param_ref['n_simu'] = 6
-    param_ref['N_particules'] = 4
+    param_ref['n_simu'] = 2
+    param_ref['N_particules'] = 2
     
     #%%  Parameters already chosen
     
@@ -38,8 +38,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     current_pwd = Path(__file__).parents[1]
-    folder_results = current_pwd.joinpath('resultats').joinpath('current_results')
-    folder_data = current_pwd.joinpath('data')
+    folder_results = current_pwd.parents[0].joinpath('resultats').joinpath('current_results')
+    folder_data = current_pwd.parents[0].joinpath('data')
     
     
     param_ref['folder_results'] = str(folder_results)
@@ -125,7 +125,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     #%% Choice of modal time step
     #TESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-    modal_dt = True
+#    modal_dt = True
     ##############################################################################
     if modal_dt == True:
 #        rate_dt,ILC_a_cst,pchol_cov_noises = fct_cut_frequency_2_full_sto(bt_tot,ILC_a_cst,param,pchol_cov_noises,modal_dt)
@@ -141,10 +141,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #        if exists: 
         current_pwd = Path(__file__).parents[1]
         if param['nb_period_test'] is math.nan:
-            name_file_data = current_pwd.joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+            name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
                                                '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
         else:
-            name_file_data = current_pwd.joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+            name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
                                                '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
         
            
@@ -186,7 +186,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     bt_forecast_deter = bt_tronc
     for index in range(param['N_test']):
         bt_forecast_deter = evol_forward_bt_RK4(ILC_a_cst['deter']['I'],ILC_a_cst['deter']['L'],ILC_a_cst['deter']['C'],param['dt'],bt_forecast_deter)
-    
+        
     
 
     
@@ -210,7 +210,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
 if __name__ == '__main__':
     
-    nb_modes = 4
+    nb_modes = 8
     modal_dt = False
     threshold = 1e-05
     adv_corrected = False
