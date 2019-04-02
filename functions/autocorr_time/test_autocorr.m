@@ -127,7 +127,7 @@ xlabel('N'), grid minor;
 title('Normalized estimation error');
 
 % Log plot of error
-figure, semilogx(N, log(error));
+figure, semilogx(N, log10(error));
 xlabel('N'), grid minor;
 title('Error logplot');
 
