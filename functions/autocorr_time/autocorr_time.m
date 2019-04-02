@@ -34,6 +34,7 @@ end
 
 % figure, plot(c_prime ./ N), title('cov estimee') % for the test
 
-tau = - 0.5 + corr_s / var_s;
+% tau = - 0.5 + corr_s / var_s;
+tau = 1 + 2 * corr_s / var_s;
 
 end

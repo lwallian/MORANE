@@ -34,7 +34,7 @@ for i = 2 : N
     corr_s = corr_s + c .* N / (N - i + 1);
 end
 
-tau = - 0.5 + corr_s / var_s;
+tau = 1 + 2 * corr_s / var_s;
 
 end
 
