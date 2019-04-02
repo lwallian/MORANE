@@ -131,10 +131,10 @@ figure, semilogx(N, log(error));
 xlabel('N'), grid minor;
 title('Error logplot');
 
-%% heterogenous test
+%% heterogenous test amplitude
 clear all, close all, clc;
 
-alin = linspace(0.1, 3.0, 10);
+alin = linspace(0.1, 3.0, 100);
 T = 5.0;
 N = 1000;
 t_0 = 0.0;
@@ -144,21 +144,22 @@ deltaT = (durationT / N);
 tau = 20.0;
 sigma = 10.0;
 
-beta = @(x, alin) 1 + alin * cos(2 * pi * 3 * x / T);
-alpha = @(x, alin) 1 + alin * sin(2 * pi * 2 * x / T);
-cov_x = @(tau, t1, t2) sigma.^2 * ...
-    exp(-0.5 * ((t1 - t2) / tau ).^2);
+beta = @(x, alin) 1 + alin * cos(2 * pi * x / T);
+alpha = @(x, alin) 1 + alin * sin(2 * pi * x / T);
+cov_x = @(tau, dt, st, alin) sigma.^2 * alpha(st, alin) * ...
+    exp(-0.5 * (dt / tau / beta(st, alin) ).^2);
 
 bt_test = zeros(N, 1);
 
 actime = zeros(length(alin), 1);
-for k = 1 : length(alin)    
+for k = 1 : length(alin)
+    k
     c = zeros(N);
     for i = 1 : N
         for j = 1 : N
-            t1 = i / beta((i + j) / 2, alin);
-            t2 = j / beta((i + j) / 2, alin);
-            c(i, j) = cov_x(tau, t1, t2, alin(k)) * alpha((t1 + t2) / 2, alin);
+            dt = abs(i - j) * deltaT;
+            st = (i + j) * deltaT;
+            c(i, j) = cov_x(tau, dt, st, alin(k));
         end
     end
     
@@ -172,6 +173,62 @@ error = abs(actime' / sqrt(2 * pi) - tau) / durationT;
 
 % Plot of the expected value and its estimation
 figure, hold on;
-plot(actime / sqrt(2 * pi)), plot(tau * ones(size(actime)));
-xlabel('Non-linear coefficient')
+plot(alin, actime / sqrt(2 * pi)), plot(alin, tau * ones(size(actime)));
+xlabel('Non-linearity amplitude')
 title('Autocorrelation time estimation'), grid minor;
+
+% Plot of the incurred error
+figure, plot(alin, error);
+xlabel('Non-linearity amplitude')
+title('Normalized error'), grid minor;
+
+%% heterogenous test period
+clear all, close all, clc;
+
+alin = 0.5;
+T = 1 : 100;
+N = 1000;
+t_0 = 0.0;
+t_f = 100.0;
+durationT = t_f - t_0;
+deltaT = (durationT / N);
+tau = 20.0;
+sigma = 10.0;
+
+beta = @(x, T) 1 + alin * cos(2 * pi * x / T);
+alpha = @(x, T) 1 + alin * sin(2 * pi * x / T);
+cov_x = @(tau, dt, st, T) sigma.^2 * alpha(st, T) * ...
+    exp(-0.5 * (dt / tau / beta(st, T) ).^2);
+
+bt_test = zeros(N, 1);
+
+actime = zeros(length(T), 1);
+for k = 1 : length(T)
+    k
+    c = zeros(N);
+    for i = 1 : N
+        for j = 1 : N
+            dt = abs(i - j) * deltaT;
+            st = (i + j) * deltaT;
+            c(i, j) = cov_x(tau, dt, st, T(k));
+        end
+    end
+    
+%     actime(k) = initial_positive_estimator(c, bt_test) / (N(k) / durationT);
+    actime(k) = autocorr_time(c, bt_test) / (N / durationT);
+end
+
+[max_error, max_pos] = max(abs(actime' / sqrt(2 * pi) - tau))
+[min_error, min_pos] = min(abs(actime' / sqrt(2 * pi) - tau))
+error = abs(actime' / sqrt(2 * pi) - tau) / durationT;
+
+% Plot of the expected value and its estimation
+figure, hold on;
+plot(T, actime / sqrt(2 * pi)), plot(T, tau * ones(size(actime)));
+xlabel('Non-linearity period')
+title('Autocorrelation time estimation'), grid minor;
+
+% Plot of the incurred error
+figure, plot(T, error);
+xlabel('Non-linearity period')
+title('Normalized error'), grid minor;
