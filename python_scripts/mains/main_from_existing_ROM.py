@@ -11,10 +11,11 @@ from pathlib import Path
 import sys
 import hdf5storage
 import numpy as np
-sys.path.insert(0, 'D:/python_scripts/functions')
+path_functions = Path(__file__).parents[1].joinpath('functions')
+sys.path.insert(0, str(path_functions))
 from fct_cut_frequency_2_full_sto import fct_cut_frequency_2_full_sto
 from evol_forward_bt_RK4 import evol_forward_bt_RK4
-
+from evol_forward_bt_MCMC import evol_forward_bt_MCMC
 
 def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
@@ -182,13 +183,57 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param['N_test'] = param['N_test'] * n_simu
     
     
-    
+#    Reconstruction in the deterministic case
     bt_forecast_deter = bt_tronc
     for index in range(param['N_test']):
-        bt_forecast_deter = evol_forward_bt_RK4(ILC_a_cst['deter']['I'],ILC_a_cst['deter']['L'],ILC_a_cst['deter']['C'],param['dt'],bt_forecast_deter)
-        
+        bt_forecast_deter = np.vstack((bt_forecast_deter, evol_forward_bt_RK4(ILC_a_cst['deter']['I'],ILC_a_cst['deter']['L'],ILC_a_cst['deter']['C'],param['dt'],bt_forecast_deter)))
+    
+#    Reconstruction in the stochastic case
     
 
+    bt_forecast_sto = bt_tronc
+    for index in range(param['N_test']):
+        bt_forecast_sto = np.vstack((bt_forecast_sto,evol_forward_bt_RK4(ILC_a_cst['modal_dt']['I'],ILC_a_cst['modal_dt']['L'],ILC_a_cst['modal_dt']['C'],param['dt'],bt_forecast_sto)))
+    
+    
+    
+    
+#    Reconstruction in the stochastic case
+    
+    bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules']))
+    bt_fv = bt_MCMC.copy()
+    bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))
+    
+    iii_realization = np.zeros((param['N_particules'],1))
+    for index in range(param['N_test']):
+        val0,val1,val2 = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
+                                                        ILC_a_cst['modal_dt']['L'],\
+                                                        ILC_a_cst['modal_dt']['C'],\
+                                                        pchol_cov_noises,param['dt'],\
+                                                        bt_MCMC[0,:,:],bt_fv[0,:,:],\
+                                                        bt_m[0,:,:])
+        bt_MCMC = np.concatenate((bt_MCMC,val0),axis=0)    
+        bt_fv   = np.concatenate((bt_fv,val1),axis=0)
+        bt_m    = np.concatenate((bt_m,val2),axis=0)
+                
+        
+        
+        
+    
+        
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     

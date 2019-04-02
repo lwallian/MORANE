@@ -24,29 +24,29 @@ def deriv_bt(I,L,C, bt):
 #    bt = np.transpose(bt[:,np.newaxis,np.newaxis,:],(1,2,3,0)) #  m x 1 x 1 x N
     
     bt = bt.T
+    
     C = np.multiply(bt,np.transpose(C,(2,0,1)))
     C = np.transpose(C,(1,2,0))
-    
     C = np.sum(C,axis=0)
     
 #    C = squeeze(sum(C,1)); % m x m x N
 #
-#    bt = permute(bt,[1 2 4 3]); % m x 1 x N
-#    
+#    bt = permute(bt,[1 2 4 3]); % m x 1 x N    
     
     C = np.multiply(bt,C)
-    C = np.sum(C,axis=0)
-    
-    C = C.T
-    
+    C = np.sum(C,axis=0)[...,np.newaxis]
+
     
     L = np.multiply(bt,L)
-    L = np.sum(L,axis = 0)
+    L = np.sum(L,axis = 0)[...,np.newaxis]
+    
+    
+    
     
     db = -(np.tile(I,(1,N)) + L + C).T
     
-    print(bt)
+
     
     
     
-    return 2
+    return db

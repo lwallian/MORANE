@@ -34,8 +34,8 @@ def RK4(bt,I,L,C,dt):
     
     k1 = deriv_bt(I[0,:][...,np.newaxis],squeeze_python(L[0,:,:]), C, bt)
     k2 = deriv_bt(I[1,:][...,np.newaxis],squeeze_python(L[1,:,:]), C, bt + k1*dt/2)
-    k3 = deriv_bt(I[2,:][...,np.newaxis],squeeze_python(L[2,:,:]), C, bt + k2*dt/2)
-    k4 = deriv_bt(I[3,:][...,np.newaxis],squeeze_python(L[3,:,:]), C, bt + k3*dt/2)
+    k3 = deriv_bt(I[1,:][...,np.newaxis],squeeze_python(L[1,:,:]), C, bt + k2*dt/2)
+    k4 = deriv_bt(I[2,:][...,np.newaxis],squeeze_python(L[2,:,:]), C, bt + k3*dt)
     
     b_tp1 = bt + (dt/3)*(k1/2 + k2 + k3 + k4/2)
     
