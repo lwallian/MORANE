@@ -71,13 +71,12 @@ for k = 1 : length(tau)
     
     bt_test = zeros(N, 1);
     
-%     actime(k) = initial_positive_estimator(c, bt_test) / (N / durationT);
     actime(k) = autocorr_time(c, bt_test) / (N / durationT);
 end
 
 [max_error, max_pos] = max(abs(actime' / sqrt(2 * pi) - tau))
 [min_error, min_pos] = min(abs(actime' / sqrt(2 * pi) - tau))
-error = abs(actime' / sqrt(2 * pi) - tau) / durationT;
+error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 
 % Plot the estimation error
 figure, plot(tau, error);
@@ -107,13 +106,12 @@ for k = 1 : length(N)
     
     bt_test = zeros(N(k), 1);
     
-%     actime(k) = initial_positive_estimator(c, bt_test) / (N(k) / durationT);
     actime(k) = autocorr_time(c, bt_test) / (N(k) / durationT);
 end
 
 [max_error, max_pos] = max(abs(actime' / sqrt(2 * pi) - tau))
 [min_error, min_pos] = min(abs(actime' / sqrt(2 * pi) - tau))
-error = abs(actime' / sqrt(2 * pi) - tau) / durationT;
+error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 
 % Plot of the estimated tau as a function of N
 figure, hold on;
@@ -122,12 +120,12 @@ xlabel('N')
 title('Autocorrelation time estimation'), grid minor;
 
 % Plot of the estimation error
-figure, plot(N, error);
+figure, plot(N, abs(error));
 xlabel('N'), grid minor;
 title('Normalized estimation error');
 
 % Log plot of error
-figure, semilogx(N, log10(error));
+figure, semilogx(N, log10(abs(error)));
 xlabel('N'), grid minor;
 title('Error logplot');
 
@@ -169,7 +167,7 @@ end
 
 [max_error, max_pos] = max(abs(actime' / sqrt(2 * pi) - tau))
 [min_error, min_pos] = min(abs(actime' / sqrt(2 * pi) - tau))
-error = abs(actime' / sqrt(2 * pi) - tau) / durationT;
+error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 
 % Plot of the expected value and its estimation
 figure, hold on;
@@ -178,7 +176,7 @@ xlabel('Non-linearity amplitude')
 title('Autocorrelation time estimation'), grid minor;
 
 % Plot of the incurred error
-figure, plot(alin, error);
+figure, plot(alin, abs(error));
 xlabel('Non-linearity amplitude')
 title('Normalized error'), grid minor;
 
@@ -220,7 +218,7 @@ end
 
 [max_error, max_pos] = max(abs(actime' / sqrt(2 * pi) - tau))
 [min_error, min_pos] = min(abs(actime' / sqrt(2 * pi) - tau))
-error = abs(actime' / sqrt(2 * pi) - tau) / durationT;
+error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 
 % Plot of the expected value and its estimation
 figure, hold on;
@@ -229,6 +227,6 @@ xlabel('Non-linearity period')
 title('Autocorrelation time estimation'), grid minor;
 
 % Plot of the incurred error
-figure, plot(T, error);
+figure, plot(T, abs(error));
 xlabel('Non-linearity period')
 title('Normalized error'), grid minor;

@@ -17,22 +17,17 @@ end
 cov_s = (cov_v - cov_w);
 
 % Calculate the autocorrelation time as:
-% -0.5 + sum(proy_sym(corr(tau))) / var_s
+% 1 + 2 * sum(proy_sym(corr(tau))) / var_s
 corr_s = 0;
 var_s = trace(cov_s);
-
-% c_prime = zeros(N - 1, 1); % for the test
 
 for i = 2 : N
     c = 0;
     for j = 1 : N - i + 1
         c = c + cov_s(j,j+i-1);
     end
-    %         c_prime(i - 1) = c; % for the test
     corr_s = corr_s + c .* N / (N - i + 1);
 end
-
-% figure, plot(c_prime ./ N), title('cov estimee') % for the test
 
 tau = 1 + 2 * corr_s / var_s;
 
