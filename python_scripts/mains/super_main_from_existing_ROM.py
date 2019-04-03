@@ -66,7 +66,8 @@ if __name__ == '__main__':
             
             
             
-            
+     super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
+                                             no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
             
             
             

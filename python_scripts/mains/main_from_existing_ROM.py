@@ -16,6 +16,7 @@ sys.path.insert(0, str(path_functions))
 from fct_cut_frequency_2_full_sto import fct_cut_frequency_2_full_sto
 from evol_forward_bt_RK4 import evol_forward_bt_RK4
 from evol_forward_bt_MCMC import evol_forward_bt_MCMC
+from fct_name_2nd_result import fct_name_2nd_result
 
 def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
@@ -26,8 +27,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     # Parameters choice
     param_ref = {}
-    param_ref['n_simu'] = 2
-    param_ref['N_particules'] = 2
+    param_ref['n_simu'] = 3
+    param_ref['N_particules'] = 5
     
     #%%  Parameters already chosen
     
@@ -206,49 +207,110 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     iii_realization = np.zeros((param['N_particules'],1))
     for index in range(param['N_test']):
+        ##### Regarder evol pour efacer les matrices deterministes
         val0,val1,val2 = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
                                                         ILC_a_cst['modal_dt']['L'],\
                                                         ILC_a_cst['modal_dt']['C'],\
                                                         pchol_cov_noises,param['dt'],\
-                                                        bt_MCMC[0,:,:],bt_fv[0,:,:],\
-                                                        bt_m[0,:,:])
+                                                        bt_MCMC[-1,:,:],bt_fv[-1,:,:],\
+                                                        bt_m[-1,:,:])
         bt_MCMC = np.concatenate((bt_MCMC,val0),axis=0)    
         bt_fv   = np.concatenate((bt_fv,val1),axis=0)
         bt_m    = np.concatenate((bt_m,val2),axis=0)
+        
+        
+        iii_realization = np.any(np.logical_or(np.isnan(bt_MCMC[index+1,:,:]),np.isinf(bt_MCMC[index+1,:,:])),axis = 0)[...,np.newaxis]
+        
+        if np.any(iii_realization):
+            if np.all(iii_realization):
+                print('WARNING: All realization of the simulation have blown up.')
                 
+                if index < param['N_test']:
+                    val_nan = np.full([int(param['N_test']-index), param['nb_modes'], param['N_particules']], np.nan)
+                    bt_MCMC = np.concatenate((bt_MCMC,val_nan),axis=0)    
+                    bt_fv   = np.concatenate((bt_fv,val_nan),axis=0)
+                    bt_m    = np.concatenate((bt_m,val_nan),axis=0)
+                
+                break 
+            
+            
         
+            nb_blown_up = np.sum(iii_realization)
+            print('WARNING: '+ str(nb_blown_up)+' realizations have blown up and will be replaced.')
+            good_indexes = np.where((np.logical_not(iii_realization) == True))[0]
+            bt_MCMC_good = bt_MCMC[-1,:, good_indexes].T
+            bt_fv_good = bt_fv[-1,:, good_indexes].T
+            bt_m_good = bt_m[-1,:, good_indexes].T
+            
+            
+            bt_MCMC_good = bt_MCMC_good[np.newaxis,...]
+            bt_fv_good = bt_fv_good[np.newaxis,...]
+            bt_m_good = bt_m_good[np.newaxis,...]
+                
+            
+            rand_index =  np.random.randint(0, param['N_particules'] - nb_blown_up, size=(nb_blown_up,1))
         
-        
+            bad_indexes = np.where((iii_realization == True))[0]
+            bt_MCMC[-1,:, bad_indexes] = bt_MCMC_good[0,:, rand_index]  
+            bt_fv[-1,:, bad_indexes] = bt_fv_good[0,:, rand_index]
+            bt_m[-1,:, bad_indexes] = bt_m_good[0,:, rand_index]
     
-        
-        
-    
-    
-    
-    
-    
-    
-    
+            del bt_MCMC_good 
+            del rand_index 
+            del nb_blown_up 
+            del iii_realization     
     
     
     
+    del bt_tronc
+    
+    param['dt'] = param['dt']*n_simu
+    param['N_test'] = param['N_test']/n_simu
+    bt_MCMC = bt_MCMC[::n_simu,:,:]
+    bt_fv = bt_fv[::n_simu,:,:]
+    bt_m = bt_m[::n_simu,:,:]
+    bt_forecast_sto = bt_forecast_sto[::n_simu,:]
+    bt_forecast_deter = bt_forecast_deter[::n_simu,:]
+    
+    struct_bt_MCMC = {}
+    
+    tot = {}
+    tot['mean'] = np.mean(bt_MCMC,2)
+    tot['var'] = np.var(bt_MCMC,2)
+    tot['one_realiz'] = bt_MCMC[:,:,0]
+    struct_bt_MCMC['tot'] = tot.copy()
+    
+    fv = {}
+    fv['mean'] = np.mean(bt_fv,2)
+    fv['var'] = np.var(bt_fv,2)
+    fv['one_realiz'] = bt_fv[:,:,0]
+    struct_bt_MCMC['fv'] = fv.copy()
+   
+    m = {}
+    m['mean'] = np.mean(bt_m,2)
+    m['var'] = np.var(bt_m,2)
+    m['one_realiz'] = bt_m[:,:,0]
+    struct_bt_MCMC['m'] = m.copy()
+    
+    
+    #%%  Save 2nd results, especially I, L, C and the reconstructed Chronos
+
+    param = fct_name_2nd_result(param,modal_dt,reconstruction)
     
     
     
     
+    del C_deter 
+    del C_sto 
+    del L_deter 
+    del L_sto 
+    del I_deter 
+    del I_sto
+
     
     
     
-    
-    
-    
-    
-    
-    #%%
-    
-    
-    
-    return param,bt_tot,name_file_data
+    return 0
     
     #%%
     
@@ -264,7 +326,7 @@ if __name__ == '__main__':
     nb_period_test = math.nan
     reconstruction = False
     #nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt
-    param,bt_tot,folder_data = main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+    result = main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
     
     
     

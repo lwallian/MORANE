@@ -55,8 +55,12 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     del noises
     
     #############
+    s = bt.shape[-1]
+    alpha_dB_t = np.zeros((8,8,1,s))
+    alpha_dB_t[:,:,0,0] = np.ones((8,8))*2.2
     
-    
+    theta_alpha0_dB_t = np.zeros((8,1,1,s))
+    theta_alpha0_dB_t[:,:,0,0] = np.ones((8,1))*0.05
     #############
     
     
@@ -66,7 +70,7 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     alpha_dB_t = alpha_dB_t[:,:,np.newaxis,:]
     
     
-    d_b_m = alpha_dB_t + theta_alpha0_dB_t
+    d_b_m = np.add(alpha_dB_t,theta_alpha0_dB_t)
     
     #### if nargin>6
     bt_fv = np.add(bt_fv, d_b_fv[:,0,0,:])
@@ -75,7 +79,8 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     bt_m  = np.add(bt_m, d_b_m[:,0,0,:] )
     bt_m = bt_m[np.newaxis,...]
     
-    bt_evol = np.add(bt[:,0,0,:],d_b_fv[:,0,0,:],d_b_m[:,0,0,:])
+    bt_evol = np.add(bt[:,0,0,:],d_b_fv[:,0,0,:])
+    bt_evol = np.add(bt_evol,d_b_m[:,0,0,:])
     bt_evol = bt_evol[np.newaxis,...]
     
     
@@ -83,9 +88,9 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     
     
     
-    
-    
-    
+   
+#     print(np.transpose(bt_evol,(3,2,0,1)))
+#    print(d_b_m[:,0,0,:])
     
     
     

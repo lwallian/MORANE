@@ -18,8 +18,8 @@ tic
 %% Parameters choice
 % param_ref.n_simu = 2;
 % N_particules=2;
-param_ref.n_simu = 2;
-N_particules=2;
+param_ref.n_simu = 3;
+N_particules=5;
 param_ref.N_particules=N_particules;
 
 %% Default parameters 
