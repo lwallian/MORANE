@@ -15,6 +15,7 @@ for i = 1 : N
 end
 
 cov_s = (cov_v - cov_w);
+clear cov_w;
 
 % Calculate the autocorrelation time as:
 % 1 + 2 * sum(proy_sym(corr(tau))) / var_s

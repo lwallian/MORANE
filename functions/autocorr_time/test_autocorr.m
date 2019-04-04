@@ -79,7 +79,7 @@ end
 error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 
 % Plot the estimation error
-figure, plot(tau, error);
+figure, plot(tau, abs(error));
 title('Estimation error'), grid minor;
 
 %% var delta t
