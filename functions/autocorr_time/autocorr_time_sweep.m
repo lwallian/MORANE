@@ -1,6 +1,12 @@
 function [tau] = autocorr_time_sweep(cov_v, bt)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+%AUTOCORR_TIME_SWEEP Sweeps the vector length of autocorrelation to observe
+%how the variance and mean of the estimator changes along with it.
+%   @param cov_v: covariance matrix of the velocity field
+%   @param bt: chronos basis of the resolved states
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 N = size(cov_v, 2);
 lag_f = N;
 

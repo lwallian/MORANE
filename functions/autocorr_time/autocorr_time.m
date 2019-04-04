@@ -4,6 +4,10 @@ function [tau] = autocorr_time(cov_v, bt)
 %   @param is_big_data: boolean to vectorize or not
 %   @param cov_v: covariance matrix of the velocity field
 %   @param bt: chronos of the POD
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 N = size(cov_v, 2);
 
 % Calculate the large and small scale covariance matrices

@@ -3,6 +3,10 @@ function [tau] = initial_positive_estimator(cov_v, bt)
 %estimator for the autocorrelation time as in
 %https://arxiv.org/abs/1011.0175 and Geyer's "Practical Markov Chain
 %Monte Carlo".
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 
 N = size(cov_v, 2);
 

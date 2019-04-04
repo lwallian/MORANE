@@ -1,3 +1,8 @@
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
+
 %% Synthetic test (simple)
 clear all, close all, clc;
 
