@@ -5,14 +5,9 @@ Created on Wed Apr  3 17:03:32 2019
 @author: matheus.ladvig
 """
 
+import numpy as np
+from main_from_existing_ROM_Simulation import main_from_existing_ROM_Simulation
 
-vect_nb_modes = [8]
-    no_subampl_in_forecast = False;
-    vect_reconstruction = [False] # for the super_main_from_existing_ROM
-    vect_adv_corrected = [False]
-
-    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
- v_threshold,vect_modal_dt  = [[1e-05],[False]],
 
 
 def super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
@@ -35,4 +30,17 @@ def super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,
                         
                         
                         
+                        
+                    
+                        
+if __name__ == '__main__':                       
+    vect_nb_modes = [8]
+    no_subampl_in_forecast = False;
+    vect_reconstruction = [False] # for the super_main_from_existing_ROM
+    vect_adv_corrected = [False]
+    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
+    v_threshold = [1e-05]
+    vect_modal_dt  = [1e-05]
+    super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
+                                            no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
                         

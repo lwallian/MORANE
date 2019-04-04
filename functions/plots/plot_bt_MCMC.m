@@ -139,14 +139,20 @@ for k=1:nb_modes
 % %     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
 % %         struct_bt_MCMC.tot.mean(:,k) + delta]);
 %     h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
-    h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-        2*delta]); % DEFAULT
+
+
+%     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+%         2*delta]); % DEFAULT  COMENTEI
+    
+    
+    
 %     set(h(1),'FaceColor',[0,0.25,0.25]);
 %     set(h(2),'FaceColor',[0,0.5,0.5]);
-    set (h(1), 'FaceColor', 'none');
-    set (h(2), 'FaceColor', [0.8 0.8 0.8]);
-    set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
-    
+
+%     set (h(1), 'FaceColor', 'none');COMENTEI
+%     set (h(2), 'FaceColor', [0.8 0.8 0.8]);COMENTEI
+%     set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');COMENTEI
+%     
     % Raise current axis to the top layer, to prevent it
     % from being hidden by the grayed area
     set (gca, 'Layer', 'top');
@@ -154,7 +160,7 @@ for k=1:nb_modes
 %     axis([0 10 2*param.lambda(k)*[-1 1]])
     
     % One realization
-    plot(time, (struct_bt_MCMC.tot.one_realiz(:,k))','y');
+%     plot(time, (struct_bt_MCMC.tot.one_realiz(:,k))','y');  COMENTEI
     if plot_deter
         plot(time, (bt_forecast_deter(:,k))','b');
         %     semilogy(time, (bt_forecast_deter(:,k))','b');
@@ -166,7 +172,7 @@ for k=1:nb_modes
     plot(time_ref,bt_tot(:,k)','k-.');
     
     
-    plot(time_ref,struct_bt_MCMC.tot.mean(:,k)','g');
+%     plot(time_ref,struct_bt_MCMC.tot.mean(:,k)','g');  COMENTEI
 %     plot(time_ref,struct_bt_MCMC.fv.mean(:,k)','c');
 %     plot(time_ref,struct_bt_MCMC.tot.one_realiz(:,k)','y');
 
