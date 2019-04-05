@@ -7,13 +7,13 @@ Created on Wed Apr  3 17:03:32 2019
 
 import numpy as np
 from main_from_existing_ROM_Simulation import main_from_existing_ROM_Simulation
-
+import matplotlib.pyplot as plt
 
 
 def super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
                                             no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected):
     
-    
+    plt.figure()
     
     nb_modes_max = np.max(vect_nb_modes)
     
@@ -26,15 +26,15 @@ def super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,
                     
                     for k in vect_nb_modes:
                         main_from_existing_ROM_Simulation(type_data,k, v_thres,no_subampl_in_forecast,\
-                                                          reconstruction,adv_corrected,modal_dt)
+                                                          reconstruction,adv_corrected,modal_dt,plt)
                         
                         
                         
                         
-                    
+    plt.grid()          
                         
 if __name__ == '__main__':                       
-    vect_nb_modes = [8]
+    vect_nb_modes = [16,8]
     no_subampl_in_forecast = False;
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]

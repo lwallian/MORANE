@@ -35,12 +35,12 @@ alpha_dB_t =reshape(noises(n+1:end,1,1,:),[n n 1 nb_pcl]); % n(j) x n(i) x 1 x n
 
 %%%%%%%%%%%%%%%%%%
 
-s = size(alpha_dB_t,4)
-alpha_dB_t(:,:,1,:) = zeros(8,8,s)
-alpha_dB_t(:,:,1,1) = ones(8,8)*2.2
-
-theta_alpha0_dB_t(:,:,1,:) = zeros(8,1,1,s)
-theta_alpha0_dB_t(:,:,1,1) = ones(8,1)*0.05
+% s = size(alpha_dB_t,4)
+% alpha_dB_t(:,:,1,:) = zeros(8,8,s)
+% alpha_dB_t(:,:,1,1) = ones(8,8)*2.2
+% 
+% theta_alpha0_dB_t(:,:,1,:) = zeros(8,1,1,s)
+% theta_alpha0_dB_t(:,:,1,1) = ones(8,1)*0.05
 
 %%%%%%%%%%%%%%%%%%
 

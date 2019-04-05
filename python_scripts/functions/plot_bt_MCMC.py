@@ -5,10 +5,10 @@ Created on Thu Apr  4 15:12:19 2019
 @author: matheus.ladvig
 """
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def plot_bt_MCMC(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_sto_a_cst_modal_dt, bt_forecast_sto_a_NC_modal_dt, \
-                 bt_forecast_deter, bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC):
+                 bt_forecast_deter, bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC,plt):
     
     #%% Plot the first coefficients bt along time
     beamer = True
@@ -60,7 +60,7 @@ def plot_bt_MCMC(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_s
     
     for index in range(int(nb_modes)):
         
-        plt.figure(index)
+        plt.figure(plt.gcf().number+1)
         
     
 #        plt.plot(time,struct_bt_MCMC['tot']['one_realiz'][:,index],'y')

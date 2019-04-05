@@ -55,12 +55,12 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     del noises
     
     #############
-    s = bt.shape[-1]
-    alpha_dB_t = np.zeros((8,8,1,s))
-    alpha_dB_t[:,:,0,0] = np.ones((8,8))*2.2
-    
-    theta_alpha0_dB_t = np.zeros((8,1,1,s))
-    theta_alpha0_dB_t[:,:,0,0] = np.ones((8,1))*0.05
+#    s = bt.shape[-1]
+#    alpha_dB_t = np.zeros((8,8,1,s))
+#    alpha_dB_t[:,:,0,0] = np.ones((8,8))*2.2
+#    
+#    theta_alpha0_dB_t = np.zeros((8,1,1,s))
+#    theta_alpha0_dB_t[:,:,0,0] = np.ones((8,1))*0.05
     #############
     
     
