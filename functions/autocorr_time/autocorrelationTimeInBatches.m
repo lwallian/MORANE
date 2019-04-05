@@ -18,9 +18,9 @@ period = estimateCovariancePeriod(cov_s);
 % Compute the autocorrelation time in batches
 autocorrelationTime = zeros(ceil(N / period), 1);
 periodIndex = 1;
-currBatch = 1;
+currBatch{1} = 1;
 currPosition = 1;
-while currBatch ~= 0 % TODO: fix the fact that != doesn't exist for cells
+while currBatch{1} ~= 0
     currBatch = nextMatrixPeriod(cov_s, period, currPosition);
     autocorrelationTime(periodIndex) = estimateAutocorrelationTime(currBatch);
     currPosition = currPosition + period;

@@ -12,10 +12,10 @@ function [block] = nextMatrixPeriod(m, blockSize,currPosition)
 % supervisor
 %
 [N, M] = size(m);
-minDimension = min(N, M);
+minDimension = min(N, M); % I'm not sure that it would work in all cases
 
-if minDimension == currPosition
-    block = 0;
+if currPosition >= minDimension
+    block{1} = 0;
     return
 elseif minDimension - currPosition < blockSize
     blockSize = minDimension - currPosition;
@@ -24,8 +24,8 @@ end
 block = cell(blockSize, 1);
 
 for i = 1 : blockSize
-    for j = currPosition : N - currPosition - i + 1
-        block{i}(j) = m(j, j + i - 1);
+    for j = 1 : minDimension - currPosition - i + 1
+        block{i}(j) = m(j, j + i + currPosition - 1);
     end
 end
 
