@@ -85,7 +85,8 @@ error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 
 % Plot the estimation error
 figure, plot(tau, abs(error));
-title('Estimation error'), grid minor;
+title('Estimator bias'), grid minor;
+xlabel('\tau [s]'), ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'latex');
 
 %% var delta t
 clear all, close all, clc;
@@ -121,17 +122,19 @@ error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 % Plot of the estimated tau as a function of N
 figure, hold on;
 plot(actime / sqrt(2 * pi)), plot(tau * ones(size(actime)));
-xlabel('N')
+xlabel('N [samples]'), ylabel('$\hat{\tau} [s]$', 'Interpreter', 'latex')
 title('Autocorrelation time estimation'), grid minor;
 
 % Plot of the estimation error
 figure, plot(N, abs(error));
-xlabel('N'), grid minor;
+xlabel('N [samples]'), grid minor;
+ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'latex');
 title('Normalized estimation error');
 
 % Log plot of error
 figure, semilogx(N, log10(abs(error)));
-xlabel('N'), grid minor;
+xlabel('N [samples]'), grid minor;
+ylabel('$\log\left(||\tau - \hat{\tau}||_2^2\right)$ [s]', 'Interpreter', 'latex');
 title('Error logplot');
 
 %% heterogenous test amplitude
@@ -177,12 +180,14 @@ error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 % Plot of the expected value and its estimation
 figure, hold on;
 plot(alin, actime / sqrt(2 * pi)), plot(alin, tau * ones(size(actime)));
-xlabel('Non-linearity amplitude')
+xlabel('Non-linearity modulation amplitude [$\frac{m^2}{s^2}$]', 'Interpreter', 'latex')
+ylabel('\tau [s]')
 title('Autocorrelation time estimation'), grid minor;
 
 % Plot of the incurred error
 figure, plot(alin, abs(error));
-xlabel('Non-linearity amplitude')
+xlabel('Non-linearity modulation amplitude [$\frac{m^2}{s^2}$]', 'Interpreter', 'latex')
+ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'latex');
 title('Normalized error'), grid minor;
 
 %% heterogenous test period
@@ -228,10 +233,11 @@ error = sqrt(actime'.^2 / (2 * pi) - tau.^2) / durationT;
 % Plot of the expected value and its estimation
 figure, hold on;
 plot(T, actime / sqrt(2 * pi)), plot(T, tau * ones(size(actime)));
-xlabel('Non-linearity period')
+xlabel('Non-linearity modulation period [s]'), ylabel('\tau [s]')
 title('Autocorrelation time estimation'), grid minor;
 
 % Plot of the incurred error
 figure, plot(T, abs(error));
-xlabel('Non-linearity period')
+xlabel('Non-linearity modulation period [s]')
+ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'latex');
 title('Normalized error'), grid minor;
