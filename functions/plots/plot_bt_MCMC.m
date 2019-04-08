@@ -274,6 +274,10 @@ end
 %     eval( ['print -depsc ' num2str(nb_modes) 'm/' ...
 %         num2str(nb_modes_used) '_modes_used_for_estim_coef_correctif/mode' num2str(k) '.eps']);
 %     drawnow;
+
+
+
 end
+
 % keyboard;
 % close all

@@ -15,7 +15,7 @@ if nargin == 0
     
     %% Number of modes for the the ROM
 %     vect_nb_modes = [ 16 8 6 4 2]
-    vect_nb_modes = [ 16 8]
+    vect_nb_modes = [16]
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
     vect_adv_corrected = [ false]
@@ -56,7 +56,7 @@ if nargin == 0
         %   differentials equations of distincts chronos
         case {'incompact3D_noisy2D_40dt_subsampl_truncated'}
             v_threshold=[1e-5]
-            vect_modal_dt=false
+            vect_modal_dt=[false]
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-6 % BEST

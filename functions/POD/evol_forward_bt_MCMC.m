@@ -26,6 +26,8 @@ L = permute(sum(L,1),[2 3 1 4]); % m x 1 x 1 x nb_pcl
 d_b_fv = - bsxfun(@plus, I, L + C )*dt ; % m x 1 x 1
 clear I L C
 
+
+
 noises=pchol_cov_noises*randn((n+1)*n,nb_pcl)*sqrt(dt);
 noises=permute(noises,[1 3 4 2]); % (n+1)*n x nb_pcl
 clear pchol_cov_noises; % (n+1)*n x 1 x 1 x nb_pcl

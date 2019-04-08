@@ -18,8 +18,8 @@ tic
 %% Parameters choice
 % param_ref.n_simu = 2;
 % N_particules=2;
-param_ref.n_simu = 5;
-N_particules=10;
+param_ref.n_simu = 50;
+N_particules=50;
 param_ref.N_particules=N_particules;
 
 %% Default parameters 
@@ -189,7 +189,7 @@ param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 
 %% Parameters of the ODE of the b(t)
 modal_dt = modal_dt_ref;
-modal_dt
+% modal_dt
 
 tot = struct('I',I_sto,'L',L_sto,'C',C_sto);
 

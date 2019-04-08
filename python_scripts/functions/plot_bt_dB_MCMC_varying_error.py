@@ -58,7 +58,7 @@ def load_param_c(param):
 
 def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_sto_a_cst_modal_dt,\
                                   bt_forecast_sto_a_NC_modal_dt, bt_forecast_deter,bt_forecast_MEV,bt_sans_coef1,\
-                                  bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC,plt):
+                                  bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC,plt,varying_error_figure,nb_subplot_cols,current_subplot):
     
     
     logscale = False
@@ -107,7 +107,7 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
     
     dt_tot = param['dt']
     N_time_final = N_tot
-    time = np.arange(0,int(N_test + 1),1)*dt_tot
+    time = np.arange(1,int(N_test + 2),1)*dt_tot
     time_ref = time
     
     
@@ -307,42 +307,42 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
     #%%
 #    
     
-    if param['nb_modes'] == 2:
-        
-        plt.figure(0)
-        
-        if param['type_data'] == 'turb2D_blocks_truncated':
-            plt.figure(0)
-            plt.axis([X0(1),X0(2),6*width,4*height])
-                
-        elif param['type_data'] == 'incompact3d_wake_episode3_cut':
-            plt.figure(0)
-            plt.axis([X0(1),X0(2),width,height])
-            
-        elif param['type_data'] in ['incompact3d_wake_episode3_cut_truncated','incompact3d_wake_episode3_cut_test_basis']:
-            plt.figure(0)
-            plt.axis([X0(1),X0(2),6*width,4*height])
-        
-        elif param['type_data'] == 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':
-            plt.figure(0)
-            plt.axis([X0(1), X0(2), 4*width, 4*height])
-        elif param['type_data'] == 'DNS100_inc3d_2D_2018_11_16_blocks_truncated':
-            plt.figure(0)
-            plt.axis([X0(1), X0(2), 4*width, 4*height])
-        elif param['type_data'] in ['LES_3D_tot_sub_sample_blurred','inc3D_Re3900_blocks',\
-                                  'inc3D_Re3900_blocks119']:
-            
-            plt.figure(0)
-            plt.axis([X0(1) ,X0(2) ,6*width, 8*height])
-        elif param['type_data'] =='inc3D_Re3900_blocks_truncated':
-            plt.figure(0)
-            plt.axis([X0(1), X0(2), 4*width, 4*height])
-        else:
-            plt.figure(0)
-            plt.axis([X0(1), X0(2), 4*width, 4*height])
-        
-    else:
-        plt.figure(0)
+#    if param['nb_modes'] == 2:
+#        
+#        plt.figure(varying_error_figure)
+#        
+#        if param['type_data'] == 'turb2D_blocks_truncated':
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1),X0(2),6*width,4*height])
+#                
+#        elif param['type_data'] == 'incompact3d_wake_episode3_cut':
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1),X0(2),width,height])
+#            
+#        elif param['type_data'] in ['incompact3d_wake_episode3_cut_truncated','incompact3d_wake_episode3_cut_test_basis']:
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1),X0(2),6*width,4*height])
+#        
+#        elif param['type_data'] == 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1), X0(2), 4*width, 4*height])
+#        elif param['type_data'] == 'DNS100_inc3d_2D_2018_11_16_blocks_truncated':
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1), X0(2), 4*width, 4*height])
+#        elif param['type_data'] in ['LES_3D_tot_sub_sample_blurred','inc3D_Re3900_blocks',\
+#                                  'inc3D_Re3900_blocks119']:
+#            
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1) ,X0(2) ,6*width, 8*height])
+#        elif param['type_data'] =='inc3D_Re3900_blocks_truncated':
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1), X0(2), 4*width, 4*height])
+#        else:
+#            plt.figure(varying_error_figure)
+#            plt.axis([X0(1), X0(2), 4*width, 4*height])
+##        
+#    else:
+    plt.figure(varying_error_figure)
                 
             
     if (param['type_data'] == 'LES_3D_tot_sub_sample_blurred') or (param['type_data'] == 'inc3D_Re3900_blocks') or \
@@ -362,6 +362,14 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
         plt.subplot(2,2,np.log2(param.nb_modes))
         
      
+    else:
+    #%% Set current subplot
+        cols = nb_subplot_cols
+        plt.subplot(2,cols,current_subplot)
+       
+        
+    
+    
     k=0
     
     # Real values
@@ -369,6 +377,8 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
     
     delta = np.sqrt(np.abs(struct_bt_MCMC['tot']['var'][:,k]))
    
+    
+    plt.fill_between(time_ref,np.sqrt(err_fix[:,0]),delta+np.sqrt(err_fix[:,0]),color='gray')
 #    h = area (time_ref, [np.sqrt(err_fix),delta])
 #    
 #    set (h(1), 'FaceColor', 'none');
@@ -396,8 +406,15 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
    
     plt.plot(time,np.sqrt(bt_MCMC_min_error[:,k]),'m')
     
-   
-    plt.grid()
+    path_save = Path(__file__).parents[3].joinpath('test').joinpath('pythonfile')
+    file_to_save = np.vstack((np.sqrt(bt_0)[:,0],np.sqrt(err_fix)[:,0],np.sqrt(bt_forecast_deter[:,k]),np.sqrt(bt_forecast_MEV[:,k]),np.sqrt(struct_bt_MCMC['tot']['mean'][:,k]),\
+               np.sqrt(bt_MCMC_RMSE[:,k]),np.sqrt(bt_MCMC_min_error[:,k])))
+    
+    file_name = str(path_save)
+    
+    
+    np.save(file_name,file_to_save)
+    
     #%%
     
     if np.logical_not(logscale):
@@ -476,6 +493,7 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
 #    'FontName','Times')
     
     plt.title('n = ' + str(int(param['nb_modes'])))
+    plt.grid()
 #    title(['$n=' num2str(param.nb_modes) '$'],...
 #    'FontUnits','points',...
 #    'FontWeight','normal',...

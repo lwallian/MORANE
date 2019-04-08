@@ -112,7 +112,8 @@ def load_file_EV(file_res_2nd_res):
     
     
     
-def main_from_existing_ROM_Simulation(type_data,nb_modes,threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,plt):
+def main_from_existing_ROM_Simulation(type_data,nb_modes,threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,plt,\
+                                      varying_error_figure,nb_subplot_cols,current_subplot):
     
     #    Load simulation results, estimate modal time step by Shanon
     #    and compare it with modal Eddy Viscosity ROM and
@@ -270,7 +271,8 @@ def main_from_existing_ROM_Simulation(type_data,nb_modes,threshold,no_subampl_in
         
         idx_min_error, idx_min_err_tot = plot_bt_dB_MCMC_varying_error(param,zzz,zzz,zzz, zzz, bt_forecast_deter,\
                                                                        bt_forecast_MEV,bt_forecast_sto,zzz,bt_tot,\
-                                                                       struct_bt_MCMC,bt_MCMC,plt)
+                                                                       struct_bt_MCMC,bt_MCMC,plt,varying_error_figure,\
+                                                                       nb_subplot_cols,current_subplot)
         
         
 #        save(file_res_2nd_res,'idx_min_error','idx_min_err_tot','-append')

@@ -5,7 +5,7 @@ Created on Thu Apr  4 15:12:19 2019
 @author: matheus.ladvig
 """
 import numpy as np
-#import matplotlib.pyplot as plt
+import matplotlib
 
 def plot_bt_MCMC(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_sto_a_cst_modal_dt, bt_forecast_sto_a_NC_modal_dt, \
                  bt_forecast_deter, bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC,plt):
@@ -55,12 +55,14 @@ def plot_bt_MCMC(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_s
     
     dt_tot = param['dt']
     N_time_final = N_tot
-    time = np.arange(0,int(N_test+1),1)*dt_tot
+    time = np.arange(1,int(N_test+2),1)*dt_tot
     time_ref = time
     
+    figures = [manager.canvas.figure for manager in matplotlib._pylab_helpers.Gcf.get_all_fig_managers()]
+    number_figures = len(figures) - 1
     for index in range(int(nb_modes)):
         
-        plt.figure(plt.gcf().number+1)
+        plt.figure(number_figures+1+index)
         
     
 #        plt.plot(time,struct_bt_MCMC['tot']['one_realiz'][:,index],'y')

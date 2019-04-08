@@ -27,8 +27,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     # Parameters choice
     param_ref = {}
-    param_ref['n_simu'] = 5
-    param_ref['N_particules'] = 10
+    param_ref['n_simu'] = 50
+    param_ref['N_particules'] = 50
     
     #%%  Parameters already chosen
     

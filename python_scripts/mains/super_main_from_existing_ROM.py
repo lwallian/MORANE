@@ -32,8 +32,8 @@ def switch_type_data(argument):
     
 if __name__ == '__main__':
 
-    vect_nb_modes = [16,8,6,4,2]
-    vect_nb_modes = [8]
+#    vect_nb_modes = [16,8,6,4,2]
+    vect_nb_modes = [16]
     no_subampl_in_forecast = False;
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]
