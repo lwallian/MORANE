@@ -3,6 +3,10 @@ function [tau] = weightedACTimeMean(tau_corr)
 % as per the following weighting function:
 %   @param tau_corr: correlation time estimate as a function of the period.
 %   @return: corresponding mean of the autocorrelation time.
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 N = length(tau_corr);
 
 tau = 0;

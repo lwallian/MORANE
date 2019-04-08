@@ -3,6 +3,7 @@ function [autocorrelationTime] = autocorrelationTimeInBatches(cov_v, bt)
 %partitioning the covariance matrix in chunks according to its periodicity.
 %   @param cov_v: covariance matrix of the velocity field
 %   @param bt: chronos basis of the resolved states
+%   @return: array with the autocorrelation time of each chunk
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor

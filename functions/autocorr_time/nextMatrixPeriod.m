@@ -1,12 +1,12 @@
 function [block] = nextMatrixPeriod(m, blockSize,currPosition)
-%GETMATRIXBLOCK Gets the next square matrix block partitioned from the
-%diagonal in a symetric manner. If the block size is too big, a smaller
-%matrix is returned. If the position is the end of the matrix, a 0 is
-%returned.
-%   Starting from the current position gets the next matrix block
+%NEXTMATRIXPERIOD Gets the next diagonals given a count and the current
+%position. If the position is the end of the matrix or bigger, a cell with
+%a 0 in its first component is returned. Otherwise, if the size is too big,
+%the rest of the diagonals is returned.
 %   @param m: the whole matrix
-%   @param blockSize: the dimension of the block (blockSize x blockSize)
-%   @param currPosition: the current index in the diagonal
+%   @param blockSize: the dimension of the block (amount of diagonals)
+%   @param currPosition: the current column index
+%   @return: cell with the requested diagonals
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor

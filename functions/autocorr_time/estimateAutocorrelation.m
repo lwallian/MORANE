@@ -2,6 +2,7 @@ function [autocorrelation] = estimateAutocorrelation(cov_s)
 %ESTIMATEAUTOCORRELATION Estimates the autocorrelation function given a
 %covariance matrix
 %   @param cov_s: covariance matrix
+%   @return: autocorrelation function with as many lags as cov_s's columns
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor

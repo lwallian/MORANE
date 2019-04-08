@@ -1,6 +1,7 @@
 function [period] = estimateCovariancePeriod(cov_s)
 %ESTIMATECOVARIANCEPERIOD Estimates the covariance's period
 %   @param cov_s: small-scale velocity's covariance matrix
+%   @return: covariance's most important's mode period.
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
