@@ -9,21 +9,16 @@ function [tau] = weightedACTimeMean(tau_corr)
 %
 N = length(tau_corr);
 
-tau = 0;
 weights = weightBuilder(N);
 
-for j = 1 : N
-    tau = tau + weights(j) * tau_corr(j);
-end
-
-tau = tau / N;
+tau = weights * tau_corr / N;
 
 end
 
 
 function weights = weightBuilder(N)
 
-weights = [1.0, 1 ./ linspace(1, N - 1, N)];
+weights = [1.0, 1 ./ linspace(1, N - 1, N - 1)];
 weights = weights ./ sum(weights);
 
 end
