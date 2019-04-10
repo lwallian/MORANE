@@ -17,7 +17,7 @@ autocorrTime = autocorrelationTimeInBatches(cov_v, bt, mode);
 
 % Plot the autocorrelation estimation as a function of the period
 figure, plot(autocorrTime), grid minor;
-title('Autocorrelation time (DNS300 - 16 modes - global \sigma)');
+title('Autocorrelation time (DNS300 - 4 modes - global \sigma)');
 xlabel('Period index'), ylabel('\tau_{corr} [samples / s]');
 
 % Estimate the different means
@@ -27,8 +27,8 @@ weightedACTime = weightedACTimeMean(autocorrTime)
 %% Comparison of the spectrum of the autocorr and the cov matrix
 clear all, close all, clc;
 
-data = load('C_DNS100_2Modes.mat');
-% data = load('C_DNS300_2Modes.mat');
+% data = load('C_DNS100_2Modes.mat');
+data = load('C_DNS300_4Modes.mat');
 cov_v = data.c;
 bt = data.bt;
 clear data;
@@ -64,7 +64,7 @@ periodCov = ceil(2 * N / frequence_central);
 figure, subplot(2, 1, 1);
 plot(linspace(0.0, 1.0, length(powerSpectrumCov)), powerSpectrumCov);
 xlabel('Normalized frequency'), ylabel('Power [m^2 / s^2]');
-title('Spectrum of covariance matrix (DNS100 - 2 modes)');
+title('Spectrum of covariance matrix (DNS300 - 4 modes)');
 grid minor;
 subplot(2, 1, 2);
 plot(linspace(0.0, 1.0, length(powerSpectrumAC)), powerSpectrumAC);

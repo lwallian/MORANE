@@ -3,6 +3,17 @@
 % supervisor
 %
 
+%% Test with real data
+clear all, close all, clc;
+
+% data = load('C_DNS100_2Modes.mat');
+data = load('C_DNS300_2Modes.mat');
+cov_v = data.c;
+bt = data.bt;
+clear data;
+
+autocorr_time(cov_v, bt)
+
 %% Synthetic test (simple)
 clear all, close all, clc;
 
