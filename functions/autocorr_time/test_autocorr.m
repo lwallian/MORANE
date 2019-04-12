@@ -102,7 +102,7 @@ xlabel('\tau [s]'), ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'la
 %% var delta t
 clear all, close all, clc;
 
-N = 10 : 1000;
+N = 10 : 100 : 10000;
 t_0 = 0.0;
 t_f = 100.0;
 durationT = t_f - t_0;
@@ -123,7 +123,8 @@ for k = 1 : length(N)
     
     bt_test = zeros(N(k), 1);
     
-    actime(k) = autocorr_time(c, bt_test) / (N(k) / durationT);
+%     actime(k) = autocorr_time(c, bt_test) / (N(k) / durationT);
+    actime(k) = autocorrelationTimeInBatches(c, bt_test, 'global') / (N(k) / durationT);
 end
 
 [max_error, max_pos] = max(abs(actime' / sqrt(2 * pi) - tau))

@@ -1,5 +1,5 @@
 function [period] = periodicityFromAutocorrelation(cov_s)
-%ESTIMATECOVARIANCEPERIOD Estimates the covariance's period
+%PERIODICITYFROMAUTOCORRELATION Estimates the covariance's period
 %   @param cov_s: small-scale velocity's covariance matrix
 %   @return: covariance's most important's mode period.
 %
@@ -16,7 +16,7 @@ power_spectrum = fftshift(fft(autocorrFunction));
 power_spectrum = abs(power_spectrum(floor(length(power_spectrum) / 2) : end)); % just keep half of the amplitude
 
 [~, frequence_central] = max(power_spectrum);
-period = ceil(2 * N / frequence_central);
+period = ceil(N / frequence_central);
 
 end
 

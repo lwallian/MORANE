@@ -17,7 +17,7 @@ autocorrTime = autocorrelationTimeInBatches(cov_v, bt, mode);
 
 % Plot the autocorrelation estimation as a function of the period
 figure, plot(autocorrTime), grid minor;
-title('Autocorrelation time (DNS300 - 4 modes - global \sigma)');
+title('Autocorrelation time (DNS100 - 2 modes - global \sigma)');
 xlabel('Period index'), ylabel('\tau_{corr} [samples / s]');
 
 % Estimate the different means
@@ -27,8 +27,8 @@ weightedACTime = weightedACTimeMean(autocorrTime)
 %% Comparison of the spectrum of the autocorr and the cov matrix
 clear all, close all, clc;
 
-% data = load('C_DNS100_2Modes.mat');
-data = load('C_DNS300_4Modes.mat');
+data = load('C_DNS100_2Modes.mat');
+% data = load('C_DNS300_4Modes.mat');
 cov_v = data.c;
 bt = data.bt;
 clear data;
@@ -46,7 +46,7 @@ powerSpectrumAC = fftshift(fft(autocorrFunction));
 powerSpectrumAC = abs(powerSpectrumAC(floor(length(powerSpectrumAC) / 2) : end)); % just keep half of the amplitude
 
 [~, frequenceCentral] = max(powerSpectrumAC);
-periodAC = ceil(2 * N / frequenceCentral);
+periodAC = ceil(N / frequenceCentral);
 
 % Now for the spectrum of the covariance matrix
 % Get the antidiagonal
@@ -58,7 +58,7 @@ powerSpectrumCov = abs(powerSpectrumCov(floor(length(powerSpectrumCov) / 2) : en
 
 % Get the central frequency
 [~, frequence_central] = max(powerSpectrumCov);
-periodCov = ceil(2 * N / frequence_central);
+periodCov = ceil(N / frequence_central);
 
 % Plot both in subplots
 figure, subplot(2, 1, 1);
@@ -73,6 +73,7 @@ title('Power spectrum');
 grid minor;
 
 %% Test autocorrelation time in batches with synthetic data
+%SET THE PERIOD TO N TO COMPARE TO THE CLASSIC METHOD
 clear all, close all, clc;
 
 T = 5.0;
@@ -85,8 +86,8 @@ t = linspace(t_0, t_f, N);
 tau = 2.0;
 sigma = 1 / (sqrt(2 * pi) * (tau / deltaT));
 
-beta = @(x) 1 + 1 * cos(2 * pi * 3 * x / T);
-alpha = @(x) 1 + 1 * sin(2 * pi * 2 * x / T);
+beta = @(x) 1 + 0.2 * cos(2 * pi * x / T);
+alpha = @(x) 1 + 0.2 * sin(2 * pi * x / T);
 
 var_alin = alpha(t ./ 2);
 var_alin = var_alin ./ mean(var_alin);
@@ -106,6 +107,13 @@ end
 bt_test = zeros(N, 1); % Disregard the computation of the large-scale velocity
 
 actime = autocorrelationTimeInBatches(c, bt_test, 'global') / (N / durationT);
+actimeOld = autocorr_time(c, bt_test) / (N / durationT);
 
-figure, plot(actime), title('Autocorrelation time (synthetic)');
-xlabel('Period'), ylabel('\tau_{corr}');
+% Estimate the means
+actimeMean = mean(actime);
+% actimeWeighted = weightedACTimeMean(actime);
+
+% Estimate the error to the reference
+errorMean = abs(actimeMean - actimeOld)
+error = sqrt(abs(actimeMean.^2 / (2 * pi) - tau.^2)) / durationT
+errorOld = sqrt(abs(actimeOld.^2 / (2 * pi) - tau.^2)) / durationT

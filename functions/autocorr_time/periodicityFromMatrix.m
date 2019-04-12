@@ -18,7 +18,7 @@ power_spectrum = abs(power_spectrum(floor(length(power_spectrum) / 2) : end)); %
 
 % Get the central frequency
 [~, frequence_central] = max(power_spectrum);
-period = ceil(2 * N / frequence_central);
+period = ceil(N / frequence_central);
 
 end
 
