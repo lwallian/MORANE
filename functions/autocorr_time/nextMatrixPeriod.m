@@ -36,9 +36,9 @@ else
     block = cell(blockSize + 1, 1);
     
     block{1} = diag(m);
-    for i = 2 : blockSize
+    for i = 1 : blockSize
         for j = 1 : minDimension - currPosition - i + 1
-            block{i}(j) = m(j, j + i + currPosition - 1);
+            block{i + 1}(j) = m(j, j + i + currPosition - 1);
         end
     end
 end
