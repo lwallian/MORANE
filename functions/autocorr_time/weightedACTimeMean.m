@@ -9,9 +9,13 @@ function [tau] = weightedACTimeMean(tau_corr)
 %
 N = length(tau_corr);
 
-weights = weightBuilder(N);
-
-tau = weights * tau_corr / N;
+if N == 1
+    tau = tau_corr;
+    return
+else
+    weights = weightBuilder(N);
+    tau = weights * tau_corr / N;
+end
 
 end
 
