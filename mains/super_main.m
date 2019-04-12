@@ -13,7 +13,7 @@ vect_nb_modes = 8 % For debugging
 no_subampl_in_forecast = false;
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 % vect_adv_corrected = [  false]
-vect_adv_corrected = [ true false]
+vect_adv_corrected = [ false]
 
 %% Type of data
 % Other datasets (do not use)

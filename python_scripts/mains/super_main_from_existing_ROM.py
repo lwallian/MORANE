@@ -33,13 +33,13 @@ def switch_type_data(argument):
 if __name__ == '__main__':
 
 #    vect_nb_modes = [16,8,6,4,2]
-    vect_nb_modes = [16]
+    vect_nb_modes = [8]
     no_subampl_in_forecast = False;
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]
 #     Small dataset for debuging
-    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
-    
+#    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
+    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
 #%%   
 #Important parameters    
 #    Threshold used in the estimation of the optimal subsampling time step
@@ -69,8 +69,6 @@ if __name__ == '__main__':
             
     super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
                                              no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
-            
-            
             
             
             

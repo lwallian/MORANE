@@ -11,12 +11,30 @@ from pathlib import Path
 import sys
 import hdf5storage
 import numpy as np
+import scipy.io as sio
 path_functions = Path(__file__).parents[1].joinpath('functions')
 sys.path.insert(0, str(path_functions))
 from fct_cut_frequency_2_full_sto import fct_cut_frequency_2_full_sto
 from evol_forward_bt_RK4 import evol_forward_bt_RK4
 from evol_forward_bt_MCMC import evol_forward_bt_MCMC
 from fct_name_2nd_result import fct_name_2nd_result
+from particle_filter import particle_filter
+
+
+
+def estimate_lambda(time_obs):
+    
+    b_power = np.power(time_obs,2)
+    lambda_values = np.sum(b_power,axis=0)/time_obs.shape[0]
+
+
+    return lambda_values
+
+
+
+
+
+
 
 def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
@@ -27,8 +45,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     # Parameters choice
     param_ref = {}
-    param_ref['n_simu'] = 50
-    param_ref['N_particules'] = 50
+    param_ref['n_simu'] = 5
+    param_ref['N_particules'] = 5
     
     #%%  Parameters already chosen
     
@@ -88,7 +106,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
     I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res))
     
-    param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast;
+    param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast
     
     
     
@@ -214,6 +232,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                                                         pchol_cov_noises,param['dt'],\
                                                         bt_MCMC[-1,:,:],bt_fv[-1,:,:],\
                                                         bt_m[-1,:,:])
+        
+        #########################################----------------------#############################################
+        #########################################--PARTICLE FILTERING--#############################################
+        obs = val0[0,:,0][...,np.newaxis]
+        particles = val0[0,:,1:]
+        #lambda_values = estimate_lambda(bt_MCMC[:,:,0])
+        lambda_values = param['lambda'][:,0]
+        particles = particle_filter(particles,obs,lambda_values)
+        val0 = np.hstack((obs,particles))[np.newaxis,...]
+        #############################################################################################################
+        #############################################################################################################
+        
         bt_MCMC = np.concatenate((bt_MCMC,val0),axis=0)    
         bt_fv   = np.concatenate((bt_fv,val1),axis=0)
         bt_m    = np.concatenate((bt_m,val2),axis=0)
@@ -248,8 +278,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             bt_m_good = bt_m_good[np.newaxis,...]
                 
             
-            rand_index =  np.random.randint(0, param['N_particules'] - nb_blown_up, size=(nb_blown_up,1))
-        
+            rand_index =  np.random.randint(0, param['N_particules'] - nb_blown_up, size=(nb_blown_up))
+            
+#            if rand_index.shape == (1,1):
+#                rand_index = rand_index[0,0]
+                
+                
             bad_indexes = np.where((iii_realization == True))[0]
             bt_MCMC[-1,:, bad_indexes] = bt_MCMC_good[0,:, rand_index]  
             bt_fv[-1,:, bad_indexes] = bt_fv_good[0,:, rand_index]
@@ -298,6 +332,23 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param = fct_name_2nd_result(param,modal_dt,reconstruction)
     
     
+    
+#    np.savez(param['name_file_2nd_result']+'_Numpy',bt_forecast_deter=bt_forecast_deter,\
+#                                                    bt_tot = bt_tot,\
+#                                                    bt_forecast_sto = bt_forecast_sto,\
+#                                                    param = param,\
+#                                                    struct_bt_MCMC = struct_bt_MCMC,\
+#                                                    bt_MCMC = bt_MCMC)  
+#    
+    dict_python = {}
+    dict_python['bt_forecast_deter'] = bt_forecast_deter
+    dict_python['bt_tot'] = bt_tot
+    dict_python['bt_forecast_sto'] = bt_forecast_sto
+    dict_python['param'] = param
+    dict_python['struct_bt_MCMC'] = struct_bt_MCMC
+    dict_python['bt_MCMC'] = bt_MCMC
+    
+    sio.savemat(param['name_file_2nd_result']+'_Numpy',dict_python)
     
     
     del C_deter 

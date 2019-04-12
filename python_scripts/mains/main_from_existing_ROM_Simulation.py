@@ -9,6 +9,7 @@ import numpy as np
 import hdf5storage
 from pathlib import Path
 import sys
+import scipy.io as sio
 path_functions = Path(__file__).parents[1].joinpath('functions')
 sys.path.insert(0, str(path_functions))
 from plot_bt_MCMC import plot_bt_MCMC
@@ -110,6 +111,69 @@ def load_file_EV(file_res_2nd_res):
     
     return param_dict.copy(),bt_forecast_MEV,bt_forecast_EV,bt_forecast_NLMEV
     
+def load_NUMPY_mat_file(data_path):
+    data =  sio.loadmat(str(data_path))
+    bt_forecast_deter = data['bt_forecast_deter']
+    bt_tot = data['bt_tot']
+    bt_forecast_sto = data['bt_forecast_sto']
+    bt_MCMC = data['bt_MCMC']
+    param = data['param']
+    struct_bt_MCMC= data['struct_bt_MCMC']
+    
+    
+    param_dict = {}
+    
+    # Loop to run all the dtypes in the data
+    for name in param.dtype.names :
+        
+        
+        # If the dtype has only one information we take his name and create a key for this information
+        if param[0][name][0].dtype.names == None:
+            if param[0][name].shape == (1,):
+                param_dict[name] = param[0][name][0]
+            else:
+                param_dict[name] = param[0][name][0]
+        # If not, we need to create a dict that will be resposnsible to stock all fields of this structure
+        
+        else:
+            aux_dict = {}
+            for name2 in param[0][name][0].dtype.names:
+                if param[0][name][0][name2].shape == (1,1):
+                    aux_dict[name2] = param[0][name][0][name2][0,0]
+                else:
+                    aux_dict[name2] = param[0][name][0][name2][0]
+            
+            param_dict[name] = aux_dict
+    
+    struct_bt_MCMC_dict = {}
+    
+    for name in struct_bt_MCMC.dtype.names :
+        
+        # If the dtype has only one information we take his name and create a key for this information
+        if struct_bt_MCMC[0][name][0].dtype.names == None:
+            if struct_bt_MCMC[0][name].shape == (1,1):
+                struct_bt_MCMC_dict[name] = struct_bt_MCMC[0][name][0,0]
+            else:
+                struct_bt_MCMC_dict[name] = struct_bt_MCMC[0][name]
+        # If not, we need to create a dict that will be resposnsible to stock all fields of this structure
+        
+        else:
+            aux_dict = {}
+            for name2 in struct_bt_MCMC[0][name][0].dtype.names:
+                if struct_bt_MCMC[0][name][0][name2].shape == (1,1):
+                    aux_dict[name2] = struct_bt_MCMC[0][name][0][name2][0,0]
+                else:
+                    aux_dict[name2] = struct_bt_MCMC[0][name][name2]
+            
+            struct_bt_MCMC_dict[name] = aux_dict
+    
+    struct_bt_MCMC_dict['tot']['mean'] = struct_bt_MCMC_dict['tot']['mean'][np.newaxis,...]
+    struct_bt_MCMC_dict['tot']['var'] = struct_bt_MCMC_dict['tot']['var'][np.newaxis,...]
+    param_dict['type_data'] = param_dict['type_data'][0]
+    return bt_forecast_deter,bt_tot,bt_forecast_sto,param_dict.copy(),struct_bt_MCMC_dict.copy(),bt_MCMC
+    
+    
+    
     
     
 def main_from_existing_ROM_Simulation(type_data,nb_modes,threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,plt,\
@@ -183,12 +247,22 @@ def main_from_existing_ROM_Simulation(type_data,nb_modes,threshold,no_subampl_in
     if reconstruction:
         file_res_2nd_res = file_res_2nd_res + '_reconstruction'
     
-    file_res_2nd_res = folder_results / Path(file_res_2nd_res + '.mat') 
+     
     
-    bt_forecast_deter,bt_tot,bt_forecast_sto,param,struct_bt_MCMC,bt_MCMC = load_data_from_results(str(file_res_2nd_res))
+    ############################### MATLAB or python data ##############################################################
+    python = True
+    if python == True:
+        file_res_2nd_res = folder_results / Path(file_res_2nd_res + '_Numpy') 
+        
+        bt_forecast_deter,bt_tot,bt_forecast_sto,param,struct_bt_MCMC,bt_MCMC = load_NUMPY_mat_file(str(file_res_2nd_res))
+        
+
+    else:
+        file_res_2nd_res = folder_results / Path(file_res_2nd_res + '.mat')
+        bt_forecast_deter,bt_tot,bt_forecast_sto,param,struct_bt_MCMC,bt_MCMC = load_data_from_results(str(file_res_2nd_res))
     
     
-    
+    ####################################################################################################################
     
     if reconstruction:
         param['reconstruction'] = True

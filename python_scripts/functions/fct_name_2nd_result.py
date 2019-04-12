@@ -59,9 +59,9 @@ def fct_name_2nd_result(param,modal_dt,reconstruction):
     
     
     if modal_dt == 1:
-        param['name_file_2nd_result'] = param['name_file_2nd_result'] + 'modal_dt'
+        param['name_file_2nd_result'] = param['name_file_2nd_result'] + '_modal_dt'
     elif modal_dt == 2:
-        param['name_file_2nd_result'] = param['name_file_2nd_result'] + 'real_dt'
+        param['name_file_2nd_result'] = param['name_file_2nd_result'] + '_real_dt'
     
     if np.logical_not(param['adv_corrected']):
         param['name_file_2nd_result'] = param['name_file_2nd_result'] + '_no_correct_drift'
@@ -71,11 +71,13 @@ def fct_name_2nd_result(param,modal_dt,reconstruction):
     
     if reconstruction:
         param['reconstruction'] = True
-        param['name_file_2nd_result'] = param['name_file_2nd_result'] + 'reconstruction'
+        param['name_file_2nd_result'] = param['name_file_2nd_result'] + '_reconstruction'
     else:
         param['reconstruction'] = False
     
     
+#    
+#    np.savez(param['name_file_2nd_result']+'_Numpy',param['dX'])    
                                         
     return param
                                         

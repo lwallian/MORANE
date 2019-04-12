@@ -34,8 +34,8 @@ def fct_cut_frequency_2_full_sto(bt,ILC,param,pchol_cov_noises,modal_dt):
     
     
     # Keep the first half of the spectrum (positive frequencies)
-    spectrum = spectrum[1:math.ceil(N_tot/2),:]
-    freq =   1/N_tot*np.arange(0,math.ceil(N_tot/2)-1)           
+    spectrum = spectrum[0:math.ceil(N_tot/2),:]
+    freq =   1/N_tot*np.arange(0,math.ceil(N_tot/2))           
     
     # Initialization
     
@@ -56,7 +56,7 @@ def fct_cut_frequency_2_full_sto(bt,ILC,param,pchol_cov_noises,modal_dt):
         
         # Find from which frequency the maximum spectrum is null
         idx_temp = np.where((spectrum > threshold))[0] # give the lines that satisfies the condition
-        idx_temp = np.min([idx_temp[-1]+2,len(freq)-1])
+        idx_temp = np.min([idx_temp[-1]+1,len(freq)-1])
         
         freq_cut = freq[idx_temp]
         

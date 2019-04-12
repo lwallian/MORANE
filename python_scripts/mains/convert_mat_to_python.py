@@ -24,21 +24,27 @@ def convert_mat_to_python(PATH_MAT_FILE):
         
         
         # If the dtype has only one information we take his name and create a key for this information
-        if param[0][name].dtype.names == None:
-            if param[0][name].shape == (1,1):
-                param_dict[name] = param[0][name][0,0]
+        if param[0][name][0].dtype.names == None:
+            if param[0][name][0].shape == (1,1):
+                param_dict[name] = param[0][name][0][0,0]
+            elif param[0][name][0].shape == (1,):
+                param_dict[name] = param[0][name][0][0]
             else:
-                param_dict[name] = param[0][name]
+                param_dict[name] = param[0][name][0]
         # If not, we need to create a dict that will be resposnsible to stock all fields of this structure
         
         else:
             aux_dict = {}
-            for name2 in param[0][name].dtype.names:
-                if param[0][name][name2].shape == (1,1,1):
-                    aux_dict[name2] = param[0][name][name2][0,0,0]
-                else:
-                    aux_dict[name2] = param[0][name][name2]
-            
+            for name2 in param[0][name][0].dtype.names:
+#                if param[0][name][0][name2][0].shape == (1,1,1):
+#                    aux_dict[name2] = param[0][name][0][name2][0,0,0]
+#                else:
+#                    aux_dict[name2] = param[0][name][0][name2][0]
+                aux_dict[name2] = param[0][name][0][name2][0][0][0]
+                if aux_dict[name2].shape == (1,):
+                    aux_dict[name2] = aux_dict[name2][0]
+                    
+                    
             param_dict[name] = aux_dict
       
     
@@ -57,7 +63,7 @@ def convert_mat_to_python(PATH_MAT_FILE):
     bt_tot = mat['bt_tot']
     
     
-    return I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param_dict
+    return I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param_dict.copy()
     
     
     

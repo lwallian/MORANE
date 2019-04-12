@@ -107,7 +107,7 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
     
     dt_tot = param['dt']
     N_time_final = N_tot
-    time = np.arange(1,int(N_test + 2),1)*dt_tot
+    time = np.arange(1,int(N_test + 2),1)*float(dt_tot)
     time_ref = time
     
     
@@ -344,28 +344,28 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
 #    else:
     plt.figure(varying_error_figure)
                 
-            
-    if (param['type_data'] == 'LES_3D_tot_sub_sample_blurred') or (param['type_data'] == 'inc3D_Re3900_blocks') or \
-        (param['type_data'] == 'inc3D_Re3900_blocks119'):
-            
-        plt.subplot(4,4,np.log2(param.nb_modes))
-    
-    elif (param['type_data'] == 'inc3D_Re3900_blocks_truncated') or (param['type_data'] == 'turb2D_blocks_truncated'):
-        
-        plt.subplot(2,3,np.log2(param.nb_modes))
-        
-    elif param['type_data'] == 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':
-        plt.subplot(2,2,np.param.nb_modes/2)
-        
-    elif (param['type_data'] == 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') and (param['nb_modes'] <= 16):
-       
-        plt.subplot(2,2,np.log2(param.nb_modes))
-        
-     
-    else:
+#            
+#    if (param['type_data'] == 'LES_3D_tot_sub_sample_blurred') or (param['type_data'] == 'inc3D_Re3900_blocks') or \
+#        (param['type_data'] == 'inc3D_Re3900_blocks119'):
+#            
+#        plt.subplot(4,4,np.log2(param.nb_modes))
+#    
+#    elif (param['type_data'] == 'inc3D_Re3900_blocks_truncated') or (param['type_data'] == 'turb2D_blocks_truncated'):
+#        
+#        plt.subplot(2,3,np.log2(param.nb_modes))
+#        
+#    elif param['type_data'] == 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':
+#        plt.subplot(2,2,np.param.nb_modes/2)
+#        
+#    elif (param['type_data'] == 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') and (param['nb_modes'] <= 16):
+#       
+#        plt.subplot(2,2,np.log2(param.nb_modes))
+#        
+#     
+#    else:
     #%% Set current subplot
-        cols = nb_subplot_cols
-        plt.subplot(2,cols,current_subplot)
+    cols = nb_subplot_cols
+    plt.subplot(2,cols,current_subplot)
        
         
     
@@ -413,7 +413,7 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
     file_name = str(path_save)
     
     
-    np.save(file_name,file_to_save)
+#    np.save(file_name,file_to_save)
     
     #%%
     

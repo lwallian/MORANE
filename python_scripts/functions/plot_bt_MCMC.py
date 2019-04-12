@@ -55,7 +55,7 @@ def plot_bt_MCMC(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_s
     
     dt_tot = param['dt']
     N_time_final = N_tot
-    time = np.arange(1,int(N_test+2),1)*dt_tot
+    time = np.arange(1,int(int(N_test)+2),1)*float(dt_tot)
     time_ref = time
     
     figures = [manager.canvas.figure for manager in matplotlib._pylab_helpers.Gcf.get_all_fig_managers()]
