@@ -38,5 +38,6 @@ while currBatch{1} ~= 0
     periodIndex = periodIndex + 1;
 end
 
+
 end
 

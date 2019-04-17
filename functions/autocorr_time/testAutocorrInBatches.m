@@ -83,7 +83,7 @@ t_f = 100.0;
 durationT = t_f - t_0;
 deltaT = (durationT / N);
 t = linspace(t_0, t_f, N);
-tau = 2.0;
+tau = 1.0;
 sigma = 1 / (sqrt(2 * pi) * (tau / deltaT));
 
 beta = @(x) 1 + 0.2 * cos(2 * pi * x / T);
@@ -117,3 +117,52 @@ actimeMean = mean(actime);
 errorMean = abs(actimeMean - actimeOld)
 error = sqrt(abs(actimeMean.^2 / (2 * pi) - tau.^2)) / durationT
 errorOld = sqrt(abs(actimeOld.^2 / (2 * pi) - tau.^2)) / durationT
+
+%% Test autocorrelation time in batches for heterogeinities
+clear all, close all, clc;
+
+T = 5.0;
+N = 1000;
+t_0 = 0.0;
+t_f = 100.0;
+durationT = t_f - t_0;
+deltaT = (durationT / N);
+t = linspace(t_0, t_f, N);
+tau = 2.0;
+sigma = 1 / (sqrt(2 * pi) * (tau / deltaT));
+
+beta = @(x) 1 + 0.5 * cos(2 * pi * x / T);
+alpha = @(x, alpha0) 1 + alpha0 * sin(2 * pi * x / T);
+% alpha = @(x) 1 + 0.2 * sin(2 * pi * x / T);
+cov_x = @(tau, dt, st, alpha0) sigma.^2 * alpha(st, alpha0) * ...
+    exp(-0.5 * (dt / tau / beta(st) ).^2);
+
+nVar = 100;
+% betaVar = linspace(0.0, 100, nVar);
+alphaVar = linspace(0.0, 100, nVar);
+
+for k = 1 : nVar
+    k
+    for i = 1 : N
+        for j = 1 : N
+            dt = abs(i - j) * deltaT;
+            st = (i + j) * deltaT;
+            c(i, j) = cov_x(tau, dt, st, alphaVar(k));
+        end
+    end
+    bt_test = zeros(N, 1); % Disregard the computation of the large-scale velocity
+        
+    actime = autocorrelationTimeInBatches(c, bt_test, 'global') / (N / durationT);
+    actimeMean(k) = mean(actime);
+    actimeOld(k) = autocorr_time(c, bt_test) / (N / durationT);
+end
+
+% Estimate the error to the reference
+error = sqrt(abs(actimeMean.^2 / (2 * pi) - tau.^2)) / durationT;
+errorOld = sqrt(abs(actimeOld.^2 / (2 * pi) - tau.^2)) / durationT;
+
+% Plot the error surfaces
+figure, hold on, plot(actimeMean / sqrt(2 * pi)), plot(tau * ones(size(actimeMean)));
+figure, hold on, plot(actimeOld / sqrt(2 * pi)), plot(tau * ones(size(actimeOld)));
+figure, plot(error), title('Error of \tau in batches');
+figure, plot(errorOld), title('Error of \tau normal');
