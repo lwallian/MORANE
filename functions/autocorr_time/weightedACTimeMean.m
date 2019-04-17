@@ -13,8 +13,7 @@ if N == 1
     tau = tau_corr;
     return
 else
-    weights = butterBuilder(N, N / 3);
-%     weights = weightBuilder(N);
+    weights = weightBuilder(N);
     tau = weights * tau_corr / N;
 end
 
@@ -32,5 +31,12 @@ end
 function weights = butterBuilder(N, cutOffFreq)
 
 weights = 1 ./ sqrt(1 + (linspace(0.0, N, N) ./ cutOffFreq).^(2 * N));
+
+end
+
+function weights = firBuilder(N, cutOffFreq)
+
+weights = ifft([zeros(N - cutOffFreq, 1)', ones(2 * cutOffFreq, 1)', zeros(N - cutOffFreq, 1)']);
+weights = abs(weights(1 : length(weights) / 2));
 
 end
