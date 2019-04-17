@@ -12,7 +12,7 @@ N = size(cov_s, 2);
 autocorrFunction = estimateAutocorrelation(cov_s);
 
 % Calculate the fft and estimate the period as the biggest mode
-power_spectrum = fftshift(fft(autocorrFunction));
+power_spectrum = fftshift(fft([autocorrFunction', zeros(size(autocorrFunction'))]));
 power_spectrum = abs(power_spectrum(floor(length(power_spectrum) / 2) : end)); % just keep half of the amplitude
 
 [~, frequence_central] = max(power_spectrum);
