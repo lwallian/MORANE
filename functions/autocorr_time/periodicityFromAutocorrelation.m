@@ -16,7 +16,7 @@ power_spectrum = fftshift(fft([autocorrFunction', zeros(size(autocorrFunction'))
 power_spectrum = abs(power_spectrum(floor(length(power_spectrum) / 2) : end)); % just keep half of the amplitude
 
 [~, frequence_central] = max(power_spectrum);
-period = ceil(N / frequence_central);
+period = ceil(2 * N / frequence_central);
 
 end
 
