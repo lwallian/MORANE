@@ -15,7 +15,7 @@ N = size(cov_v, 2);
 cov_s = smallScaleVelocityCov(cov_v, bt);
 
 % Generate the weight function
-weights = butterBuilder(N, N / 10);
+weights = butterBuilder(N, N / 2);
 
 % Estimate the correlation time
 autocorrelation = zeros(N - 1, 1);
@@ -37,6 +37,7 @@ end
 function weights = butterBuilder(N, cutOffFreq)
 
 weights = 1 ./ sqrt(1 + (linspace(0.0, N, N) ./ cutOffFreq).^(2 * N));
+weights = weights / norm(weights);
 
 end
 

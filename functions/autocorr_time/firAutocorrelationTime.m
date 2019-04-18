@@ -8,7 +8,7 @@ N = size(cov_v, 2);
 cov_s = smallScaleVelocityCov(cov_v, bt);
 
 % Generate the weight function
-weights = firBuilder(N, floor(N / 4));
+weights = firBuilder(N, floor(N / 2));
 
 % Estimate the correlation time
 autocorrelation = zeros(N - 1, 1);
@@ -31,6 +31,7 @@ function weights = firBuilder(N, cutOffFreq)
 
 weights = ifft([zeros(N - cutOffFreq, 1)', ones(2 * cutOffFreq, 1)', zeros(N - cutOffFreq, 1)']);
 weights = abs(weights(1 : length(weights) / 2));
+weights = weights / norm(weights);
 
 end
 
