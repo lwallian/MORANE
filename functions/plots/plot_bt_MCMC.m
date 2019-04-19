@@ -141,17 +141,17 @@ for k=1:nb_modes
 %     h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
 
 
-%     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-%         2*delta]); % DEFAULT  COMENTEI
+     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+         2*delta]); % DEFAULT  COMENTEI
     
     
     
 %     set(h(1),'FaceColor',[0,0.25,0.25]);
 %     set(h(2),'FaceColor',[0,0.5,0.5]);
 
-%     set (h(1), 'FaceColor', 'none');COMENTEI
-%     set (h(2), 'FaceColor', [0.8 0.8 0.8]);COMENTEI
-%     set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');COMENTEI
+     set (h(1), 'FaceColor', 'none');%COMENTEI
+     set (h(2), 'FaceColor', [0.8 0.8 0.8]);%COMENTEI
+     set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');%COMENTEI
 %     
     % Raise current axis to the top layer, to prevent it
     % from being hidden by the grayed area

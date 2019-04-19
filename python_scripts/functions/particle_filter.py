@@ -7,26 +7,42 @@ Created on Thu Apr 11 16:18:00 2019
 import numpy as np
 
 
-def create_virtual_obs(particle,lambda_values):
+def create_virtual_obs(particle,lambda_values,beta_1):
     
     nb_noise = particle.shape[0]
     noise = np.random.normal(0,1,nb_noise)
     
-    observation = particle + 0.1*(np.sqrt(lambda_values)*noise)[...,np.newaxis]
+    observation = particle + beta_1*(np.sqrt(lambda_values)*noise)[...,np.newaxis]
     
     return observation
 
 
-def calculate_normalized_weigths(particles,obs,lambda_values):
+def calculate_normalized_weigths(particles,obs,lambda_values,beta_1):
     
-    m_inv_covar = calculate_inv_noise_covariance_matrix(lambda_values)
+    m_inv_covar = calculate_inv_noise_covariance_matrix(lambda_values,beta_1)
     weigths = np.zeros(particles.shape[1])
+    values = np.zeros(particles.shape[1])
     for i in range(particles.shape[1]):
         
         value = -0.5*(-2*obs.T @ m_inv_covar @ (particles[:,i][...,np.newaxis]) + (particles[:,i][...,np.newaxis].T) @ m_inv_covar @ particles[:,i][...,np.newaxis])
-        weigths[i] = np.exp(value[0,0])
+        values[i] = value
+        
     
+    explosures = np.isinf(values)
+    if np.any(explosures):
+        print('EXPLODIU')
+        weigths[explosures] = 10
+        weigths[np.logical_not(explosures)] = 1
+    
+    else:  
+        weigths = np.exp(70)*np.exp(values-np.max(values))    
+    
+    
+    
+#    print(weigths)
     weigths = weigths/np.sum(weigths)
+#    print('\n')
+    
     
     
     return weigths
@@ -42,19 +58,18 @@ def resample(weigths):
     
     return indexes
 
-def calculate_inv_noise_covariance_matrix(lambda_values):
+def calculate_inv_noise_covariance_matrix(lambda_values,beta_1):
     
-    cov_matrix = 0.1*np.diag(np.sqrt(lambda_values))
+    cov_matrix = np.power(beta_1,2)*np.diag(lambda_values)
     
     
     return np.linalg.inv(cov_matrix)
     
 
-def particle_filter(particles,observation,lambda_values):
+def particle_filter(particles,observation,lambda_values,beta_1):
     
-    obs = create_virtual_obs(observation,lambda_values)
-    
-    weigths = calculate_normalized_weigths(particles,obs,lambda_values)
+    obs = create_virtual_obs(observation,lambda_values,beta_1)
+    weigths = calculate_normalized_weigths(particles,obs,lambda_values,beta_1)
     
     indexes = resample(weigths)
     
@@ -68,6 +83,15 @@ def particle_filter(particles,observation,lambda_values):
     
     
     
+
+
+
+
+
+
+
+
+
     
     
     

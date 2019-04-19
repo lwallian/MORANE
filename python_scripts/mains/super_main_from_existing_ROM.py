@@ -8,7 +8,7 @@ import numpy as np
 import math
 from main_from_existing_ROM import main_from_existing_ROM
 from super_main_from_existing_ROM_Simulation import super_main_from_existing_ROM_Simulation
-
+import matplotlib.pyplot as plt
 #def super_main_from_existing_ROM(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
 #    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected):
 #    pass
@@ -33,7 +33,7 @@ def switch_type_data(argument):
 if __name__ == '__main__':
 
 #    vect_nb_modes = [16,8,6,4,2]
-    vect_nb_modes = [8]
+    vect_nb_modes = [4]
     no_subampl_in_forecast = False;
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]
@@ -50,25 +50,29 @@ if __name__ == '__main__':
     
     nb_period_test = math.nan;
     nb_modes_max = np.max(vect_nb_modes);
-    
+    variances = []
     for modal_dt in vect_modal_dt:
         for threshold in v_threshold:
             for adv_corrected in vect_adv_corrected:
                 for reconstruction in vect_reconstruction:
                     for k in vect_nb_modes:
-                        main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
-                                               no_subampl_in_forecast,reconstruction,\
-                                               adv_corrected,modal_dt)
+                        for n_particle in range(100,101):
+                            variances.append(main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
+                                                   no_subampl_in_forecast,reconstruction,\
+                                                   adv_corrected,modal_dt,n_particle))
     
 
     
+    
+#    plt.figure()
+#    plt.plot(variances)
  ##### maybe call plot something in the next part           
             
             
             
             
-    super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
-                                             no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
+#    super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
+#                                             no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
             
             
             

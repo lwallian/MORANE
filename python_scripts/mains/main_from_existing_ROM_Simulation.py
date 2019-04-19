@@ -247,7 +247,7 @@ def main_from_existing_ROM_Simulation(type_data,nb_modes,threshold,no_subampl_in
     if reconstruction:
         file_res_2nd_res = file_res_2nd_res + '_reconstruction'
     
-     
+    
     
     ############################### MATLAB or python data ##############################################################
     python = True

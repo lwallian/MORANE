@@ -4,6 +4,7 @@ Created on Mon Mar 25 17:17:08 2019
 
 @author: matheus.ladvig
 """
+import matplotlib.pyplot as plt
 import math
 import os
 from convert_mat_to_python import convert_mat_to_python
@@ -22,31 +23,38 @@ from particle_filter import particle_filter
 
 
 
-def estimate_lambda(time_obs):
+#def estimate_lambda(time_obs):
+#    
+#    b_power = np.power(time_obs,2)
+#    lambda_values = np.sum(b_power,axis=0)/time_obs.shape[0]
+#
+#
+#    return lambda_values
+
+def calculate_sigma_inv(L):
     
-    b_power = np.power(time_obs,2)
-    lambda_values = np.sum(b_power,axis=0)/time_obs.shape[0]
-
-
-    return lambda_values
-
+    sigma = L @ L.T
+    
+    return np.linalg.inv(sigma)
 
 
 
 
-
-
-def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
+def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,n_particles):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
 #    --Load simulation results
 #    --Estimate modal time step by Shanon 
 #    --Compare it with modal Eddy Viscosity ROM and tuned version of the loaded results.
     
-    
+    ######################################----PARAMETERS TO CHOOSE----############################################
     # Parameters choice
     param_ref = {}
-    param_ref['n_simu'] = 5
-    param_ref['N_particules'] = 5
+    param_ref['n_simu'] = 30 
+    param_ref['N_particules'] = n_particles
+    beta_1 = 2 # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+    beta_2 = 2 # beta_2 is the parameter that controls the  noise in the initialization of the filter
+    beta_3 = 1.2 # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+    beta_4 = 5 # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
     
     #%%  Parameters already chosen
     
@@ -144,8 +152,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     #%% Choice of modal time step
-    #TESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-#    modal_dt = True
+   
     ##############################################################################
     if modal_dt == True:
 #        rate_dt,ILC_a_cst,pchol_cov_noises = fct_cut_frequency_2_full_sto(bt_tot,ILC_a_cst,param,pchol_cov_noises,modal_dt)
@@ -218,12 +225,46 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
 #    Reconstruction in the stochastic case
+    lambda_values = param['lambda'][:,0]
+    bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules'])) 
+    shape = (1,bt_tronc.shape[1],int(param['N_particules']-1))
     
-    bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules']))
+    
+    
+    bt_MCMC[:,:,1:] = bt_MCMC[:,:,1:] + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,1:].shape[2]))*np.random.normal(0,1,size=shape)
     bt_fv = bt_MCMC.copy()
     bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))
     
     iii_realization = np.zeros((param['N_particules'],1))
+    
+    
+    ######################################################################
+    # Load phi
+#    phi = np.zeros(shape=(120,int(param['nb_modes'])))
+#    #############--Calculate important matrices and particle filter information constant in time--#################
+#    # Define H_PIV
+#    dim_simu = 3 # number of dimensions in the topos... ex: x,y,z = 3
+#    n_points = phi.shape[0]/dim_simu # number of points in the grid
+#    M = n_points*dim_simu # number of lines of H_PIV
+#    #
+#    H_PIV = np.diag(np.ones(M))
+#    #
+#    
+#    # Calculate H = H_piv @ phi
+#    H = H_PIV @ phi
+#    # Define L_noise -> dim(MxM)
+#    L_noise = np.diag(np.ones(M))
+#    # Calculate sigma_inv
+#    sigma_inv = calculate_sigma_inv(L_noise)
+#    # Calculate H.T @ sigma_inv @ H
+#    K =  H.T @ sigma_inv
+#    sigma_R = K @ H
+    
+    #load observations
+#    obs =
+    
+    ######################################################################
+    pchol_cov_noises = beta_3*pchol_cov_noises
     for index in range(param['N_test']):
         ##### Regarder evol pour efacer les matrices deterministes
         val0,val1,val2 = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
@@ -235,12 +276,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         
         #########################################----------------------#############################################
         #########################################--PARTICLE FILTERING--#############################################
-        obs = val0[0,:,0][...,np.newaxis]
-        particles = val0[0,:,1:]
-        #lambda_values = estimate_lambda(bt_MCMC[:,:,0])
-        lambda_values = param['lambda'][:,0]
-        particles = particle_filter(particles,obs,lambda_values)
-        val0 = np.hstack((obs,particles))[np.newaxis,...]
+        if (index+1)%(5*beta_4)==0:
+            # In the future beta 4 will enter here
+            obs = val0[0,:,0][...,np.newaxis]
+            particles = val0[0,:,1:]
+            particles = particle_filter(particles,obs,lambda_values,beta_1)
+            val0 = np.hstack((obs,particles))[np.newaxis,...]
         #############################################################################################################
         #############################################################################################################
         
@@ -348,9 +389,45 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     dict_python['struct_bt_MCMC'] = struct_bt_MCMC
     dict_python['bt_MCMC'] = bt_MCMC
     
-    sio.savemat(param['name_file_2nd_result']+'_Numpy',dict_python)
+#    sio.savemat(param['name_file_2nd_result']+'_Numpy',dict_python)
+    
+    #%% PLOTSSSSSSSSSSSS
+    
+#    var = np.sum(np.var(bt_MCMC[-1,:,:],axis=1))
     
     
+    
+    
+    ##############################################################################################################
+    #################################---TEST PLOTS---#############################################################
+    dt_tot = param['dt']
+    N_test = param['N_test'] 
+    time = np.arange(1,int(int(N_test)+2),1)*float(dt_tot)
+    ref = bt_MCMC[:,:,0]
+    particles_mean = np.mean(bt_MCMC[:,:,1:],axis=2)
+    n_particles = bt_MCMC.shape[-1] - 1
+    particles_std_estimate = np.std(bt_MCMC[:,:,1:],axis=2)
+#    erreur = np.abs(particles_mean-ref)
+
+#
+#
+#
+#
+# 
+#    
+    for index in range(particles_mean.shape[1]):
+        plt.figure(index)
+        plt.ylim(-10, 10)
+        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
+        plt.fill_between(time,particles_mean[:,index]-delta,particles_mean[:,index]+delta,color='gray')
+        line1 = plt.plot(time,particles_mean[:,index],'b',label = 'particles mean')
+        line2 = plt.plot(time,ref[:,index],'k--',label = 'true state')
+        
+        plt.legend()
+    
+    
+    ##############################################################################################################
+    ##############################################################################################################
     del C_deter 
     del C_sto 
     del L_deter 
