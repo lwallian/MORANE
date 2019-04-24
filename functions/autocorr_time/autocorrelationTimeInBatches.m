@@ -18,7 +18,7 @@ N = size(cov_v, 2);
 cov_s = smallScaleVelocityCov(cov_v, bt);
 
 % Estimate the period to know the size of the batches
-period = periodicityFromAutocorrelation(cov_s);
+period = periodicityFromAutocorrelation(cov_v);
 % period = periodicityFromMatrix(cov_s);
 % period = 5;
 % period = N;

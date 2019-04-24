@@ -18,7 +18,7 @@ if isnumeric(cov_s)
         for j = 1 : N - i + 1
             c = c + cov_s(j,j+i-1);
         end
-        autocorrelation(i - 1) = c .* N / (N - i + 1);
+        autocorrelation(i - 1) = c * N / (N - i + 1);
     end
     
     autocorrelation = autocorrelation ./ var_s;

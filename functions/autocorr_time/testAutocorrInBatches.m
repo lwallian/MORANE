@@ -6,7 +6,7 @@
 %% Test autocorrelation time in batches with real data
 clear all, close all, clc;
 
-data = load('C_DNS100_2Modes.mat');
+data = load('C_DNS100_8Modes.mat');
 % data = load('C_DNS300_2Modes.mat');
 cov_v = data.c;
 bt = data.bt;
@@ -18,7 +18,7 @@ autocorrTime = autocorrelationTimeInBatches(cov_v, bt, mode);
 % Plot the autocorrelation estimation as a function of the period
 figure, plot(autocorrTime), grid minor;
 title('Autocorrelation time (DNS100 - 2 modes - global \sigma)');
-xlabel('Period index'), ylabel('\tau_{corr} [samples / s]');
+xlabel('Period index'), ylabel('\tau_{corr} [s amples / s]');
 
 % Estimate the different means
 meanACTime = mean(autocorrTime)
@@ -27,23 +27,30 @@ weightedACTime = weightedACTimeMean(autocorrTime)
 %% Comparison of the spectrum of the autocorr and the cov matrix
 clear all, close all, clc;
 
-data = load('C_DNS100_2Modes.mat');
-% data = load('C_DNS300_4Modes.mat');
+% data = load('C_DNS100_2Modes.mat'); 
+% dt = 0.05;
+data = load('C_DNS300_2Modes.mat');
+dt = 0.25;
+nyquistFreq = 1 / (2 * dt);
 cov_v = data.c;
 bt = data.bt;
 clear data;
 
-% Calculate the small-scale velocity field
+% Calculate the unresolved velocity field
 N = size(cov_v, 2);
 cov_s = smallScaleVelocityCov(cov_v, bt);
-clear cov_v;
+var_v = trace(cov_v);
+var_s = trace(cov_s);
 
 % Estimate the autocorrelation function
-autocorrFunction = estimateAutocorrelation(cov_s);
+autocorrFunction = fullAutocorrelation(cov_s);
+% autocorrFunction = estimateAutocorrelation(cov_s);
 
 % Calculate the fft and estimate the period as the biggest mode
-powerSpectrumAC = fftshift(fft(autocorrFunction));
+% powerSpectrumAC = fftshift(fft(autocorrFunction));
+powerSpectrumAC = fftshift(fft([autocorrFunction', zeros(size(autocorrFunction'))]));
 powerSpectrumAC = abs(powerSpectrumAC(floor(length(powerSpectrumAC) / 2) : end)); % just keep half of the amplitude
+powerSpectrumAC = powerSpectrumAC ./ N;
 
 [~, frequenceCentral] = max(powerSpectrumAC);
 periodAC = ceil(N / frequenceCentral);
@@ -51,26 +58,161 @@ periodAC = ceil(N / frequenceCentral);
 % Now for the spectrum of the covariance matrix
 % Get the antidiagonal
 antiDiag = diag(fliplr(cov_s));
+% antiDiag = antiDiag(length(antiDiag) / 2 : end);
 
 % Calculate its spectrum
-powerSpectrumCov = fftshift(fft(antiDiag));
+% powerSpectrumCov = fftshift(fft(antiDiag));
+powerSpectrumCov = fftshift(fft([antiDiag', zeros(size(antiDiag'))]));
 powerSpectrumCov = abs(powerSpectrumCov(floor(length(powerSpectrumCov) / 2) : end)); % just keep half of the amplitude
+powerSpectrumCov = powerSpectrumCov ./ var_s;
 
 % Get the central frequency
 [~, frequence_central] = max(powerSpectrumCov);
 periodCov = ceil(N / frequence_central);
 
+% Finally, for the spectrum of the full matrix
+antiDiagFull = diag(fliplr(cov_v));
+% antiDiagFull = antiDiagFull(length(antiDiagFull) / 2 : end);
+
+% Calculate its spectrum
+% powerSpectrumFull = fftshift(fft(antiDiagFull));
+powerSpectrumFull = fftshift(fft([antiDiagFull', zeros(size(antiDiagFull'))]));
+powerSpectrumFull = abs(powerSpectrumFull(floor(length(powerSpectrumFull) / 2) : end)); % just keep half of the amplitude
+powerSpectrumFull = powerSpectrumFull ./ var_v;
+
+% Get the central frequency
+[~, frequenceFull] = max(powerSpectrumFull);
+periodFull = ceil(N / frequenceFull);
+
+% Estimate the autocorrelation function
+autocorrFunctionFull = fullAutocorrelation(cov_v);
+% autocorrFunctionFull = estimateAutocorrelation(cov_v);
+
+% Calculate the fft and estimate the period as the biggest mode
+% powerSpectrumACFull = fftshift(fft(autocorrFunctionFull));
+powerSpectrumACFull = fftshift(fft([autocorrFunctionFull', zeros(size(autocorrFunctionFull'))]));
+powerSpectrumACFull = abs(powerSpectrumACFull(floor(length(powerSpectrumACFull) / 2) : end)); % just keep half of the amplitude
+powerSpectrumACFull = powerSpectrumACFull ./ N;
+
+[~, frequenceCentralFull] = max(powerSpectrumACFull);
+periodACFull = ceil(N / frequenceCentralFull);
+
 % Plot both in subplots
-figure, subplot(2, 1, 1);
-plot(linspace(0.0, 1.0, length(powerSpectrumCov)), powerSpectrumCov);
+figure, subplot(4, 1, 1);
+plot(linspace(0.0, nyquistFreq, length(powerSpectrumCov)), powerSpectrumCov);
 xlabel('Normalized frequency'), ylabel('Power [m^2 / s^2]');
 title('Spectrum of covariance matrix (DNS300 - 4 modes)');
 grid minor;
-subplot(2, 1, 2);
-plot(linspace(0.0, 1.0, length(powerSpectrumAC)), powerSpectrumAC);
+subplot(4, 1, 2);
+plot(linspace(0.0, nyquistFreq, length(powerSpectrumAC)), powerSpectrumAC);
 xlabel('Normalized frequency'), ylabel('Power [m^2 / s^2]');
 title('Power spectrum');
 grid minor;
+subplot(4, 1, 3);
+plot(linspace(0.0, nyquistFreq, length(powerSpectrumFull)), powerSpectrumFull);
+xlabel('Normalized frequency'), ylabel('Power [m^2 / s^2]');
+title('Spectrum of the full matrix');
+grid minor;
+subplot(4, 1, 4);
+plot(linspace(0.0, nyquistFreq, length(powerSpectrumACFull)), powerSpectrumACFull);
+xlabel('Normalized frequency'), ylabel('Power [m^2 / s^2]');
+title('Power spectrum of the full matrix');
+grid minor;
+
+%% Spectrum of correlation matrices
+clear all, close all, clc;
+
+% data = load('C_DNS100_2Modes.mat'); 
+% dt = 0.05;
+data = load('C_DNS300_2Modes.mat');
+dt = 0.25;
+nyquistFreq = 1 / (2 * dt);
+cov_v = data.c;
+bt = data.bt;
+clear data;
+
+col_v = cov_v(:, 1);
+row_v = cov_v(1, :);
+col_fft = fftshift(fft(col_v));
+col_fft = abs(col_fft(floor(length(col_fft) / 2) : end));
+row_fft = fftshift(fft(row_v));
+row_fft = abs(row_fft(floor(length(row_fft) / 2) : end));
+diag_fft = fftshift(fft(diag(cov_v)));
+diag_fft = abs(diag_fft(floor(length(diag_fft) / 2 ): end));
+antidiag_fft = diag(fliplr(cov_v));
+antidiag_fft = fftshift(fft(antidiag_fft));
+antidiag_fft = abs(antidiag_fft(floor(length(antidiag_fft) / 2) : end));
+
+figure, subplot(2, 2, 1);
+plot(linspace(0.0, nyquistFreq, length(col_fft)), col_fft);
+title('FFT of a column'), xlabel('Frequency [Hz]');
+grid minor;
+subplot(2, 2, 2);
+plot(linspace(0.0, nyquistFreq, length(row_fft)), row_fft);
+title('FFT of a row'), xlabel('Frequency [Hz]');
+grid minor;
+subplot(2, 2, 3);
+plot(linspace(0.0, nyquistFreq, length(diag_fft)), diag_fft);
+title('FFT of diagonal'), xlabel('Frequency [Hz]');
+grid minor;
+subplot(2, 2, 4);
+plot(linspace(0.0, nyquistFreq, length(antidiag_fft)), antidiag_fft);
+title('FFT of antidiagonal'), xlabel('Frequency [Hz]');
+grid minor;
+
+% Plot the 2D FFT in image
+figure, subplot(2, 1, 1);
+freqRange = linspace(-nyquistFreq, nyquistFreq, size(cov_v, 1));
+imagesc(freqRange, freqRange, 100 * log( 1 + abs(fftshift(fft2(cov_v))))); colormap gray; title('FFT of c (log)');
+axis xy;
+subplot(2, 1, 2);
+imagesc(freqRange, freqRange, abs(fftshift(fft2(cov_v)))); colormap gray; title('FFT of c (linear)')
+axis xy;
+
+% Mean of cols and rows
+matrix_fft = abs(fftshift(fft2(cov_v)));
+col_mean = mean(matrix_fft, 1);
+col_mean = col_mean(length(col_mean) / 2 : end);
+row_mean = mean(matrix_fft, 2);
+row_mean = row_mean(length(row_mean) / 2 : end);
+
+% Plot the mean of the ffts
+figure, subplot(2, 1, 1);
+plot(linspace(0.0, nyquistFreq, length(col_mean)), col_mean);
+title('FFT of mean of columns'), xlabel('Frequency [Hz]');
+grid minor;
+subplot(2, 1, 2);
+plot(linspace(0.0, nyquistFreq, length(row_mean)), row_mean);
+title('FFT of mean of rows'), xlabel('Frequency [Hz]');
+grid minor;
+
+% Antidiag by another method
+antidiag_fft2 = diag(fliplr(matrix_fft));
+antidiag_fft2 = antidiag_fft2(length(antidiag_fft2) / 2 : end);
+
+% Phase of the ffts
+phase_antidiag = angle(fftshift(fft(diag(fliplr(cov_v)))));
+phase_antidiag = phase_antidiag(length(phase_antidiag) / 2 : end);
+phase_antidiag2 = angle(diag(fliplr(fftshift(fft2(cov_v)))));
+phase_antidiag2 = phase_antidiag2(length(phase_antidiag2) / 2 : end);
+
+figure, subplot(2, 2, 1), 
+plot(linspace(0.0, nyquistFreq, length(antidiag_fft2)), antidiag_fft2);
+title('Antidiagonal of fft2 matrix'), xlabel('Frequency [Hz]');
+ylabel('Amplitude'), grid minor;
+subplot(2, 2, 2);
+plot(linspace(0.0, nyquistFreq, length(antidiag_fft)), antidiag_fft);
+title('FFT of antidiagonal of matrix'), xlabel('Frequency [Hz]');
+ylabel('Amplitude'), grid minor;
+subplot(2, 2, 3);
+plot(linspace(0.0, nyquistFreq, length(phase_antidiag2)), phase_antidiag2);
+title('Antidiagonal of fft2 matrix'), xlabel('Frequency [Hz]');
+ylabel('Phase'), grid minor;
+subplot(2, 2, 4);
+plot(linspace(0.0, nyquistFreq, length(phase_antidiag)), phase_antidiag);
+title('FFT of antidiagonal of matrix'), xlabel('Frequency [Hz]');
+ylabel('Phase'), grid minor;
+
 
 %% Test autocorrelation time in batches with synthetic data
 %SET THE PERIOD TO N TO COMPARE TO THE CLASSIC METHOD
@@ -128,10 +270,11 @@ t_f = 100.0;
 durationT = t_f - t_0;
 deltaT = (durationT / N);
 t = linspace(t_0, t_f, N);
-tau = 2.0;
+tau = 10.0;
 sigma = 1 / (sqrt(2 * pi) * (tau / deltaT));
 
-beta = @(x) 1 + 0.5 * cos(2 * pi * x / T);
+% beta = @(x, beta0) 1 + beta0 * cos(2 * pi * x / T);
+beta = @(x) 1 + 0.2 * cos(2 * pi * x / T);
 alpha = @(x, alpha0) 1 + alpha0 * sin(2 * pi * x / T);
 % alpha = @(x) 1 + 0.2 * sin(2 * pi * x / T);
 cov_x = @(tau, dt, st, alpha0) sigma.^2 * alpha(st, alpha0) * ...
