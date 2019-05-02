@@ -8,6 +8,7 @@ function [tau] = autocorr_time_sweep(cov_v, bt)
 % supervisor
 %
 N = size(cov_v, 2);
+% lag_f = 10000;
 lag_f = N;
 
 % Calculate the large and small scale covariance matrices
@@ -28,8 +29,9 @@ for k = 2 : lag_f
 end
 
 figure, plot(tau);
-title('Autocorrelation time estimation')
-xlabel('Time lag'), ylabel('Autocorrelation time estimate');
+% figure, plot(linspace(0.0, 10000 * 0.05, length(tau)), tau * 0.05);
+title('Autocorrelation time estimation (DNS100 - 2 modes)')
+xlabel('Time lag'), ylabel('$\tau_{corr}$', 'Interpreter', 'latex');
 grid minor;
 
 end

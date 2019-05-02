@@ -25,16 +25,18 @@ if isnumeric(cov_s)
     
 elseif iscell(cov_s)
     N = length(cov_s);
+    N_i = length(cov_s{2});
     autocorrelation = zeros(N - 1, 1);
     
     % equivalent of map(lambda x: sum(x), cov_s)
     diagSums = cellfun(@sum, cov_s);
     for i = 2 : N
-        autocorrelation(i) = diagSums(i) * N / (N - i + 1);
+        autocorrelation(i - 1) = diagSums(i) * (N_i + 1) / (N_i - i + 2);
     end
     
     autocorrelation = autocorrelation ./ diagSums(1);
 end
+
 
 end
 

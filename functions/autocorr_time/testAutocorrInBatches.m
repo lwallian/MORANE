@@ -6,7 +6,7 @@
 %% Test autocorrelation time in batches with real data
 clear all, close all, clc;
 
-data = load('C_DNS100_8Modes.mat');
+data = load('C_DNS100_2Modes.mat');
 % data = load('C_DNS300_2Modes.mat');
 cov_v = data.c;
 bt = data.bt;
@@ -212,6 +212,52 @@ subplot(2, 2, 4);
 plot(linspace(0.0, nyquistFreq, length(phase_antidiag)), phase_antidiag);
 title('FFT of antidiagonal of matrix'), xlabel('Frequency [Hz]');
 ylabel('Phase'), grid minor;
+
+%% Test each batch
+clear all, close all, clc;
+
+data = load('C_DNS100_16Modes.mat'); 
+dt = 0.05;
+% data = load('C_DNS300_4Modes.mat');
+% dt = 0.25;
+nyquistFreq = 1 / (2 * dt);
+cov_v = data.c;
+bt = data.bt;
+clear data;
+
+N = size(cov_v, 2);
+% Estimate the small-scale velocity
+cov_s = smallScaleVelocityCov(cov_v, bt);
+
+% Estimate the period to know the size of the batches
+period = periodicityFromAutocorrelation(cov_v);
+
+% Compute the autocorrelation time in batches
+autocorrelationTime = zeros(ceil(N / period), 1);
+autocorrelation = cell(ceil(N / period), 1);
+periodIndex = 1;
+currBatch{1} = 1;
+currPosition = 1;
+while currBatch{1} ~= 0
+    currBatch = nextMatrixPeriod(cov_s, period, currPosition, 'global');
+    if currBatch{1} == 0
+        break;
+    end
+    autocorrelation{periodIndex} = estimateAutocorrelation(currBatch);
+    autocorrelationTime(periodIndex) = estimateAutocorrelationTime(currBatch);
+    currPosition = currPosition + period;
+    periodIndex = periodIndex + 1;
+end
+
+nBatch = 88;
+figure, plot(1 : period, autocorrelation{nBatch})
+title(['Correlation for period ' num2str(nBatch) ' (\tau_{corr} = ' num2str(autocorrelationTime(nBatch)) ')']);
+xlabel('$\tau_{\mathrm{total}} \, \Delta t [samples / s]$', 'Interpreter', 'latex'), ylabel('Correlation');
+grid minor;
+
+% Estimate the different means
+meanACTime = mean(autocorrelationTime)
+weightedACTime = weightedACTimeMean(autocorrelationTime)
 
 
 %% Test autocorrelation time in batches with synthetic data
