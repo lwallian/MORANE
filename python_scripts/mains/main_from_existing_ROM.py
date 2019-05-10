@@ -4,7 +4,7 @@ Created on Mon Mar 25 17:17:08 2019
 
 @author: matheus.ladvig
 """
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import math
 import os
 from convert_mat_to_python import convert_mat_to_python
@@ -20,7 +20,7 @@ from evol_forward_bt_RK4 import evol_forward_bt_RK4
 from evol_forward_bt_MCMC import evol_forward_bt_MCMC
 from fct_name_2nd_result import fct_name_2nd_result
 from particle_filter import particle_filter
-
+import matplotlib.pyplot as plt
 
 
 #def estimate_lambda(time_obs):
@@ -49,13 +49,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     ######################################----PARAMETERS TO CHOOSE----############################################
     # Parameters choice
     param_ref = {}
-    param_ref['n_simu'] = 30 
+    param_ref['n_simu'] = 100
     param_ref['N_particules'] = n_particles
-    beta_1 = 2 # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-    beta_2 = 2 # beta_2 is the parameter that controls the  noise in the initialization of the filter
-    beta_3 = 1.2 # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
-    beta_4 = 5 # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
-    
+    beta_1 = 0.1 # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+    beta_2 = 1 # beta_2 is the parameter that controls the  noise in the initialization of the filter
+    beta_3 = 1 # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+    beta_4 = 1 # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
+    N_threshold = 10
     #%%  Parameters already chosen
     
     #   !!!! Do not modify the following lines  !!!!!!
@@ -210,16 +210,16 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
 #    Reconstruction in the deterministic case
-    bt_forecast_deter = bt_tronc
-    for index in range(param['N_test']):
-        bt_forecast_deter = np.vstack((bt_forecast_deter, evol_forward_bt_RK4(ILC_a_cst['deter']['I'],ILC_a_cst['deter']['L'],ILC_a_cst['deter']['C'],param['dt'],bt_forecast_deter)))
+#    bt_forecast_deter = bt_tronc
+#    for index in range(param['N_test']):
+#        bt_forecast_deter = np.vstack((bt_forecast_deter, evol_forward_bt_RK4(ILC_a_cst['deter']['I'],ILC_a_cst['deter']['L'],ILC_a_cst['deter']['C'],param['dt'],bt_forecast_deter)))
     
 #    Reconstruction in the stochastic case
     
 
-    bt_forecast_sto = bt_tronc
-    for index in range(param['N_test']):
-        bt_forecast_sto = np.vstack((bt_forecast_sto,evol_forward_bt_RK4(ILC_a_cst['modal_dt']['I'],ILC_a_cst['modal_dt']['L'],ILC_a_cst['modal_dt']['C'],param['dt'],bt_forecast_sto)))
+#    bt_forecast_sto = bt_tronc
+#    for index in range(param['N_test']):
+#        bt_forecast_sto = np.vstack((bt_forecast_sto,evol_forward_bt_RK4(ILC_a_cst['modal_dt']['I'],ILC_a_cst['modal_dt']['L'],ILC_a_cst['modal_dt']['C'],param['dt'],bt_forecast_sto)))
     
     
     
@@ -227,45 +227,31 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    Reconstruction in the stochastic case
     lambda_values = param['lambda'][:,0]
     bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules'])) 
-    shape = (1,bt_tronc.shape[1],int(param['N_particules']-1))
+    shape = (1,bt_tronc.shape[1],int(param['N_particules']))
     
     
     
-    bt_MCMC[:,:,1:] = bt_MCMC[:,:,1:] + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,1:].shape[2]))*np.random.normal(0,1,size=shape)
+#    bt_MCMC[:,:,:] = bt_MCMC[:,:,:] + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+    bt_MCMC[:,:,:] = beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+    
     bt_fv = bt_MCMC.copy()
     bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))
     
     iii_realization = np.zeros((param['N_particules'],1))
     
     
-    ######################################################################
-    # Load phi
-#    phi = np.zeros(shape=(120,int(param['nb_modes'])))
-#    #############--Calculate important matrices and particle filter information constant in time--#################
-#    # Define H_PIV
-#    dim_simu = 3 # number of dimensions in the topos... ex: x,y,z = 3
-#    n_points = phi.shape[0]/dim_simu # number of points in the grid
-#    M = n_points*dim_simu # number of lines of H_PIV
-#    #
-#    H_PIV = np.diag(np.ones(M))
-#    #
-#    
-#    # Calculate H = H_piv @ phi
-#    H = H_PIV @ phi
-#    # Define L_noise -> dim(MxM)
-#    L_noise = np.diag(np.ones(M))
-#    # Calculate sigma_inv
-#    sigma_inv = calculate_sigma_inv(L_noise)
-#    # Calculate H.T @ sigma_inv @ H
-#    K =  H.T @ sigma_inv
-#    sigma_R = K @ H
     
-    #load observations
-#    obs =
-    
+   
     ######################################################################
     pchol_cov_noises = beta_3*pchol_cov_noises
-    for index in range(param['N_test']):
+    time_pf = []
+    particles_estimate = np.zeros((1,bt_MCMC.shape[1]))
+#    n_samples = int(5*1/param['dt'])
+    period_in_samples = int(5*1/param['dt'])
+    period = False
+#    weigths_time_past = np.ones((bt_MCMC.shape[2]))/bt_MCMC.shape[2]
+    for index in range(param['N_test']):#range(n_samples):#range(param['N_test']):
+        
         ##### Regarder evol pour efacer les matrices deterministes
         val0,val1,val2 = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
                                                         ILC_a_cst['modal_dt']['L'],\
@@ -276,13 +262,29 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         
         #########################################----------------------#############################################
         #########################################--PARTICLE FILTERING--#############################################
-        if (index+1)%(5*beta_4)==0:
-            # In the future beta 4 will enter here
-            obs = val0[0,:,0][...,np.newaxis]
-            particles = val0[0,:,1:]
-            particles = particle_filter(particles,obs,lambda_values,beta_1)
-            val0 = np.hstack((obs,particles))[np.newaxis,...]
-        #############################################################################################################
+#
+        if (index+1)%(int(period_in_samples*beta_4))== 0:
+            period = True
+            print('Index of activating filtering: '+str(index))
+#        period = True
+        if ((index+1)%(n_simu)==0) and (period==True):
+            
+            print('Index of filtering: '+str(index))
+            time_pf.append(index+1)
+#            obs = val0[0,:,0][...,np.newaxis]
+            obs = bt_tot[ int((index+1)/n_simu),:][...,np.newaxis]
+            particles = val0[0,:,:]
+            particles = particle_filter(particles,obs,lambda_values,beta_1,N_threshold)
+#            particles_estimate = np.concatenate((particles_estimate,particle_estimate[np.newaxis,...]),axis=0)
+#            print(particles)
+            period = False
+#            val0 = np.hstack((obs,particles))[np.newaxis,...]
+            val0 = particles[np.newaxis,...]
+            
+            
+#        else:
+#            time_pf.append(-10)
+#        ############################################################################################################
         #############################################################################################################
         
         bt_MCMC = np.concatenate((bt_MCMC,val0),axis=0)    
@@ -339,62 +341,62 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     del bt_tronc
     
-    param['dt'] = param['dt']*n_simu
-    param['N_test'] = param['N_test']/n_simu
-    bt_MCMC = bt_MCMC[::n_simu,:,:]
-    bt_fv = bt_fv[::n_simu,:,:]
-    bt_m = bt_m[::n_simu,:,:]
-    bt_forecast_sto = bt_forecast_sto[::n_simu,:]
-    bt_forecast_deter = bt_forecast_deter[::n_simu,:]
+#    param['dt'] = param['dt']*n_simu
+#    param['N_test'] = param['N_test']/n_simu
+#    bt_MCMC = bt_MCMC[::n_simu,:,:]
+#    bt_fv = bt_fv[::n_simu,:,:]
+#    bt_m = bt_m[::n_simu,:,:]
+#    bt_forecast_sto = bt_forecast_sto[::n_simu,:]
+#    bt_forecast_deter = bt_forecast_deter[::n_simu,:]
     
-    struct_bt_MCMC = {}
-    
-    tot = {}
-    tot['mean'] = np.mean(bt_MCMC,2)
-    tot['var'] = np.var(bt_MCMC,2)
-    tot['one_realiz'] = bt_MCMC[:,:,0]
-    struct_bt_MCMC['tot'] = tot.copy()
-    
-    fv = {}
-    fv['mean'] = np.mean(bt_fv,2)
-    fv['var'] = np.var(bt_fv,2)
-    fv['one_realiz'] = bt_fv[:,:,0]
-    struct_bt_MCMC['fv'] = fv.copy()
-   
-    m = {}
-    m['mean'] = np.mean(bt_m,2)
-    m['var'] = np.var(bt_m,2)
-    m['one_realiz'] = bt_m[:,:,0]
-    struct_bt_MCMC['m'] = m.copy()
+#    struct_bt_MCMC = {}
+#    
+#    tot = {}
+#    tot['mean'] = np.mean(bt_MCMC,2)
+#    tot['var'] = np.var(bt_MCMC,2)
+#    tot['one_realiz'] = bt_MCMC[:,:,0]
+#    struct_bt_MCMC['tot'] = tot.copy()
+#    
+#    fv = {}
+#    fv['mean'] = np.mean(bt_fv,2)
+#    fv['var'] = np.var(bt_fv,2)
+#    fv['one_realiz'] = bt_fv[:,:,0]
+#    struct_bt_MCMC['fv'] = fv.copy()
+#   
+#    m = {}
+#    m['mean'] = np.mean(bt_m,2)
+#    m['var'] = np.var(bt_m,2)
+#    m['one_realiz'] = bt_m[:,:,0]
+#    struct_bt_MCMC['m'] = m.copy()
     
     
     #%%  Save 2nd results, especially I, L, C and the reconstructed Chronos
 
-    param = fct_name_2nd_result(param,modal_dt,reconstruction)
-    
-    
-    
-#    np.savez(param['name_file_2nd_result']+'_Numpy',bt_forecast_deter=bt_forecast_deter,\
-#                                                    bt_tot = bt_tot,\
-#                                                    bt_forecast_sto = bt_forecast_sto,\
-#                                                    param = param,\
-#                                                    struct_bt_MCMC = struct_bt_MCMC,\
-#                                                    bt_MCMC = bt_MCMC)  
+#    param = fct_name_2nd_result(param,modal_dt,reconstruction)
 #    
-    dict_python = {}
-    dict_python['bt_forecast_deter'] = bt_forecast_deter
-    dict_python['bt_tot'] = bt_tot
-    dict_python['bt_forecast_sto'] = bt_forecast_sto
-    dict_python['param'] = param
-    dict_python['struct_bt_MCMC'] = struct_bt_MCMC
-    dict_python['bt_MCMC'] = bt_MCMC
+#    
+#    
+##    np.savez(param['name_file_2nd_result']+'_Numpy',bt_forecast_deter=bt_forecast_deter,\
+##                                                    bt_tot = bt_tot,\
+##                                                    bt_forecast_sto = bt_forecast_sto,\
+##                                                    param = param,\
+##                                                    struct_bt_MCMC = struct_bt_MCMC,\
+##                                                    bt_MCMC = bt_MCMC)  
+##    
+#    dict_python = {}
+#    dict_python['bt_forecast_deter'] = bt_forecast_deter
+#    dict_python['bt_tot'] = bt_tot
+#    dict_python['bt_forecast_sto'] = bt_forecast_sto
+#    dict_python['param'] = param
+#    dict_python['struct_bt_MCMC'] = struct_bt_MCMC
+#    dict_python['bt_MCMC'] = bt_MCMC
     
 #    sio.savemat(param['name_file_2nd_result']+'_Numpy',dict_python)
     
     #%% PLOTSSSSSSSSSSSS
-    
-#    var = np.sum(np.var(bt_MCMC[-1,:,:],axis=1))
-    
+#    time_average = np.mean(bt_MCMC,axis=0)
+#    var = np.sum(np.var(time_average,axis=1))
+##    
     
     
     
@@ -402,28 +404,38 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     #################################---TEST PLOTS---#############################################################
     dt_tot = param['dt']
     N_test = param['N_test'] 
-    time = np.arange(1,int(int(N_test)+2),1)*float(dt_tot)
-    ref = bt_MCMC[:,:,0]
-    particles_mean = np.mean(bt_MCMC[:,:,1:],axis=2)
-    n_particles = bt_MCMC.shape[-1] - 1
-    particles_std_estimate = np.std(bt_MCMC[:,:,1:],axis=2)
+#    time = np.arange(1,int(int(N_test)+2),1)*float(dt_tot)
+#    ref = bt_MCMC[:,:,0]
+    ref = bt_tot
+    particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
+    particles_median = np.median(bt_MCMC[:,:,:],axis=2)
+    n_particles = bt_MCMC.shape[-1] 
+#    particles_std_estimate = np.std(bt_MCMC[:,:,1:],axis=2)
 #    erreur = np.abs(particles_mean-ref)
 
-#
-#
-#
-#
-# 
-#    
+
+    quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
+  
+    
+    time_simu = np.arange(0,(bt_MCMC.shape[0])*dt_tot,dt_tot)
+    time_bt_tot = np.arange(0,(bt_MCMC.shape[0])*dt_tot,n_simu*dt_tot)
     for index in range(particles_mean.shape[1]):
         plt.figure(index)
         plt.ylim(-10, 10)
-        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
-        plt.fill_between(time,particles_mean[:,index]-delta,particles_mean[:,index]+delta,color='gray')
-        line1 = plt.plot(time,particles_mean[:,index],'b',label = 'particles mean')
-        line2 = plt.plot(time,ref[:,index],'k--',label = 'true state')
+        ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
         
+        plt.fill_between(time_simu,quantiles[0,:,index],quantiles[1,:,index],color='gray')
+        line1 = plt.plot(time_simu,particles_mean[:,index],'b-',label = 'Particles mean')
+        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
+#        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
+#        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
+        plt.plot(dt_tot*np.array(time_pf),-2*np.ones((len(time_pf))),'r.')
+        plt.grid()
         plt.legend()
+##
+##   
+#    
+    
     
     
     ##############################################################################################################
@@ -438,7 +450,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     
-    return 0
+    return 0 #var
     
     #%%
     

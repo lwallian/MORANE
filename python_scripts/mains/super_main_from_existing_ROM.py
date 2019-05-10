@@ -3,12 +3,15 @@
 Created on Mon Mar 25 16:13:50 2019
 
 @author: matheus.ladvig
+.
+
+
 """
 import numpy as np
 import math
 from main_from_existing_ROM import main_from_existing_ROM
 from super_main_from_existing_ROM_Simulation import super_main_from_existing_ROM_Simulation
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #def super_main_from_existing_ROM(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
 #    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected):
 #    pass
@@ -33,13 +36,13 @@ def switch_type_data(argument):
 if __name__ == '__main__':
 
 #    vect_nb_modes = [16,8,6,4,2]
-    vect_nb_modes = [4]
-    no_subampl_in_forecast = False;
+    vect_nb_modes = [6]
+    no_subampl_in_forecast = False
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]
 #     Small dataset for debuging
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
-    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
 #%%   
 #Important parameters    
 #    Threshold used in the estimation of the optimal subsampling time step
@@ -48,32 +51,32 @@ if __name__ == '__main__':
 #           differentials equations of distincts chronos
     v_threshold,vect_modal_dt = switch_type_data(type_data)
     
-    nb_period_test = math.nan;
-    nb_modes_max = np.max(vect_nb_modes);
-    variances = []
+    nb_period_test = math.nan
+    nb_modes_max = np.max(vect_nb_modes)
+#    variances = []
     for modal_dt in vect_modal_dt:
         for threshold in v_threshold:
             for adv_corrected in vect_adv_corrected:
                 for reconstruction in vect_reconstruction:
                     for k in vect_nb_modes:
-                        for n_particle in range(100,101):
-                            variances.append(main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
-                                                   no_subampl_in_forecast,reconstruction,\
-                                                   adv_corrected,modal_dt,n_particle))
+                        n_particle = 100
+                        main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
+                                               no_subampl_in_forecast,reconstruction,\
+                                               adv_corrected,modal_dt,n_particle)
     
 
     
     
-#    plt.figure()
-#    plt.plot(variances)
- ##### maybe call plot something in the next part           
+
+
+          
             
             
             
             
 #    super_main_from_existing_ROM_Simulation(vect_nb_modes,type_data,v_threshold,vect_modal_dt,\
 #                                             no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
-            
+#            
             
             
             
