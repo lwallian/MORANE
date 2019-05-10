@@ -17,7 +17,9 @@ currBatch{1} = 1;
 currPosition = 1;
 while currBatch{1} ~= 0
     currBatch = nextMatrixPeriod(covMatrix, period, currPosition, 'global');
-    if (currBatch{1} == 0) | (length(currBatch) < period + 1)
+    if currBatch{1} == 0
+        break;
+    elseif length(currBatch) < period + 1
         break;
     end
     periodicity = periodicity + estimateAutocorrelation(currBatch);

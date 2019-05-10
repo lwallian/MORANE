@@ -31,7 +31,7 @@ elseif iscell(cov_s)
     % equivalent of map(lambda x: sum(x), cov_s)
     diagSums = cellfun(@sum, cov_s);
     for i = 2 : N
-        autocorrelation(i - 1) = diagSums(i) * (N_i + 1) / (N_i - i + 2);
+        autocorrelation(i - 1) = diagSums(i) * N / (N_i - i + 2);
     end
     
     autocorrelation = autocorrelation ./ diagSums(1);

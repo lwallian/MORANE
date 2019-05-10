@@ -27,10 +27,10 @@ weightedACTime = weightedACTimeMean(autocorrTime)
 %% Comparison of the spectrum of the autocorr and the cov matrix
 clear all, close all, clc;
 
-% data = load('C_DNS100_2Modes.mat'); 
-% dt = 0.05;
-data = load('C_DNS300_2Modes.mat');
-dt = 0.25;
+data = load('C_DNS100_2Modes.mat'); 
+dt = 0.05;
+% data = load('C_DNS300_2Modes.mat');
+% dt = 0.25;
 nyquistFreq = 1 / (2 * dt);
 cov_v = data.c;
 bt = data.bt;
@@ -316,7 +316,7 @@ t_f = 100.0;
 durationT = t_f - t_0;
 deltaT = (durationT / N);
 t = linspace(t_0, t_f, N);
-tau = 10.0;
+tau = 2.0;
 sigma = 1 / (sqrt(2 * pi) * (tau / deltaT));
 
 % beta = @(x, beta0) 1 + beta0 * cos(2 * pi * x / T);

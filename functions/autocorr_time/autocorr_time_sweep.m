@@ -8,8 +8,8 @@ function [tau] = autocorr_time_sweep(cov_v, bt)
 % supervisor
 %
 N = size(cov_v, 2);
-% lag_f = 10000;
-lag_f = N;
+lag_f = 10000;
+% lag_f = N;
 
 % Calculate the large and small scale covariance matrices
 cov_w = zeros(N, N);
@@ -28,10 +28,13 @@ for k = 2 : lag_f
     tau(k) = autocorr_time_slice(cov_s, var_s, k);
 end
 
+% autocorrelation = estimateAutocorrelation(cov_s); % it's not the same thing as the N factor changes a lot...
+% tau = 1 + 2 .* cumsum(autocorrelation);
+
 figure, plot(tau);
 % figure, plot(linspace(0.0, 10000 * 0.05, length(tau)), tau * 0.05);
 title('Autocorrelation time estimation (DNS100 - 2 modes)')
-xlabel('Time lag'), ylabel('$\tau_{corr}$', 'Interpreter', 'latex');
+xlabel('Time lag'), ylabel('$\frac{\tau_{corr}}{\Delta t}$', 'Interpreter', 'latex');
 grid minor;
 
 end
@@ -43,14 +46,9 @@ function tau = autocorr_time_slice(cov_s, var_s, lag)
 corr_s = 0;
 
 for i = 2 : lag
-    c = 0;
-    for j = 1 : lag - i + 1
-        c = c + cov_s(j,j+i-1);
-    end
-    corr_s = corr_s + c .* lag / (lag - i + 1);
+    corr_s = corr_s + mean(diag(cov_s, i)) * lag;
 end
 
 tau = 1 + 2 * corr_s / var_s;
 
 end
-
