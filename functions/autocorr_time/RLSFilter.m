@@ -17,7 +17,7 @@ invForget = 1 / forgetFactor;
 % Initialize filter
 h = zeros(taps, 1);
 P = eye(taps);
-inputSignal = [zeros(delay, 1)', circshift(refSignal, delay)'];
+inputSignal = [zeros(delay, 1)', refSignal'];
 inputSignal = inputSignal(1 : N);
 
 outputSignal = zeros(N, 1);
