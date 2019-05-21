@@ -16,7 +16,11 @@ function [filteredSignal, optimalTaps] = minimalVarianceLMS(refSignal, maxTaps, 
 filteredVariation = zeros(maxTaps, 1);
 for i = 1 : maxTaps
     filteredCorrelation = LMSFilter(refSignal, i, delay);
-    filteredVariation(i) = norm(diff(filteredCorrelation(1 : 5 * delay)));
+    if length(refSignal) < 5 * delay
+        filteredVariation(i) = norm(diff(filteredCorrelation));
+    else
+        filteredVariation(i) = norm(diff(filteredCorrelation(1 : 5 * delay)));
+    end
 end
 
 [~, optimalTaps] = min(filteredVariation);
