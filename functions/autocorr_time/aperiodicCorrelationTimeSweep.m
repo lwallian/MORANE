@@ -19,7 +19,8 @@ sweep = zeros(N - 1, 1);
 aperiodic = nextAperiodicACSlice(cov_s, 1, periodicPart);
 sweep(1) =  1 + 2 * aperiodic ./ var_s;
 for i = 2 : N - 1
-    aperiodic = [aperiodic ./ (i - 1), nextAperiodicACSlice(cov_s, i, periodicPart)] .* i;
+%     aperiodic = [aperiodic ./ (i - 1), nextAperiodicACSlice(cov_s, i, periodicPart)] .* i;
+    aperiodic = [aperiodic ./ N, nextAperiodicACSlice(cov_s, i, periodicPart)] .* N;
     sweep(i - 1) = 1 + 2 * sum(aperiodic) / var_s;
 end
 
