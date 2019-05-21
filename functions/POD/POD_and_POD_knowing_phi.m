@@ -61,7 +61,6 @@ else
     lambda=diag(S);clear S % singular values : energy of each modes
 end
 trace_c=trace(c); % total energy of the velocity
-% clear c;
 
 % Quantity of energy represented by nb_modes Chronos
 el=cumsum(lambda(1:nb_modes))/trace_c;
@@ -170,7 +169,8 @@ if param.decor_by_subsampl.bool && ...
 elseif param.decor_by_subsampl.bool && ...
         strcmp(param.decor_by_subsampl.choice_n_subsample,'auto_corr_time')
     param.decor_by_subsampl.n_subsampl_decor ...
-        = max(floor(autocorr_time(c, bt)), 1);
+        = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
+%         = max(floor(correlationTimeCut(c, bt)), 1);
 end
 clear c;
 
