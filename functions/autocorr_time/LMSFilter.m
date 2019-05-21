@@ -21,7 +21,7 @@ outSignal = zeros(N, 1);
 for i = 1 : N - taps - 1
     inputSlice = inputSignal(i : i + taps - 1)';
     outSignal(i) = refSignal(i) - h' * inputSlice;
-        h = h + (2 / (norm(inputSlice).^2 + 1 * refSignal(1))) * outSignal(i) * inputSlice;
+    h = h + (2 / (norm(inputSlice).^2 + 1e-4 * taps * refSignal(1).^2)) * outSignal(i) * inputSlice;
 %     periodic(i) = h' * inputSlice; % for test
 %     h = h + 0.01 * outSignal(i) * inputSlice; % another step size
 end
