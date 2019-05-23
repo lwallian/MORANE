@@ -36,10 +36,10 @@ vect_adv_corrected = [  false]
 % type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
 
 % These 2D data ( Re 100) gives good results
-type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+% type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
 
 % Smaller dataset for debuging
-% type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
+type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
 % type_data = 'incompact3d_wake_episode3_cut_truncated'
 
 %% Important parameters
@@ -95,7 +95,7 @@ decor_by_subsampl.test_fct='b';
 decor_by_subsampl.meth='bt_decor';
 % Meth to choose the time sub-sampling
 % ('auto_shanon'=maxim frequency of resolved chronos)
-% ('auto_corr_time' = autocorrelation time of the unresolved chronos)
+% ('auto_corr_time' = autocorrelation time estimation of the unresolved chronos)
 % decor_by_subsampl.choice_n_subsample='auto_shanon';
 decor_by_subsampl.choice_n_subsample = 'auto_corr_time';
 

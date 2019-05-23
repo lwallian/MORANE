@@ -16,10 +16,10 @@ clear param bt_forecast_sto bt_forecast_deter bt_tot
 tic
 
 %% Parameters choice
-% param_ref.n_simu = 2;
-% N_particules=2;
-param_ref.n_simu = 1e2;
-N_particules=100;
+param_ref.n_simu = 2;
+N_particules=2;
+% param_ref.n_simu = 1e2;
+% N_particules=100;
 param_ref.N_particules=N_particules;
 
 %% Default parameters 
@@ -154,6 +154,8 @@ a_t = '_a_cst_';
 param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
 param_ref.decor_by_subsampl.choice_n_subsample = 'auto_corr_time'; % for testing
+% param_ref.decor_by_subsampl.choice_n_subsample = 'auto_shanon'; % for testing
+param_ref.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref.type_data = type_data;
 param_ref.nb_modes = nb_modes;
 param_ref.decor_by_subsampl.meth = 'bt_decor';
