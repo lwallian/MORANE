@@ -111,13 +111,65 @@ def find_tempering_coeff(likelihood,N_threshold,phi):
 
 
 
-def calculate_weigths(likelihood,phi):
-    
-    
-    
-    pass
 
 
+def calculate_acceptance_prob(particle_candidate,particle,obs,lambda_values,beta_1):
+    n_modes = particle_candidate.shape[0]
+    vector = 1*np.ones(int(n_modes-2))
+    vector = np.concatenate((np.array([1,1]),vector))
+    
+    
+    m_inv_covar = calculate_inv_noise_covariance_matrix(lambda_values,beta_1) @ np.diag(vector)
+    #### likeli candidate
+    value_likeli_candi = np.exp(-0.5*(-2*obs.T @ m_inv_covar @ particle_candidate + particle_candidate.T @ m_inv_covar @ particle_candidate))
+    #### likeli current
+    value_likeli_curre = np.exp(-0.5*(-2*obs.T @ m_inv_covar @ particle + particle.T @ m_inv_covar @ particle))
+
+    if (value_likeli_curre==0):
+        ratio = 0
+    else:
+        ratio = value_likeli_candi/value_likeli_curre
+    
+        
+    prob = np.min([1,ratio])
+    
+    
+    return prob
+    
+    
+    
+
+def mutation_MCMC(particles,var_coef,obs,lambda_values,beta_1,mean_coef):
+    M=20
+    pho = 0.2
+    for index_part in range(particles.shape[1]):
+        particle = particles[:,index_part][...,np.newaxis]
+        for j_mutation in range(M):
+            noise = np.diag(var_coef) @ np.random.normal(size=(var_coef.shape[0],1))
+            particle_candidate = mean_coef[...,np.newaxis] + pho*(particle -  mean_coef[...,np.newaxis]) +np.sqrt(1-pho**2)*noise
+            prob_acept = calculate_acceptance_prob(particle_candidate,particle,obs,lambda_values,beta_1)
+#            if prob_acept>0.01:
+#                print(prob_acept)
+            
+            
+            
+            if np.random.uniform(0,1)<prob_acept:
+                particle = particle_candidate
+#                print('mutou com prob: '+ str(prob_acept))
+                
+        particles[:,index_part] = particle[:,0]
+    
+    
+    return particles
+    
+    
+    
+    
+    
+
+    
+    
+    
     
 def particle_filter(particles,observation,lambda_values,beta_1,N_threshold):
     
@@ -168,12 +220,17 @@ def particle_filter(particles,observation,lambda_values,beta_1,N_threshold):
 #            dict_in[str(index)] = weigths[index]        
 #        print('Dict with the most probable indexes: '+ str(dict_in))
         indexes = resample(weigths)
-        
-        
-        
-        
+        var_coef = np.std(particles,axis = 1)
+        mean_coef = np.mean(particles,axis = 1)
         particles = particles[:,indexes]
+        
+        
+        
+        particles = mutation_MCMC(particles[:,indexes],var_coef,obs,lambda_values,beta_1,mean_coef)
         likelihood = calculate_likelihood(particles,obs,lambda_values,beta_1)
+        
+#        particles = particles[:,indexes]
+#        likelihood = calculate_likelihood(particles,obs,lambda_values,beta_1)
         
      
         

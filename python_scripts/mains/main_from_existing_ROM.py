@@ -52,9 +52,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param_ref['n_simu'] = 100
     param_ref['N_particules'] = n_particles
     beta_1 = 0.1 # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-    beta_2 = 1 # beta_2 is the parameter that controls the  noise in the initialization of the filter
-    beta_3 = 1 # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
-    beta_4 = 1 # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
+    beta_2 = 1.2   # beta_2 is the parameter that controls the  noise in the initialization of the filter
+    beta_3 = 1   # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+    beta_4 = 1   # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
     N_threshold = 10
     #%%  Parameters already chosen
     
@@ -226,13 +226,17 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
 #    Reconstruction in the stochastic case
     lambda_values = param['lambda'][:,0]
+    
+#    lambda_values = lambda_values[0]*np.ones(lambda_values.shape)
+    
+    
     bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules'])) 
     shape = (1,bt_tronc.shape[1],int(param['N_particules']))
     
     
     
-#    bt_MCMC[:,:,:] = bt_MCMC[:,:,:] + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
-    bt_MCMC[:,:,:] = beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+    bt_MCMC[:,:,:] =  beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+#    bt_MCMC[:,:,1:] = beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,1:].shape[2]))*np.random.normal(0,1,size=shape)
     
     bt_fv = bt_MCMC.copy()
     bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))
@@ -426,6 +430,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         
         plt.fill_between(time_simu,quantiles[0,:,index],quantiles[1,:,index],color='gray')
         line1 = plt.plot(time_simu,particles_mean[:,index],'b-',label = 'Particles mean')
+#        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
         line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
 #        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
 #        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
@@ -435,9 +440,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 ##
 ##   
 #    
-    
-    
-    
+    dict_python = {}
+    dict_python['particles_mean'] = particles_mean[time_pf,:]
+    dict_python['MX'] = param['MX']
+#    dict_python['index_filter'] = time_pf
+        
+    name_file_data = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath(str(particles_mean.shape[1])+'modes_particle_mean')
+    sio.savemat(str(name_file_data)+'_Numpy',dict_python)
     ##############################################################################################################
     ##############################################################################################################
     del C_deter 

@@ -43,6 +43,7 @@ if __name__ == '__main__':
 #     Small dataset for debuging
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+#    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
 #%%   
 #Important parameters    
 #    Threshold used in the estimation of the optimal subsampling time step
