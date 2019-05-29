@@ -13,7 +13,7 @@ function [tau] = correlationTimeLMS(covMatrix, chronos, dt)
 
 cov_s = smallScaleVelocityCov(covMatrix, chronos);
 correlation = estimateAutocorrelation(cov_s);
-period = periodicityFromAutocorrelation(cov_s);
+period = periodicityFromAutocorrelation(covMatrix);
 [filteredCorrelation, ~] = minimalVarianceLMS(correlation, 500, period);
 
 if length(filteredCorrelation) < 5 * period
