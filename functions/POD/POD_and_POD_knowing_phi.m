@@ -169,9 +169,9 @@ if param.decor_by_subsampl.bool && ...
 elseif param.decor_by_subsampl.bool && ...
         strcmp(param.decor_by_subsampl.choice_n_subsample,'auto_corr_time')
     param.decor_by_subsampl.n_subsampl_decor ...
-        = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
+        = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
+%         = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
 %         = max(floor(correlationTimeCut(c, bt)), 1);
-%         = max(floor(correlationTimeLMS(c, bt)), 1, param.dt);
 end
 clear c;
 

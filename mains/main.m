@@ -225,7 +225,7 @@ if param.big_data
     disp('POD done');
 end
 
-%% Quadratique variation tensor estimation
+%% Quadratic variation tensor estimation
 
 % Computation of the variance tensor a
 % or computation of its parameters z_i(x)
