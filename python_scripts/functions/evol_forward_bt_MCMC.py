@@ -5,7 +5,7 @@ Created on Tue Apr  2 11:36:02 2019
 @author: matheus.ladvig
 """
 import numpy as np
-def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
+def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m,mutation,noise_past,pho):
     
 #    Compute the next bt
 #    The sizes of the inputs should be :
@@ -42,10 +42,13 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     del I
     del L
     del C
-    
-    
-    
-    noises = np.matmul(pchol_cov_noises,np.random.normal(size=((n+1)*n,nb_pc1)))*np.sqrt(dt)
+    noises_centered = np.random.normal(size=((n+1)*n,nb_pc1))
+    if mutation == True:
+#        pho = 0.995
+        noises_centered = pho*noise_past[...,np.newaxis] + np.sqrt(1-pho**2)*np.random.normal(size=((n+1)*n,nb_pc1))
+        
+        
+    noises = np.matmul(pchol_cov_noises,noises_centered)*np.sqrt(dt)
     noises = noises[:,np.newaxis,np.newaxis,:]
     
     del pchol_cov_noises
@@ -74,11 +77,12 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
     d_b_m = np.add(alpha_dB_t,theta_alpha0_dB_t)
     
     #### if nargin>6
-    bt_fv = np.add(bt_fv, d_b_fv[:,0,0,:])
-    bt_fv = bt_fv[np.newaxis,...]
-
-    bt_m  = np.add(bt_m, d_b_m[:,0,0,:] )
-    bt_m = bt_m[np.newaxis,...]
+    if mutation == False:
+        bt_fv = np.add(bt_fv, d_b_fv[:,0,0,:])
+        bt_fv = bt_fv[np.newaxis,...]
+    
+        bt_m  = np.add(bt_m, d_b_m[:,0,0,:] )
+        bt_m = bt_m[np.newaxis,...]
     
     bt_evol = np.add(bt[:,0,0,:],d_b_fv[:,0,0,:])
     bt_evol = np.add(bt_evol,d_b_m[:,0,0,:])
@@ -94,10 +98,10 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m):
 #    print(d_b_m[:,0,0,:])
     
     
-    
-    
-    
-    return bt_evol,bt_fv,bt_m
+    if mutation == False:
+        return bt_evol,bt_fv,bt_m,noises_centered
+    else:
+        return bt_evol[0,...],noises_centered.T
     
     
     

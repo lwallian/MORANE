@@ -51,11 +51,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param_ref = {}
     param_ref['n_simu'] = 100
     param_ref['N_particules'] = n_particles
-    beta_1 = 0.1 # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-    beta_2 = 1.2   # beta_2 is the parameter that controls the  noise in the initialization of the filter
+    beta_1 = 0.4   # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+    beta_2 = 0.1   # beta_2 is the parameter that controls the  noise in the initialization of the filter
     beta_3 = 1   # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
     beta_4 = 1   # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
-    N_threshold = 10
+    N_threshold = 15 # Number of particles accept as effective sample size in the particle filter
+    M = 10      # Number of mutation steps in particle filter 
+    pho = 0.98  # parameter of noise in the kernel of MCMC mutation
     #%%  Parameters already chosen
     
     #   !!!! Do not modify the following lines  !!!!!!
@@ -248,49 +250,69 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
    
     ######################################################################
     pchol_cov_noises = beta_3*pchol_cov_noises
-    time_pf = []
+    time_pf = [0]
     particles_estimate = np.zeros((1,bt_MCMC.shape[1]))
 #    n_samples = int(5*1/param['dt'])
     period_in_samples = int(5*1/param['dt'])
     period = False
 #    weigths_time_past = np.ones((bt_MCMC.shape[2]))/bt_MCMC.shape[2]
+#    n,nb_pc1 = bt_MCMC.shape[1:]
+#    shape_noise = (1,(n+1)*n,nb_pc1)
+#    noises = np.zeros(shape=shape_noise)
+    observations_to_save = bt_tronc
+    index_of_filtering = []
     for index in range(param['N_test']):#range(n_samples):#range(param['N_test']):
         
         ##### Regarder evol pour efacer les matrices deterministes
-        val0,val1,val2 = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
+        val0,val1,val2,noises_centered = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
                                                         ILC_a_cst['modal_dt']['L'],\
                                                         ILC_a_cst['modal_dt']['C'],\
                                                         pchol_cov_noises,param['dt'],\
                                                         bt_MCMC[-1,:,:],bt_fv[-1,:,:],\
-                                                        bt_m[-1,:,:])
+                                                        bt_m[-1,:,:],mutation=False,noise_past=0,pho=0)
         
         #########################################----------------------#############################################
         #########################################--PARTICLE FILTERING--#############################################
-#
+#   
+        
+#        print(index)
         if (index+1)%(int(period_in_samples*beta_4))== 0:
             period = True
             print('Index of activating filtering: '+str(index))
 #        period = True
         if ((index+1)%(n_simu)==0) and (period==True):
-            
+            index_of_filtering.append(index)
             print('Index of filtering: '+str(index))
             time_pf.append(index+1)
+#            print(bt_MCMC[time_pf[-2],:,5])
 #            obs = val0[0,:,0][...,np.newaxis]
             obs = bt_tot[ int((index+1)/n_simu),:][...,np.newaxis]
             particles = val0[0,:,:]
-            particles = particle_filter(particles,obs,lambda_values,beta_1,N_threshold)
+            particles_past = bt_MCMC[time_pf[-2],...]  # regarder apres
+            delta_t = time_pf[-1] - time_pf[-2]
+#            print('tme_pf -2: ' + str(time_pf[-2]))
+#            print('tme_pf -1: ' + str(time_pf[-1]))
+#            print('bt_MCMC shape: '+ str(bt_MCMC.shape))
+            particles,obs_noise = particle_filter(M,ILC_a_cst,pchol_cov_noises,param['dt'],delta_t,particles,obs,lambda_values,beta_1,N_threshold,\
+                                        np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0)[time_pf[-2]:time_pf[-1],...],particles_past,pho)
 #            particles_estimate = np.concatenate((particles_estimate,particle_estimate[np.newaxis,...]),axis=0)
 #            print(particles)
             period = False
 #            val0 = np.hstack((obs,particles))[np.newaxis,...]
             val0 = particles[np.newaxis,...]
-            
+            observations_to_save = np.concatenate((observations_to_save,obs_noise.T),axis=0)
+#            print(particles[:,5])
             
 #        else:
 #            time_pf.append(-10)
 #        ############################################################################################################
         #############################################################################################################
-        
+        if index==0:
+            noises = noises_centered[np.newaxis,...]
+        else:
+            noises = np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0) 
+            
+            
         bt_MCMC = np.concatenate((bt_MCMC,val0),axis=0)    
         bt_fv   = np.concatenate((bt_fv,val1),axis=0)
         bt_m    = np.concatenate((bt_m,val2),axis=0)
@@ -434,21 +456,36 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
 #        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
 #        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
-        plt.plot(dt_tot*np.array(time_pf),-2*np.ones((len(time_pf))),'r.')
+        plt.plot(dt_tot*np.array(time_pf[1:]),-2*np.ones((len(time_pf[1:]))),'r.')
         plt.grid()
         plt.legend()
 ##
 ##   
 #    
+#    dict_python = {}
+#    dict_python['particles_mean'] = particles_mean[time_pf,:]
+#    dict_python['MX'] = param['MX']
+##    dict_python['index_filter'] = time_pf
+#        
+#    name_file_data = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath(str(particles_mean.shape[1])+'modes_particle_mean')
+#    sio.savemat(str(name_file_data)+'_Numpy',dict_python)
+    ##############################################################################################################
+    ##############################################################################################################
     dict_python = {}
-    dict_python['particles_mean'] = particles_mean[time_pf,:]
-    dict_python['MX'] = param['MX']
-#    dict_python['index_filter'] = time_pf
-        
-    name_file_data = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath(str(particles_mean.shape[1])+'modes_particle_mean')
-    sio.savemat(str(name_file_data)+'_Numpy',dict_python)
-    ##############################################################################################################
-    ##############################################################################################################
+    dict_python['obs'] = observations_to_save
+    dict_python['bt_MCMC'] = particles_mean
+    dict_python['iters'] = param['N_test']
+    dict_python['dt'] = param['dt']
+    dict_python['bt_tot'] = bt_tot
+    dict_python['n_simu'] = n_simu
+    dict_python['param'] = param
+    dict_python['index_of_filtering'] = index_of_filtering
+    name_file_data = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+str(nb_modes))
+    sio.savemat(str(name_file_data),dict_python)
+    
+    
+    
+    
     del C_deter 
     del C_sto 
     del L_deter 
