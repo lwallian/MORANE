@@ -148,13 +148,11 @@ modal_dt_ref = modal_dt;
 
 % On which function the Shanon criterion is used
 test_fct='b'; % 'b' is better than db
-a_t='_a_cst_';
-
 a_t = '_a_cst_';
 param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
-param_ref.decor_by_subsampl.choice_n_subsample = 'auto_corr_time'; % for testing
-% param_ref.decor_by_subsampl.choice_n_subsample = 'auto_shanon'; % for testing
+global choice_n_subsample;
+param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
 param_ref.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref.type_data = type_data;
 param_ref.nb_modes = nb_modes;

@@ -392,8 +392,8 @@ subplot(2,2,log2(param.nb_modes));
     % % %     end
 elseif ( strcmp(param.type_data, 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') ) ...
         && (param.nb_modes<=16)
-    %     subplot(2,2,(param.nb_modes)/2);
-    subplot(2,2,log2(param.nb_modes));
+        subplot(2,2,(param.nb_modes)/2);
+%     subplot(2,2,log2(param.nb_modes));
     %     if log2(param.nb_modes) == 3
     %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
     % %         subplot(2,2,0.51+log2(param.nb_modes));

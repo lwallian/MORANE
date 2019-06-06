@@ -11,12 +11,18 @@ if nargin == 0
     init;
     
     %% Number of modes for the the ROM
-    vect_nb_modes = [2 4 8 16]
+    vect_nb_modes = [2 4 6 8]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 %     vect_adv_corrected = [ true false]
-    vect_adv_corrected = [ false]
+    vect_adv_corrected = [ true]
+    
+    % To choose between the shannon and correlation time downsampling
+    % methods
+    global choice_n_subsample;
+%     choice_n_subsample = 'auto_shannon';
+    choice_n_subsample = 'auto_corr_time';
     
     %% Type of data
     % Other datasets (do not use)
@@ -37,10 +43,10 @@ if nargin == 0
     % % type_data = 'turb2D_blocks_truncated'
     
     % These 3D data ( Re 300) gives good results
-    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+%     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
     
     % These 2D data ( Re 100) gives good results
-%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
@@ -117,17 +123,18 @@ for modal_dt=vect_modal_dt
                 iii = (threshold =='.');
                 threshold(iii)='_';
                 
-%                 switch param.decor_by_subsampl.choice_n_subsample
-%                     case 'auto_shanon'
-%                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-%                             num2str(nb_modes_max) '_threshold_' threshold ...
-%                             '_fullsto'];
-%                     case 'auto_corr_time'
-%                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-%                             num2str(nb_modes_max) 'auto_corr_time_fullsto'];
-%                 end
-                str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-                    num2str(nb_modes_max) 'auto_corr_time_fullsto'];
+                global choice_n_subsample;
+                switch choice_n_subsample
+                    case 'auto_shanon'
+                        str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
+                            num2str(nb_modes_max) '_threshold_' threshold ...
+                            '_fullsto'];
+                    case 'auto_corr_time'
+                        str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
+                            num2str(nb_modes_max) 'auto_corr_time_fullsto'];
+                end
+%                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
+%                     num2str(nb_modes_max) 'auto_corr_time_fullsto'];
 
                 if modal_dt == 1
                     str =[ str '_modal_dt'];

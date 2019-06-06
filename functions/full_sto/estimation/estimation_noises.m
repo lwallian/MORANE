@@ -65,6 +65,11 @@ else
     
     pseudo_chol = V*diag(sqrt(D));
     
+    % To circumvent the effect of thresholding on the downsampling rate
+    if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
+        pseudo_chol = pseudo_chol * sqrt(param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor);
+    end
+    
     % %% Remove temporary files
     % rmdir(param.folder_file_U_temp,'s')
     save(param.name_file_noise_cov,'pseudo_chol','-v7.3');

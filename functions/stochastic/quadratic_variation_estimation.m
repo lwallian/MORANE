@@ -75,7 +75,7 @@ else
         % Energy of the projection basis
         lambda=1;
     else
-        error('not coded or depreciated');
+        error('not coded or deprecated');
     end
     
     t_local=1; % index of the snapshot in a file
@@ -170,6 +170,11 @@ else
     end
     % Normalization and time step influence
     z=dt/N_tot*z;
+    
+    % To circumvent the effect of the threshold of the downsampling rate
+    if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
+        z = z * param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor;
+    end
     
     %% Save
     if nargout < 2

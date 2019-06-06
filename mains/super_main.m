@@ -7,12 +7,12 @@ init;
 igrida=false;
 
 %% Number of modes for the the ROM
-% vect_nb_modes = 8 % For debugging
-vect_nb_modes = [ 16 8 6 4 2] % For a full test
+vect_nb_modes = 2 % For debugging
+% vect_nb_modes = [ 16 8 6 4 2] % For a full test
 % % vect_nb_modes = 2.^(4:-1:1)
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM
-% vect_adv_corrected = [  false]
-vect_adv_corrected = [ true false]
+vect_adv_corrected = [  false]
+% vect_adv_corrected = [ true false]
 
 %% Type of data
 % Other datasets (do not use)
@@ -33,10 +33,10 @@ vect_adv_corrected = [ true false]
 % % type_data = 'turb2D_blocks_truncated'
 
 % These 3D data ( Re 300) gives good results
-% type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
 
 % These 2D data ( Re 100) gives good results
-type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+% type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
 
 % Smaller dataset for debuging
 % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
@@ -95,9 +95,17 @@ decor_by_subsampl.test_fct='b';
 decor_by_subsampl.meth='bt_decor';
 % Meth to choose the time sub-sampling
 % ('auto_shanon'=maxim frequency of resolved chronos)
-% ('auto_corr_time' = autocorrelation time estimation of the unresolved chronos)
+% ('corr_time' = autocorrelation time estimation of the unresolved chronos)
 % decor_by_subsampl.choice_n_subsample='auto_shanon';
-decor_by_subsampl.choice_n_subsample = 'auto_corr_time';
+decor_by_subsampl.choice_n_subsample = 'corr_time';
+
+% Definition of global variable to manage methods more easily
+global choice_n_subsample;
+choice_n_subsample = decor_by_subsampl.choice_n_subsample;
+
+if strcmp(choice_n_subsample, 'corr_time')
+    v_threshold = NaN;
+end
 
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis

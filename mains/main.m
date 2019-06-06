@@ -144,9 +144,9 @@ if ~exist('decor_by_subsampl','var')
         % 'auto_shanon' means that it use a Nyquist-Shanon based criterion
         % 'tuning' means that param.decor_by_subsampl.n_subsampl_decor is
         % set manually
-        % 'auto_corr_time' uses the autocorrelation time to choose the
+        % 'corr_time' uses the autocorrelation time to choose the
         % subsampling rate.
-        param.decor_by_subsampl.choice_n_subsample='auto_corr_time';
+        param.decor_by_subsampl.choice_n_subsample='corr_time';
         % param.decor_by_subsampl.spectrum_threshold and param.decor_by_subsampl.test_fct
         % are parameters used in the new time sampling period choice.
         % spectrum_threshold is a threshold to know
