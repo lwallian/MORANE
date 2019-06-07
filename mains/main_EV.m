@@ -401,9 +401,12 @@ file_save=[ param.folder_results 'EV_result_' param.type_data '_' num2str(param.
 %     file_save=[file_save '_p_estim_' num2str(param.period_estim)];
 % end
 file_save=[file_save '.mat'];
+ILC_EV = ILC;
 param_deter = param;
 save(file_save,'param_deter',...
-    'bt_forecast_deter','bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+    'bt_forecast_deter','bt_forecast_MEV',...
+    'bt_forecast_EV','bt_forecast_NLMEV',...
+    'ILC_EV');
 clear C_deter C_sto L_deter L_sto I_deter I_sto
 % if param.big_data
 disp('EV result saved');

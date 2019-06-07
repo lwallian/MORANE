@@ -13,25 +13,29 @@ plot_EV=param.plot.plot_EV;
 plot_tuned=false;
 plot_modal_dt=false;
 
-if beamer
-    % 2D
-    width=2.5;
-    height=2;
-%     height=1;
-    
-%     % 3D
-%     width=4.72;
-%     height=3.78;
-else
-    width=1.5;
-    height=1.2;
-end
+% if beamer
+%     % 2D
+%     width=2.5;
+%     height=2;
+% %     height=1;
+%     
+% %     % 3D
+% %     width=4.72;
+% %     height=3.78;
+% else
+%     width=1.5;
+%     height=1.2;
+% end
+width=10;
+height=2;
 
 
 switch param.type_data
     case 'incompact3d_wake_episode3_cut_truncated'
         width=2.5;
         height=1.5;
+    case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+       param.N_test = ceil(20/param.dt);
 end
 
 
@@ -87,6 +91,7 @@ N_time_final=N_tot;
 time=(1:(N_test+1))*dt_tot;
 time_ref = time;
 
+width = width *(time(end)-time(1))/80;
 
 % warning('Coefficients modified to study sensibility');
 % param.folder_results = [param.folder_results 'sensibility_x_' ...
@@ -196,20 +201,22 @@ for k=1:nb_modes
     %%
 
     ax=[time(1) time(end) ... 
-        max([ max(abs(bt_tot(:,k))) ...
-        max(abs(+delta+struct_bt_MCMC.tot.mean(:,k))) ...
-        max(abs(-delta+struct_bt_MCMC.tot.mean(:,k))) ...
-        ])*[-1 1] ];
+        2*sqrt(param.lambda(k))*[-1 1] ];
 %     ax=[time(1) time(end) ... 
-%         max([max(abs(bt_forecast_deter(:,k))) ... 
-%         max(abs(bt_tot(:,k))) ...
+%         max([ max(abs(bt_tot(:,k))) ...
 %         max(abs(+delta+struct_bt_MCMC.tot.mean(:,k))) ...
 %         max(abs(-delta+struct_bt_MCMC.tot.mean(:,k))) ...
 %         ])*[-1 1] ];
 % %     ax=[time(1) time(end) ... 
 % %         max([max(abs(bt_forecast_deter(:,k))) ... 
-% %         max(abs(bt_tot(:,k)))])*[-1 1] ];
-% % %     ax=[0 10 2*param.lambda(k)*[-1 1]];
+% %         max(abs(bt_tot(:,k))) ...
+% %         max(abs(+delta+struct_bt_MCMC.tot.mean(:,k))) ...
+% %         max(abs(-delta+struct_bt_MCMC.tot.mean(:,k))) ...
+% %         ])*[-1 1] ];
+% % %     ax=[time(1) time(end) ... 
+% % %         max([max(abs(bt_forecast_deter(:,k))) ... 
+% % %         max(abs(bt_tot(:,k)))])*[-1 1] ];
+% % % %     ax=[0 10 2*param.lambda(k)*[-1 1]];
 %%
     
     YTick=ax(3):(ax(4)-ax(3))/2:0;
