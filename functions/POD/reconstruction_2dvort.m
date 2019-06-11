@@ -70,7 +70,7 @@ t_subsample=1;
 % truncated_error2 = nan([1 N_tot]);
 % bt = nan([N_tot 1 1 param.nb_modes]);
 % U = zeros([param.M param_temp.data_in_blocks.len_blocks param.d]); % ???
-big_T = param.data_in_blocks.nb_blocks; % index of the file
+big_T = double(param.data_in_blocks.nb_blocks); % index of the file
 first_big_T = big_T + 1;
 
 for t=1:n_subsampl*param.N_test % loop for all time
@@ -156,10 +156,10 @@ for t=1:n_subsampl*param.N_test % loop for all time
         
         % A new file needs to be saved
         % Save
-        name_file_temp =[ param.name_file_Reconstruction_omega ...
-            num2str(big_T) '.mat'];
-        param_from_file = param;
-        save(name_file_temp,'param_from_file','omega','-v7.3')
+%         name_file_temp =[ param.name_file_Reconstruction_omega ...
+%             num2str(big_T) '.mat'];
+%         param_from_file = param;
+%         save(name_file_temp,'param_from_file','omega','-v7.3')
         
         %% Plots
         plot_iso_2dvort(param,name_simu, modal_dt,reconstruction,...
@@ -174,24 +174,26 @@ for t=1:n_subsampl*param.N_test % loop for all time
 end
 
 
-%% Part of the last file
-% (even if it was not read completely)
-omega = reshape(omega,[param.MX(1:2) size(omega,2)]);
-
-% A new file needs to be saved
-% Save
-name_file_temp =[ param.name_file_Reconstruction_omega ...
-    num2str(big_T) '.mat'];
-param_from_file = param;
-save(name_file_temp,'param_from_file','omega','-v7.3')
-
-%% Plots
-
-% load('ref_omega.mat','omega_ref');
-% omega = omega-omega_ref;
-
-plot_iso_2dvort(param,name_simu, modal_dt,reconstruction,...
-    big_T,first_big_T, omega);
-clear omega
-
-
+if ~ ( param.data_in_blocks.bool && ...
+        ((t_local == len_blocks + 1) ) )
+    %% Part of the last file
+    % (even if it was not read completely)
+    omega = reshape(omega,[param.MX(1:2) size(omega,2)]);
+    
+    % A new file needs to be saved
+    % Save
+    % name_file_temp =[ param.name_file_Reconstruction_omega ...
+    %     num2str(big_T) '.mat'];
+    % param_from_file = param;
+    % save(name_file_temp,'param_from_file','omega','-v7.3')
+    
+    %% Plots
+    
+    % load('ref_omega.mat','omega_ref');
+    % omega = omega-omega_ref;
+    
+    plot_iso_2dvort(param,name_simu, modal_dt,reconstruction,...
+        big_T,first_big_T, omega);
+    clear omega
+    
+end

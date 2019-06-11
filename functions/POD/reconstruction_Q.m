@@ -70,7 +70,7 @@ t_subsample=1;
 % truncated_error2 = nan([1 N_tot]);
 % bt = nan([N_tot 1 1 param.nb_modes]);
 % U = zeros([param.M param_temp.data_in_blocks.len_blocks param.d]); % ???
-big_T = param.data_in_blocks.nb_blocks; % index of the file
+big_T = double( param.data_in_blocks.nb_blocks); % index of the file
 first_big_T = big_T + 1;
 
 for t=1:n_subsampl*param.N_test % loop for all time
@@ -156,20 +156,20 @@ for t=1:n_subsampl*param.N_test % loop for all time
         
         % A new file needs to be saved
         % Save
-        name_file_temp =[ param.name_file_Reconstruction_Q ...
-            num2str(big_T) '.mat'];
-        param_from_file = param;
-        save(name_file_temp,'param_from_file','Q','-v7.3')
+%         name_file_temp =[ param.name_file_Reconstruction_Q ...
+%             num2str(big_T) '.mat'];
+%         param_from_file = param;
+%         save(name_file_temp,'param_from_file','Q','-v7.3')
         
         %% Plots
         plot_isoQ(param,name_simu, modal_dt,reconstruction,...
             big_T,first_big_T, Q);
         clear Omega S Q
         
-        %         if big_T > first_big_T
-        %             warning('Returned forced');
-        %            return;
-        %         end
+%         if big_T > first_big_T
+%             warning('Returned forced');
+%             return;
+%         end
     end
 end
 
@@ -181,10 +181,10 @@ Q = reshape(Q,[param.MX size(Q,2)]);
 
 % A new file needs to be saved
 % Save
-name_file_temp =[ param.name_file_Reconstruction_Q ...
-    num2str(big_T) '.mat'];
-param_from_file = param;
-save(name_file_temp,'param_from_file','Q','-v7.3')
+% name_file_temp =[ param.name_file_Reconstruction_Q ...
+%     num2str(big_T) '.mat'];
+% param_from_file = param;
+% save(name_file_temp,'param_from_file','Q','-v7.3')
 
 %% Plots
 plot_isoQ(param,name_simu, modal_dt,reconstruction,...

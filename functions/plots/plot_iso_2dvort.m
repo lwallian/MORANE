@@ -188,6 +188,28 @@ for q=1:n1
     
     name_file =[ param.name_file_Reconstruction_omega ...
         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
+    
+    index_time =  (big_T-first_big_T ) * ...
+        double(param.data_in_blocks.len_blocks ) + q;
+%     index_time = (big_T-1)*param.data_in_blocks.len_blocks + q;
+    time = param.dt * index_time;
+    bool_assimilation_step = ...
+        any(index_time == param.DA.index_of_filtering);
+    
+    hold on;
+    ax=axis;
+    delta_ax = [ax(2)-ax(1) ax(4)-ax(3)];
+    
+    text(ax(1)+delta_ax(1)*0.1, ax(3)+delta_ax(2)*0.9,...
+        [num2str(time) ' s']);
+    if bool_assimilation_step
+        t=text(ax(1)+delta_ax(1)*0.1, ax(3)+delta_ax(2)*0.1,...
+            ['Obs.']);
+        t(1).Color = 'red';
+        t(1).FontSize = 14;
+    end
+    hold off
+    
     %     param_from_file = param;
     %     if view_top
     %         name_file = [ name_file '_top'];
@@ -200,6 +222,8 @@ for q=1:n1
     %     if smooth
     %         name_file = [ name_file '_smooth'];
     %     end
+    
+    
     drawnow
     eval( ['print -loose -djpeg ' name_file '.jpg']);
     

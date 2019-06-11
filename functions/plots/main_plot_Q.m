@@ -1,5 +1,6 @@
 function main_plot_Q(type_data,nb_modes,...
-    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+    threshold,no_subampl_in_forecast,reconstruction,...
+    adv_corrected,modal_dt,data_assimilation,coef_bruit_obs)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -114,12 +115,12 @@ folder_data_ref = folder_data;
 %% Get data
 
 % a_t='_a_cst_';
-% 
+%
 % file_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
 %     a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
 %     num2str(threshold) ...
 %     'fct_test_' test_fct ];
-% 
+%
 % file_res=[file_res '_fullsto'];
 % % if modal_dt
 % %     file_res=[file_res '_modal_dt'];
@@ -138,7 +139,7 @@ folder_data_ref = folder_data;
 % if reconstruction
 %     file_res=[file_res '_reconstruction'];
 % end
-% 
+%
 % % file_res=[file_res '_fullsto'];
 % file_res=[file_res '.mat'];
 % load(file_res)
@@ -163,8 +164,34 @@ param.decor_by_subsampl.bool = true;
 param.decor_by_subsampl.meth = 'bt_decor';
 param.decor_by_subsampl.choice_n_subsample = 'auto_shanon';
 
-param = fct_name_2nd_result(param,modal_dt,reconstruction);
-load(param.name_file_2nd_result);
+if data_assimilation
+    if param.nb_modes == 6
+        param.name_file_2nd_result = [ param.folder_results ...
+            'data_to_valentin_beta_noise_' num2str( coef_bruit_obs ) '.mat' ];
+        load(param.name_file_2nd_result);
+        n_simu = double(n_simu);
+        param.DA.bool = true;
+        param.DA.coef_bruit_obs = coef_bruit_obs;
+        param.N_test = size(bt_tot,1);
+        bt_forecast_EV = bt_forecast_EV(1:n_simu:end,:);
+        bt_MCMC = bt_MCMC(1:n_simu:end,:);
+        param.dt = dt * n_simu;
+        param.d = double(param.d);
+        param.MX = double(param.MX);
+        param.M = double(param.M);
+        param.N_tot = double(param.N_tot);
+        param.param.N_particules = double(param.N_particules);
+        param.decor_by_subsampl.n_subsampl_decor = ...
+            double(param.decor_by_subsampl.n_subsampl_decor);
+%         index_of_filtering
+        param.DA.index_of_filtering = [1 (index_of_filtering+1)/n_simu];
+    else
+        error('Not available')
+    end
+else
+    param = fct_name_2nd_result(param,modal_dt,reconstruction);
+    load(param.name_file_2nd_result);
+end
 
 if reconstruction
     param.reconstruction=true;
@@ -227,12 +254,36 @@ param.folder_results=param_ref2.folder_results;
 % n_simu=param_ref2.n_simu;
 
 
-struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,4);
+struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+% struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,4);
 
 
+
+% %% Eddy viscosity solutions
+% if plot_EV
+%     param.plot.plot_EV= plot_EV;
+%     file_EV=[ param.folder_results 'EV_result_' param.type_data ...
+%         '_' num2str(param.nb_modes) '_modes'];
+%     file_EV=[file_EV '.mat'];
+%     load(file_EV,'param_deter',...
+%         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+%     %     load(file_EV,'param_deter',...
+%     %         'bt_forecast_deter',...
+%     %         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+% %     bt_forecast_MEV = bt_forecast_EV;
+% %     if modal_dt ~= 1
+% %         bt_forecast_MEV = bt_forecast_EV;
+% %     end
+% %      clear bt_forecast_EV
+%     bt_forecast_MEV = ...
+%         bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+%     bt_forecast_EV = ...
+%         bt_forecast_EV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+% end
 
 %% Eddy viscosity solutions
-if plot_EV
+% if plot_EV
+if plot_EV && (~ param.DA.bool)
     param.plot.plot_EV= plot_EV;
     file_EV=[ param.folder_results 'EV_result_' param.type_data ...
         '_' num2str(param.nb_modes) '_modes'];
@@ -242,15 +293,14 @@ if plot_EV
     %     load(file_EV,'param_deter',...
     %         'bt_forecast_deter',...
     %         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
-%     bt_forecast_MEV = bt_forecast_EV;
-%     if modal_dt ~= 1
-%         bt_forecast_MEV = bt_forecast_EV;
-%     end
-%      clear bt_forecast_EV
-    bt_forecast_MEV = ...
-        bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+    %     if modal_dt ~= 1
+    bt_forecast_MEV = bt_forecast_EV;
+    %     end
+%     clear bt_forecast_EV
     bt_forecast_EV = ...
         bt_forecast_EV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+    bt_forecast_MEV = ...
+        bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
 end
 
 %% Plots
@@ -260,34 +310,44 @@ end
 
 %% Computation of Q criterion
 param = ref_Q(param,reconstruction);
-bt_err_min=nan(size(bt_MCMC(1:param.N_test,:,idx_min_err_tot)));
-for t=1:param.N_test
-    bt_err_min(t,:,:) = bt_MCMC(t,:,idx_min_error(t));
+if ~ param.DA.bool
+    bt_err_min=nan(size(bt_MCMC(1:param.N_test,:,idx_min_err_tot)));
+    for t=1:param.N_test
+        bt_err_min(t,:,:) = bt_MCMC(t,:,idx_min_error(t));
+    end
+    param = reconstruction_Q( ...
+        param,bt_err_min,'min_local',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,bt_MCMC(1:param.N_test,:,idx_min_err_tot),'min_tot',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,struct_bt_MCMC.tot.mean(1:param.N_test,:),'mean',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,struct_bt_MCMC.tot.one_realiz(1:param.N_test,:),'1_realiz',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,bt_forecast_EV(1:param.N_test,:),'EV',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,bt_forecast_EV(1:param.N_test,:),'MEV',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,bt_forecast_deter(1:param.N_test,:),'deter',...
+        modal_dt,reconstruction);
+else
+    param = reconstruction_Q( ...
+        param,bt_forecast_EV(1:param.N_test,:),'3DVar_EV',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,bt_tot(1:param.N_test,:),'PODROM_Opt',...
+        modal_dt,reconstruction);
+    param = reconstruction_Q( ...
+        param,bt_MCMC(1:param.N_test,:),[ 'PF_LU' ...
+        num2str(param.DA.coef_bruit_obs) ],...
+        modal_dt,reconstruction);
 end
-param = reconstruction_Q( ...
-    param,bt_err_min,'min_local',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,bt_MCMC(1:param.N_test,:,idx_min_err_tot),'min_tot',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,struct_bt_MCMC.tot.mean(1:param.N_test,:),'mean',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,struct_bt_MCMC.tot.one_realiz(1:param.N_test,:),'1_realiz',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,bt_forecast_deter(1:param.N_test,:),'deter',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,bt_forecast_EV(1:param.N_test,:),'EV',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,bt_forecast_MEV(1:param.N_test,:),'MEV',...
-    modal_dt,reconstruction);
-param = reconstruction_Q( ...
-    param,bt_tot(1:param.N_test,:),'PODROM_Opt',...
-    modal_dt,reconstruction);
 
 %% Plots
 % plot_isoQ(param,'mean', modal_dt,reconstruction);

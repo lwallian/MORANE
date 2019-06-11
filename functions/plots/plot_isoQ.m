@@ -7,7 +7,11 @@ function [v_threshold] = ...
 % warning('big_T=81 for now')
 init_threshold = ((big_T == first_big_T) && strcmp(name_simu,'ref'));
 if init_threshold
-    v_threshold = [0.32 0.4];
+% % %     v_threshold = [0.2 0.32 0.4];
+% % %     v_threshold = [0.25 0.32 0.4];
+% %     v_threshold = [0.27 0.32 0.4];
+%     v_threshold = [0.32 0.4];
+    v_threshold = [0.32 0.3];
 end
 
 param = fct_name_reconstruction_Q(...
@@ -50,12 +54,13 @@ if nargin == 0
 end
 
 smooth=false;
-% zoom=false;
-zoom=true;
+zoom=false;
+% zoom=true;
 
 clear width2
 % height2=1.1;
-ratio_width = 2;
+ratio_width = 1.5;
+% ratio_width = 2;
 if zoom
     height2=2;
     add_height2=1.5;
@@ -196,26 +201,40 @@ for q=1:n1
     if smooth
         Q(:,:,:,1)=smooth3(Q(:,:,:,1));
     end
-    %         %     threshold=6;
-    %         %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1));
-    %         [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
-    [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
+%     %         %     threshold=6;
+%     %         %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1));
+%     %         [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
+    [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
+%         [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
+%     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(2),Z);
     pp=patch('Vertices', verts, 'Faces', faces, ...
         'FaceVertexCData', colors, ...
         'FaceColor','interp', ...
         'edgecolor', 'interp');
-    set(pp,'FaceColor','green','EdgeColor','none');
+%     set(pp,'FaceColor','green','EdgeColor','none','FaceAlpha',.8)
+    set(pp,'FaceColor','green','EdgeColor','none')
     hold on;
     %     end
     
-    %     threshold=3;
+%     %     threshold=3;
     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(2),Z);
+%     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(3),Z);
     %     [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
     pp=patch('Vertices', verts, 'Faces', faces, ...
         'FaceVertexCData', colors, ...
         'FaceColor','interp', ...
         'edgecolor', 'interp');
     set(pp,'FaceColor','red','EdgeColor','none');
+    
+%     %     threshold=3;
+%     [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
+%     %     [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
+%     pp=patch('Vertices', verts, 'Faces', faces, ...
+%         'FaceVertexCData', colors, ...
+%         'FaceColor','interp', ...
+%         'edgecolor', 'interp');
+% %     set(pp,'FaceColor','yellow','EdgeColor','none','FaceAlpha',.8)
+%     set(pp,'FaceColor','yellow','EdgeColor','none')
     
     [faces,verts,colors] = isosurface(X,Y,Z,vol_cyl,0.5,Z);
     pp=patch('Vertices', verts, 'Faces', faces, ...
@@ -303,6 +322,34 @@ for q=1:n1
     if smooth
         name_file = [ name_file '_smooth'];
     end
+    
+    
+    index_time =  (big_T-first_big_T ) * ...
+        double(param.data_in_blocks.len_blocks ) + q
+%     index_time = (big_T-1)*param.data_in_blocks.len_blocks + q;
+    time = param.dt * index_time;
+    bool_assimilation_step = any(index_time == param.DA.index_of_filtering)
+    
+    hold on;
+    ax=axis;
+    delta_ax = [ax(2)-ax(1) ax(4)-ax(3) ax(6)-ax(5)];
+    
+%     text(ax(1)+delta_ax(1)*0.1,ax(3)+delta_ax(2)*0.1, ax(5)+delta_ax(3)*0.1,...
+%         [num2str(time) ' sec']);
+    t1=text(ax(1)+delta_ax(1)*0.05,ax(3)+delta_ax(2)*0.05, ax(5)+delta_ax(3)*0.95,...
+        [num2str(time) ' s']);
+%     t1(1).FontSize
+    t1(1).FontSize = 7;
+%     text(ax(1)+delta_ax(1)*0.1,ax(3)+delta_ax(2)*0.1, ax(5)+delta_ax(3)*0.1,...
+%         [num2str(time) ' sec after learning period']);
+    if bool_assimilation_step
+        t2=text(ax(1)+delta_ax(1)*0.1,ax(3)+delta_ax(2)*0.80, ax(5)+delta_ax(3)*0.1,...
+            ['Obs.']);
+        t2(1).Color = 'red';
+        t2(1).FontSize = 10;
+    end
+    hold off
+    
     drawnow
     eval( ['print -loose -djpeg ' name_file '.jpg']);
     %     eval( ['print -loose -depsc ' name_file '.eps']);

@@ -22,12 +22,13 @@ if nargin == 0
     % % vect_nb_modes = nb_modes_min:2:nb_modes_max
     % vect_nb_modes = 2.^5
     %     vect_nb_modes = 2.^(1:3)
-%             vect_nb_modes = 2.^(1:5)
-%     vect_nb_modes = 16;
-    vect_nb_modes = [2 4 6 8 16];
-%             vect_nb_modes = 2.^(1:4)
+    %             vect_nb_modes = 2.^(1:5)
+    %     vect_nb_modes = 16;
+    vect_nb_modes = 6;
+%     vect_nb_modes = [2 4 6 8 16];
+    %             vect_nb_modes = 2.^(1:4)
     %         vect_nb_modes = 2.^(1:4)
-%             vect_nb_modes = 2.^(1:6)
+    %             vect_nb_modes = 2.^(1:6)
     
     % Type of data
     
@@ -39,20 +40,24 @@ if nargin == 0
     % % %     type_data = 'incompact3D_noisy2D_40dt_subsampl';
     % % type_data = 'inc3D_Re3900_blocks';
     % type_data = 'incompact3d_wake_episode3_cut';
-%             type_data = 'incompact3d_wake_episode3_cut_truncated';
+    %             type_data = 'incompact3d_wake_episode3_cut_truncated';
     % type_data = 'inc3D_Re3900_blocks_truncated';
     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-%             type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
-%         type_data = 'turb2D_blocks_truncated'
+    %             type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+    %         type_data = 'turb2D_blocks_truncated'
     
     no_subampl_in_forecast = false;
     % reconstruction = false;
     vect_reconstruction = [ false ]
     % vect_reconstruction = [true ]
     % adv_corrected = true
-%         vect_adv_corrected = [ false]
-    vect_adv_corrected = [true false]
-%                 vect_adv_corrected = [true ]
+    %         vect_adv_corrected = [ false]
+    vect_adv_corrected = [ false]
+    %                 vect_adv_corrected = [true ]
+    
+    vect_DA = [ true ]
+    vect_coef_bruit_obs = [0.1 0.8 ]
+%     vect_coef_bruit_obs = [0.8 0.1]
     
     %% With correctif coefficient
     
@@ -70,11 +75,11 @@ if nargin == 0
             % differentials equations of distincts chronos
             %             modal_dt=true
             vect_modal_dt=0:1
-%             vect_modal_dt=1
-%             vect_modal_dt=false
+            %             vect_modal_dt=1
+            %             vect_modal_dt=false
         case {'incompact3d_wake_episode3_cut',...
                 'incompact3d_wake_episode3_cut_truncated'}
-                    v_threshold=0.0005
+            v_threshold=0.0005
             %         v_threshold=1e-4
             %         v_threshold=1e-6
             v_threshold=[1e-6]
@@ -87,11 +92,12 @@ if nargin == 0
         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-4 % BEST
-%             vect_modal_dt=true % BEST
-            vect_modal_dt=0:1
+            %             vect_modal_dt=true % BEST
+            vect_modal_dt=1
+%             vect_modal_dt=0:1
             
-%             v_threshold=[1e-1 1e-2]
-%             vect_modal_dt=0:2 
+            %             v_threshold=[1e-1 1e-2]
+            %             vect_modal_dt=0:2
             
             %             v_threshold=[ 5e-4 ]
             %             v_threshold=[ 1e-5 5e-4 ]
@@ -114,14 +120,14 @@ if nargin == 0
             %             warning('threshold changed')
             % if true, (mimic the use of a) disctinct subsampling time step for the
             % differentials equations of distincts chronos
-%             vect_modal_dt=0:2
+            %             vect_modal_dt=0:2
             %                                     modal_dt=true
             %             modal_dt=false
         case 'turb2D_blocks_truncated'
             v_threshold= [1e-5]
-%             v_threshold= [1e-3 1e-4 1e-5];
+            %             v_threshold= [1e-3 1e-4 1e-5];
             vect_modal_dt=0:1
-%             vect_modal_dt=false
+            %             vect_modal_dt=false
         otherwise
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=0.0005
@@ -152,80 +158,86 @@ for k=vect_nb_modes
 end
 
 %% Compute instateneous Q criterion
-for modal_dt=vect_modal_dt
-    for adv_corrected=vect_adv_corrected
-        for reconstruction = vect_reconstruction
-            for q=1:length(v_threshold)
-                close all
-                pause(1)
-                for k=vect_nb_modes
-                    %     for k=nb_modes_min:2:nb_modes_max
-                    %         main_full_sto_modal_dt(k,v_threshold(q))
-%                     main_from_existing_ROM_Simulation(type_data,k,...
-                    main_plot_Q(type_data,k,...
-                        v_threshold(q),...
-                        no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
-                    
-%                     switch type_data
-%                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-%                             ax = axis;
-%                             %                         ax(2)=40;
-%                             ax(2)=20;
-%                             axis(ax);
-%                         case 'turb2D_blocks_truncated'
-%                             ax = axis;
-%                             ax(2)=3e7;
-%                             axis(ax);
-%                     end
+for coef_bruit_obs = vect_coef_bruit_obs
+    for DA = vect_DA
+        for modal_dt=vect_modal_dt
+            for adv_corrected=vect_adv_corrected
+                for reconstruction = vect_reconstruction
+                    for q=1:length(v_threshold)
+                        close all
+                        pause(1)
+                        for k=vect_nb_modes
+                            %     for k=nb_modes_min:2:nb_modes_max
+                            %         main_full_sto_modal_dt(k,v_threshold(q))
+                            %                     main_from_existing_ROM_Simulation(type_data,k,...
+                            main_plot_Q(type_data,k,...
+                                v_threshold(q),...
+                                no_subampl_in_forecast,reconstruction,...
+                                adv_corrected,modal_dt,...
+                                DA,coef_bruit_obs)
+                            
+                            %                     switch type_data
+                            %                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+                            %                             ax = axis;
+                            %                             %                         ax(2)=40;
+                            %                             ax(2)=20;
+                            %                             axis(ax);
+                            %                         case 'turb2D_blocks_truncated'
+                            %                             ax = axis;
+                            %                             ax(2)=3e7;
+                            %                             axis(ax);
+                            %                     end
+                        end
+                        
+                        %% Save plot
+                        %                 folder_results = [ pwd '/resultats/current_results/summary/'];
+                        %                 current_pwd = pwd; cd ..
+                        %                 folder_data = [ pwd '/data/' ];
+                        %                 cd(current_pwd);
+                        %                 % folder_results = ['/Users/Resseguier/Documents/MATLAB/POD/all/resultats/current_results/'];
+                        %                 % folder_data = '/Users/Resseguier/Documents/MATLAB/POD/data/';
+                        %                 % folder_results = ['/Users/vressegu/Documents/matlab/POD-NS_Stochastique/current_used/' ...
+                        %                 %         'all/resultats/current_results/'];
+                        %                 % %     param.folder_results =  [ pwd '/resultats/current_results/'];
+                        %                 %     eval( ['print -depsc ' folder_results 'sum_modes_n=' num2str(nb_modes_max) ...
+                        %                 %             '_threshold_' num2str(v_threshold(q)) '.eps']);
+                        %
+                        %                 threshold = num2str(v_threshold(q));
+                        %                 iii = (threshold =='.');
+                        %                 threshold(iii)='_';
+                        %
+                        %                 %             str = ['print -depsc ' folder_results type_data '_sum_modes_n=' ...
+                        %                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
+                        %                     num2str(nb_modes_max) '_threshold_' threshold ...
+                        %                     '_fullsto'];
+                        %                 %             if modal_dt
+                        %                 %                 str =[ str '_modal_dt'];
+                        %                 %             end
+                        %                 if modal_dt == 1
+                        %                     str =[ str '_modal_dt'];
+                        %                 elseif modal_dt == 2
+                        %                     str =[ str '_real_dt'];
+                        %                 end
+                        %                 if ~ adv_corrected
+                        %                     str =[ str '_NoAdvCorect'];
+                        %                 end
+                        %                 if reconstruction
+                        %                     str =[ str '_reconstruction'];
+                        %                 else
+                        %                     str =[ str '_forecast'];
+                        %                 end
+                        %                 str =[ str '.png'];
+                        %                 %             str =[ str '.eps'];
+                        %                 str
+                        %                 drawnow
+                        %                 pause(1)
+                        %                 eval(str);
+                        %
+                        %                 %     eval( ['print -depsc ' folder_results type_data '_sum_modes_n=' ...
+                        %                 %         num2str(nb_modes_max) '_threshold_' threshold ...
+                        %                 %         '_fullsto_modal_dt.eps']);
+                    end
                 end
-                
-                %% Save plot
-%                 folder_results = [ pwd '/resultats/current_results/summary/'];
-%                 current_pwd = pwd; cd ..
-%                 folder_data = [ pwd '/data/' ];
-%                 cd(current_pwd);
-%                 % folder_results = ['/Users/Resseguier/Documents/MATLAB/POD/all/resultats/current_results/'];
-%                 % folder_data = '/Users/Resseguier/Documents/MATLAB/POD/data/';
-%                 % folder_results = ['/Users/vressegu/Documents/matlab/POD-NS_Stochastique/current_used/' ...
-%                 %         'all/resultats/current_results/'];
-%                 % %     param.folder_results =  [ pwd '/resultats/current_results/'];
-%                 %     eval( ['print -depsc ' folder_results 'sum_modes_n=' num2str(nb_modes_max) ...
-%                 %             '_threshold_' num2str(v_threshold(q)) '.eps']);
-%                 
-%                 threshold = num2str(v_threshold(q));
-%                 iii = (threshold =='.');
-%                 threshold(iii)='_';
-%                 
-%                 %             str = ['print -depsc ' folder_results type_data '_sum_modes_n=' ...
-%                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-%                     num2str(nb_modes_max) '_threshold_' threshold ...
-%                     '_fullsto'];
-%                 %             if modal_dt
-%                 %                 str =[ str '_modal_dt'];
-%                 %             end
-%                 if modal_dt == 1
-%                     str =[ str '_modal_dt'];
-%                 elseif modal_dt == 2
-%                     str =[ str '_real_dt'];
-%                 end
-%                 if ~ adv_corrected
-%                     str =[ str '_NoAdvCorect'];
-%                 end
-%                 if reconstruction
-%                     str =[ str '_reconstruction'];
-%                 else
-%                     str =[ str '_forecast'];
-%                 end
-%                 str =[ str '.png'];
-%                 %             str =[ str '.eps'];
-%                 str
-%                 drawnow
-%                 pause(1)
-%                 eval(str);
-%                 
-%                 %     eval( ['print -depsc ' folder_results type_data '_sum_modes_n=' ...
-%                 %         num2str(nb_modes_max) '_threshold_' threshold ...
-%                 %         '_fullsto_modal_dt.eps']);
             end
         end
     end
