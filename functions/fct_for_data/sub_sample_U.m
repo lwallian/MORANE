@@ -47,8 +47,14 @@ elseif ~ param.big_data
         % Subsample
         U=U(:,find(vt(:,big_T)),:);
         
-        name_file_U_temp=[param.folder_file_U_temp param.type_data ...
+        if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
+            name_file_U_temp=[param.folder_file_U_temp ...
             num2str(big_T) '_U_temp'];
+        else
+            name_file_U_temp=[param.folder_file_U_temp param.type_data ...
+                num2str(big_T) '_U_temp'];
+        end
+        
         param_ref.name_file_U_temp=[param_ref.name_file_U_temp ...
             {name_file_U_temp}];
         % Save previous file with subsampled velocity
