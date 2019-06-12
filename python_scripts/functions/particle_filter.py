@@ -245,66 +245,88 @@ def particle_filter(M,ILC_a_cst,pchol_cov_noises,dt,delta_t,particles,observatio
     only_repeated = True
     obs = create_virtual_obs(observation,lambda_values,beta_1)
     likelihood = calculate_likelihood(particles,obs,lambda_values,beta_1,1)
-#    print(weigths)
-#    print('Number of effective particles: '+ str(1/np.sum(np.power(weigths,2))))
-    
-    
-#    if 1/np.sum(np.power(weigths,2))>2:
-#    dict_in = {}
-#    
-#    for index in np.where((weigths>=0.1*np.max(weigths))):
-#        dict_in[str(index)] = weigths[index]
-#        
-#    print('Dict with the most probable indexes: '+ str(dict_in))
-    
-    
-    #    index_MAP = np.where((weigths==np.max(weigths)))
-    
-#    particle_estimate = np.sum(particles*np.tile(weigths[np.newaxis,...],(particles.shape[0],1)),axis=1)
-    
-    
-#    weigths = (likelihood*weigths_time_past)/np.sum(likelihood*weigths_time_past)
     weigths = likelihood/np.sum(likelihood)
-#    ESS = calculate_effective_sample_size(weigths)
+    ess = calculate_effective_sample_size(weigths)
+    
+    if ess>N_threshold:
+        indexes = resample(weigths)
+        print('ESS: '+ str(ess))
+        ################################################################################
+        ###################################----MUTATION----#############################
+        if only_repeated ==True:
+            counter = collections.Counter(indexes)
+            keys = counter.keys()
+            indexes_repeated = []
+            for key in keys:
+                if counter[key]>0:
+                    indexes_repeated.append(key)
+        
+        particles_selected = np.zeros(shape=particles.shape)
+        noises_selected = np.zeros(shape=noises.shape)
+        i = 0
+        for index in indexes:
+            if index in indexes_repeated:
+                noise = noises[...,index]
+                particle = particles[:,index]
+                particle_past = particles_past[:,index]
+                particles_selected[...,i],noises_selected[...,i] = mutation_MCMC_from_past(pho,M,particle,noise,particle_past,delta_t,I,L,C, pchol_cov_noises,\
+                                                                                          dt,obs,lambda_values,beta_1)
+            else:
+                particles_selected[...,i] = particles[...,index]
+                noises_selected[...,i] = noises[...,index]
+                
+            i+=1
+            
+        
+        ############################################################################################
+        #################################---UPDATE---###############################################
+        particles = particles_selected
+        noises = noises_selected
+    
+        return particles,obs
+    
+    
+    
     r = 0
     phi = 1
     phi_guime = 0
-    ess = calculate_effective_sample_size(weigths)
-    while (r<3):
+    
+    while (r<4):
         
         
-        if (ess>N_threshold):
+        if (phi_guime>0.95):
             index_print = np.where((weigths>0.05))
             print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
             print('phi guime: '+ str(phi_guime))
             
             phi = 1
+            phi_guime = 1
 #            print(len(collections.Counter(indexes).keys()))  
             print('Number of temp iter: '+str(r))
             print('\n')
-            return particles,obs
-        else:
             
+            return particles,obs
+        
+        else:
+            likelihood = calculate_likelihood(particles,obs,lambda_values,beta_1,1)
             phi_guime = find_tempering_coeff(likelihood,N_threshold,phi)
             if phi_guime>0.99:
                 phi_guime = 0.99
                 
-            index_print = np.where((weigths>0.05))
             
-            print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
+            
+#            print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
             print('phi guime: '+ str(phi_guime))
             
 #        weigths = np.power(weigths,(phi - phi_before))/np.sum(np.power(weigths,(phi - phi_before)))
-        print(phi_guime-1+phi)
+        print('phi effective:' + str(phi_guime-1+phi))
         likelihood = calculate_likelihood(particles,obs,lambda_values,beta_1,phi_guime-1+phi)
         weigths = likelihood/np.sum(likelihood)
+        index_print = np.where((weigths>0.05))
         ess = calculate_effective_sample_size(weigths)
+        print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
         print('ESS: '+ str(ess))
-#        dict_in = {}
-#        print(phi)
-#        for index in np.where((weigths>=0.1*np.max(weigths))):
-#            dict_in[str(index)] = weigths[index]        
-#        print('Dict with the most probable indexes: '+ str(dict_in))
+
         indexes = resample(weigths)
         
         ################################################################################
@@ -358,7 +380,6 @@ def particle_filter(M,ILC_a_cst,pchol_cov_noises,dt,delta_t,particles,observatio
         
         
         
-#    print(collections.Counter(indexes))    
    
     
     print('\n')

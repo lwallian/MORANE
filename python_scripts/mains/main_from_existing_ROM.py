@@ -51,13 +51,34 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param_ref = {}
     param_ref['n_simu'] = 100
     param_ref['N_particules'] = n_particles
-    beta_1 = 0.4   # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-    beta_2 = 0.1   # beta_2 is the parameter that controls the  noise in the initialization of the filter
+    beta_1 = 0.8   # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+    beta_2 = 0.8   # beta_2 is the parameter that controls the  noise in the initialization of the filter
     beta_3 = 1   # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
     beta_4 = 1   # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
-    N_threshold = 15 # Number of particles accept as effective sample size in the particle filter
-    M = 10      # Number of mutation steps in particle filter 
+    N_threshold = 30 # Number of particles accept as effective sample size in the particle filter
+    M = 20      # Number of mutation steps in particle filter 
     pho = 0.98  # parameter of noise in the kernel of MCMC mutation
+    
+    
+    #################################### some practical conclusions of the parameters above ###################################
+    '''
+    SNR(Db)    | 10(beta_1=0.1)
+    SNR(Db)    | 1 (beta_1=0.8)
+    
+    Values of parameters with good performance:
+    
+    N_threshold:            SNR
+                         | 1 | 10
+                    10   |No | Ys
+                    15   |   | Ys
+                    20   |Ys | Ys
+    
+    
+    
+    
+    '''
+    
+    
     #%%  Parameters already chosen
     
     #   !!!! Do not modify the following lines  !!!!!!
@@ -237,8 +258,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     
-    bt_MCMC[:,:,:] =  beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
-#    bt_MCMC[:,:,1:] = beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,1:].shape[2]))*np.random.normal(0,1,size=shape)
+#    bt_MCMC[:,:,:] =  bt_MCMC + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+    bt_MCMC[:,:,:] = beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
     
     bt_fv = bt_MCMC.copy()
     bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))
@@ -259,7 +280,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    n,nb_pc1 = bt_MCMC.shape[1:]
 #    shape_noise = (1,(n+1)*n,nb_pc1)
 #    noises = np.zeros(shape=shape_noise)
-    observations_to_save = bt_tronc
+   
+    observations_to_save = bt_tronc + beta_2*lambda_values[np.newaxis,...]*np.random.normal(0,1,size=(1,bt_tronc.shape[1]))
     index_of_filtering = []
     for index in range(param['N_test']):#range(n_samples):#range(param['N_test']):
         
@@ -273,7 +295,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         
         #########################################----------------------#############################################
         #########################################--PARTICLE FILTERING--#############################################
-#   
+#   b_reynolds_300_noise_08
         
 #        print(index)
         if (index+1)%(int(period_in_samples*beta_4))== 0:
@@ -471,17 +493,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    sio.savemat(str(name_file_data)+'_Numpy',dict_python)
     ##############################################################################################################
     ##############################################################################################################
-    dict_python = {}
-    dict_python['obs'] = observations_to_save
-    dict_python['bt_MCMC'] = particles_mean
-    dict_python['iters'] = param['N_test']
-    dict_python['dt'] = param['dt']
-    dict_python['bt_tot'] = bt_tot
-    dict_python['n_simu'] = n_simu
-    dict_python['param'] = param
-    dict_python['index_of_filtering'] = index_of_filtering
-    name_file_data = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+str(nb_modes))
-    sio.savemat(str(name_file_data),dict_python)
+#    dict_python = {}
+#    dict_python['obs'] = observations_to_save
+#    dict_python['bt_MCMC'] = particles_mean
+#    dict_python['particles'] = bt_MCMC
+#    dict_python['iters'] = param['N_test']
+#    dict_python['dt'] = param['dt']
+#    dict_python['bt_tot'] = bt_tot
+#    dict_python['n_simu'] = n_simu
+#    dict_python['param'] = param
+#    dict_python['index_of_filtering'] = index_of_filtering
+#    name_file_data = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+str(nb_modes)+'_bruit_'+str(beta_1)+'reynolds300')
+#    sio.savemat(str(name_file_data),dict_python)
     
     
     

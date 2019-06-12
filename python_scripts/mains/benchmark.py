@@ -12,7 +12,7 @@ sys.path.insert(0, str(path_functions))
 from evol_forward_bt_RK4 import evol_forward_bt_RK4
 import numpy as np
 import matplotlib.pyplot as plt
-
+import scipy.io as sio
 
 
 
@@ -121,8 +121,8 @@ def benchmark(nb_modes,type_data):
     return I,L,C
     
 
-def load_MCMC(nb_modes):
-    path = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+ str(nb_modes))
+def load_MCMC(nb_modes,beta_1,reynolds):
+    path = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+ str(nb_modes)+'_bruit_'+str(beta_1)+'reynolds'+str(reynolds))
     variables = hdf5storage.loadmat(str(path))
     
     obs = variables['obs']
@@ -133,6 +133,7 @@ def load_MCMC(nb_modes):
     n_simu = variables['n_simu']
     param = variables['param']
     index_of_filtering = variables['index_of_filtering']
+#    particles = variables['particles']
     
     
     param_dict = {}
@@ -159,7 +160,7 @@ def load_MCMC(nb_modes):
             param_dict[name] = aux_dict
     
     
-    return obs,bt_MCMC,iters[0,0],dt[0,0],bt_tot,n_simu,param_dict.copy(),index_of_filtering
+    return obs,bt_MCMC,iters[0,0],dt[0,0],bt_tot,n_simu,param_dict.copy(),index_of_filtering#,particles
     
 
     
@@ -167,12 +168,16 @@ def load_MCMC(nb_modes):
 
 if __name__ == '__main__':
     
-    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+#    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     nb_modes = 6
-
+    beta_1 = 0.1
+    reynolds = 100
+    
+    
     I,L,C = benchmark(nb_modes,type_data)
 
-    obs,bt_MCMC,iters,dt,bt_tot,n_simu,param,index_of_filtering = load_MCMC(nb_modes)
+    obs,bt_MCMC,iters,dt,bt_tot,n_simu,param,index_of_filtering = load_MCMC(nb_modes,beta_1,reynolds)
     
 #    steps_to_assimilate = (bt_MCMC.shape[0]-1)/(obs.shape[0]-1)
     bt_forecast_EV = obs[0,:][np.newaxis,...]
@@ -243,29 +248,38 @@ if __name__ == '__main__':
     bt_forecast_MEV =  np.sum( np.power(bt_forecast_EV[::int(n_simu)]-bt_tot,2),axis=1)[...,np.newaxis]/nrj_tot + err_fix
     bt_MCMC_assimilated = np.sum( np.power(bt_MCMC[::int(n_simu)]-bt_tot,2),axis=1)[...,np.newaxis]/nrj_tot + err_fix
     
-#    time = np.arange(1,int(N_test + 2),1)*float(dt)
+    time = np.arange(0,bt_MCMC_assimilated.shape[0]*dt*n_simu[0,0],dt*n_simu[0,0])
     plt.figure(index+1)
-    line1 = plt.plot(np.sqrt(bt_0),'k',label = 'bt0')
-    line2 = plt.plot(np.sqrt(err_fix),'--k',label = 'erreur fixe')
-    line3 = plt.plot(np.sqrt(bt_forecast_MEV),'b--',label = 'Eddy Visc')
-    line4 = plt.plot(np.sqrt(bt_MCMC_assimilated),'r',label = 'MCMC filtered')
+    line1 = plt.plot(time,np.sqrt(bt_0),'k',label = 'No chronos Error')
+    line2 = plt.plot(time,np.sqrt(err_fix),'--k',label = 'Trunc. Error')
+    line3 = plt.plot(time,np.sqrt(bt_forecast_MEV),'b--',label = 'Eddy Visc.')
+    line4 = plt.plot(time,np.sqrt(bt_MCMC_assimilated),'r',label = 'Particle Filtered')
+    plt.xlabel('Time(Sec)')
+    plt.ylabel('Normalized Error')
     plt.legend()
     plt.grid()
-#    
-#    
+
+
+    ######## save data to valentin
+
+
+    dict_python = {}
+    dict_python['obs'] = obs
+    dict_python['bt_MCMC'] = bt_MCMC
+    dict_python['bt_forecast_EV'] = bt_forecast_EV
+    dict_python['iters'] = iters
+    dict_python['dt'] = dt
+    dict_python['bt_tot'] = bt_tot
+    dict_python['n_simu'] = n_simu
+    dict_python['param'] = param
+    dict_python['index_of_filtering'] = index_of_filtering
+    dict_python['beta_noise'] = beta_1
+#    dict_python['particles'] = particles
     
     
-#    
-#    
-#    
-#    
-#    for i in range(bt_tot.shape[1]):
-#        plt.figure()
-#        time_obs = np.arange(0,(bt_MCMC.shape[0])*dt,7*n_simu*dt)
-#        plt.plot(time_bt_tot,bt_tot[:,i])
-#        plt.plot(time_obs,obs[:,i])
-#
-#    
+    
+    name_file_data = Path(__file__).parents[3].joinpath('test').joinpath('data_to_valentin_beta_noise_'+str(beta_1)+'Reynolds'+str(reynolds))
+    sio.savemat(str(name_file_data),dict_python)    
     
     
     
