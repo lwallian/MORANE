@@ -72,6 +72,7 @@ t_subsample=1;
 % U = zeros([param.M param_temp.data_in_blocks.len_blocks param.d]); % ???
 big_T = double(param.data_in_blocks.nb_blocks); % index of the file
 first_big_T = big_T + 1;
+index_time = 0;
 
 for t=1:n_subsampl*param.N_test % loop for all time
 % for t=1:n_subsampl*N_tot % loop for all time
@@ -80,6 +81,8 @@ for t=1:n_subsampl*param.N_test % loop for all time
         % initialization of the index of the snapshot in the file
         t_local=1;
         t_local_subsampl=1;
+%         index_time = 0;
+        v_index_time = [];
         % Incrementation of the file index
         big_T = big_T+1
 %         % Name of the new file
@@ -111,6 +114,8 @@ for t=1:n_subsampl*param.N_test % loop for all time
     end
     
     if mod(t-1,n_subsampl)==0
+        index_time = index_time + 1;
+        v_index_time = [ v_index_time index_time ];
         % Add a snapshots
         omega = cat(2, omega, zeros([prod(param.MX(1:2)) 1 ]) );
 %         S = cat(2, S, zeros([param.M 1 param.d param.d]) );
@@ -163,7 +168,7 @@ for t=1:n_subsampl*param.N_test % loop for all time
         
         %% Plots
         plot_iso_2dvort(param,name_simu, modal_dt,reconstruction,...
-            big_T,first_big_T, omega);
+            big_T,first_big_T, omega, v_index_time);
         clear omega
         
 %         if big_T > first_big_T
@@ -193,7 +198,7 @@ if ~ ( param.data_in_blocks.bool && ...
     % omega = omega-omega_ref;
     
     plot_iso_2dvort(param,name_simu, modal_dt,reconstruction,...
-        big_T,first_big_T, omega);
+        big_T,first_big_T, omega, v_index_time);
     clear omega
     
 end

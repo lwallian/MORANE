@@ -1,6 +1,6 @@
 function [v_threshold] = ...
     plot_isoQ(param,name_simu, modal_dt,reconstruction,...
-    big_T,first_big_T,Q)
+    big_T,first_big_T,Q,v_index_time)
 %
 
 % big_T=81
@@ -308,8 +308,15 @@ for q=1:n1
     if ~view_top
         axis(axis_set)
     end
+    
+    
+    index_time = v_index_time(q);
+    
     name_file =[ param.name_file_Reconstruction_Q ...
-        '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
+        num2str(index_time)];
+%     name_file =[ param.name_file_Reconstruction_Q ...
+
+%         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
     param_from_file = param;
     if view_top
         name_file = [ name_file '_top'];
@@ -323,9 +330,8 @@ for q=1:n1
         name_file = [ name_file '_smooth'];
     end
     
-    
-    index_time =  (big_T-first_big_T ) * ...
-        double(param.data_in_blocks.len_blocks ) + q
+%     index_time =  (big_T-first_big_T ) * ...
+%         double(param.data_in_blocks.len_blocks ) + q
 %     index_time = (big_T-1)*param.data_in_blocks.len_blocks + q;
     time = param.dt * index_time;
     bool_assimilation_step = any(index_time == param.DA.index_of_filtering)

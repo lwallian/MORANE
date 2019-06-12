@@ -1,6 +1,6 @@
 function [cmap,cax] = ...
     plot_iso_2dvort(param,name_simu, modal_dt,reconstruction,...
-    big_T,first_big_T,Q)
+    big_T,first_big_T,Q,v_index_time)
 %
 
 param.MX = param.MX(1:2);
@@ -186,12 +186,15 @@ for q=1:n1
     colormap(cmap);
     colorbar;
     
-    name_file =[ param.name_file_Reconstruction_omega ...
-        '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
+    index_time = v_index_time(q);
+%     index_time =  (big_T-first_big_T ) * ...
+%         double(param.data_in_blocks.len_blocks ) + q;
     
-    index_time =  (big_T-first_big_T ) * ...
-        double(param.data_in_blocks.len_blocks ) + q;
-%     index_time = (big_T-1)*param.data_in_blocks.len_blocks + q;
+    name_file =[ param.name_file_Reconstruction_omega ...
+        num2str(index_time)];
+%     name_file =[ param.name_file_Reconstruction_omega ...
+%         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
+
     time = param.dt * index_time;
     bool_assimilation_step = ...
         any(index_time == param.DA.index_of_filtering);
