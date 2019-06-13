@@ -318,17 +318,17 @@ for q=1:n1
 
 %         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
     param_from_file = param;
-    if view_top
-        name_file = [ name_file '_top'];
-    else
-        name_file = [ name_file '_side'];
-    end
-    %     if plot_arrow
-    %         name_file = [ name_file '_arrow'];
-    %     end
-    if smooth
-        name_file = [ name_file '_smooth'];
-    end
+%     if view_top
+%         name_file = [ name_file '_top'];
+%     else
+%         name_file = [ name_file '_side'];
+%     end
+%     %     if plot_arrow
+%     %         name_file = [ name_file '_arrow'];
+%     %     end
+%     if smooth
+%         name_file = [ name_file '_smooth'];
+%     end
     
 %     index_time =  (big_T-first_big_T ) * ...
 %         double(param.data_in_blocks.len_blocks ) + q
