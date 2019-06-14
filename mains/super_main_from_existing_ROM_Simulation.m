@@ -11,18 +11,18 @@ if nargin == 0
     init;
     
     %% Number of modes for the the ROM
-    vect_nb_modes = [2 4 6 8]
+    vect_nb_modes = [2 4 8 16]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 %     vect_adv_corrected = [ true false]
-    vect_adv_corrected = [ true]
+    vect_adv_corrected = [ false]
     
     % To choose between the shannon and correlation time downsampling
     % methods
     global choice_n_subsample;
 %     choice_n_subsample = 'auto_shannon';
-    choice_n_subsample = 'auto_corr_time';
+    choice_n_subsample = 'corr_time';
     
     %% Type of data
     % Other datasets (do not use)
@@ -43,10 +43,10 @@ if nargin == 0
     % % type_data = 'turb2D_blocks_truncated'
     
     % These 3D data ( Re 300) gives good results
-%     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
     
     % These 2D data ( Re 100) gives good results
-    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
@@ -85,6 +85,10 @@ if nargin == 0
         otherwise
             v_threshold=0.0005
             vect_modal_dt=false
+    end
+    
+    if strcmp(choice_n_subsample, 'corr_time')
+        v_threshold = NaN;
     end
 end
 nb_modes_max = max(vect_nb_modes);
@@ -129,7 +133,7 @@ for modal_dt=vect_modal_dt
                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
                             num2str(nb_modes_max) '_threshold_' threshold ...
                             '_fullsto'];
-                    case 'auto_corr_time'
+                    case 'corr_time'
                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
                             num2str(nb_modes_max) 'auto_corr_time_fullsto'];
                 end
