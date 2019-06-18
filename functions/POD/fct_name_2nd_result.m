@@ -2,7 +2,7 @@ function param = fct_name_2nd_result(param,modal_dt,reconstruction)
 % Create the name of the file where the 2nd reuslts
 %(the ROM defintion + ROM simmulations) are saved
 %
-
+global stochastic_integration;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -55,6 +55,7 @@ if reconstruction
 else
     param.reconstruction=false;
 end
+param.name_file_2nd_result = [param.name_file_2nd_result '_integ_' stochastic_integration];
 param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];
 % save(param.name_file_2nd_result,'-v7.3');
 % % save(param.name_file_2nd_result);

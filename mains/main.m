@@ -261,11 +261,23 @@ if param.big_data
     disp('Galerkin projection on deterministic Navier-Stokes done');
 end
 % Additional coefficients due to stochastic terms
+global stochastic_integration
 if param.adv_corrected
     [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
 else
+    if strcmp(stochastic_integration, 'Ito')
+%     [F1 F2] = coefficients_sto(param);
+%     F = F1 + F2;
     [F1 ~] = coefficients_sto(param);
-    L_sto = F1;
+    F = F1;
+    elseif strcmp(stochastic_integration, 'Str')
+        [F1, ~] = coefficients_sto(param);
+        F = F1;
+        clear F1;
+    else
+        error('Invalid stochastic integration path')
+    end
+    L_sto = F;
     I_sto = zeros([param.nb_modes 1]);
     C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);
 end
@@ -345,16 +357,32 @@ if ~param.igrida && reconstruct_chronos
     
     % Reconstruction in the deterministic case
     bt_forecast_deter=bt_tronc;
-    for l = 1:param.N_test
-        bt_forecast_deter= [bt_forecast_deter; ...
-            evol_forward_bt_RK4(I_deter,L_deter,C_deter, param.dt, bt_forecast_deter)];
+    if strcmp(stochastic_integration, 'Ito')
+        for l = 1:param.N_test
+            bt_forecast_deter= [bt_forecast_deter; ...
+                evol_forward_bt_RK4(I_deter,L_deter,C_deter, param.dt, bt_forecast_deter)];
+        end
+    elseif strcmp(stochastic_integration, 'Str')
+        for l = 1:param.N_test
+            bt_forecast_deter= [bt_forecast_deter; ...
+                evol_forward_bt_SSPRK3_3(I_deter,L_deter,C_deter, param.dt, bt_forecast_deter)];
+        end
     end
     
     % Reconstruction in the stochastic case
     bt_forecast_sto=bt_tronc;
-    for l = 1:param.N_test
-        bt_forecast_sto = [bt_forecast_sto; ...
-            evol_forward_bt_RK4(I_sto,L_sto,C_sto, param.dt, bt_forecast_sto) ];
+    if strcmp(stochastic_integration, 'Ito')
+        for l = 1:param.N_test
+            bt_forecast_sto = [bt_forecast_sto; ...
+                evol_forward_bt_RK4(I_sto,L_sto,C_sto, param.dt, bt_forecast_sto) ];
+        end
+    elseif strcmp(stochastic_integration, 'Str')
+        for l = 1:param.N_test
+            bt_forecast_deter= [bt_forecast_deter; ...
+                evol_forward_bt_SSPRK3_3(I_deter,L_deter,C_deter, param.dt, bt_forecast_deter)];
+        end
+    else
+        error('Invalid stochastic integration path')
     end
     
 %     param.dt = param.dt/n_simu;

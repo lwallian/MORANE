@@ -42,7 +42,7 @@ k3 = deriv_bt( I(3,:)', squeeze(L(3,:,:)), C, bt + k2*dt);
 u1 = bt + dt * k1;
 u2 = 3 / 4 * bt + u1 / 4 + dt * k2 / 4;
 
-b_tp1 = bt / 3 + 2 / 3 * (u2 + dt * k3);
+b_tp1 = (bt / 3) + (2 / 3) * (u2 + dt * k3);
 
 end
 

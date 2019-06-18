@@ -116,6 +116,7 @@ folder_data_ref = folder_data;
 a_t='_a_cst_';
 
 global choice_n_subsample;
+global stochastic_integration;
 switch choice_n_subsample
     case 'auto_shanon'
         file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
@@ -155,7 +156,7 @@ end
 if reconstruction
     file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
 end
-
+file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
 file_res_2nd_res=[file_res_2nd_res '.mat'];
 load(file_res_2nd_res)
 

@@ -11,7 +11,7 @@ igrida=false;
 vect_nb_modes = [ 16 8 6 4 2] % For a full test
 % % vect_nb_modes = 2.^(4:-1:1)
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM
-% vect_adv_corrected = [  false]
+% vect_adv_corrected = [ false]
 vect_adv_corrected = [ true false]
 
 %% Type of data
@@ -98,6 +98,9 @@ decor_by_subsampl.meth='bt_decor';
 % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
 % decor_by_subsampl.choice_n_subsample='auto_shanon';
 decor_by_subsampl.choice_n_subsample = 'corr_time';
+% Stochastic integration path : 'Ito' or 'Str'
+global stochastic_integration;
+stochastic_integration = 'Str';
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;

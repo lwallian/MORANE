@@ -1,6 +1,7 @@
 function param = fct_name_1st_result(param)
 % Create the name of the file where the 1st reuslts (the ROM defintion) are saved
 %
+global stochastic_integration;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -36,6 +37,7 @@ param.name_file_1st_result=[param.name_file_1st_result '_fullsto'];
 if ~ param.adv_corrected
     param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];    
 end
+param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_integration];
 param.name_file_1st_result=[param.name_file_1st_result '.mat'];
 % save(param.name_file_1st_result);
 % clear coef_correctif_estim

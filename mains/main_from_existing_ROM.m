@@ -152,6 +152,7 @@ a_t = '_a_cst_';
 param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
 global choice_n_subsample;
+global stochastic_integration;
 param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
 param_ref.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref.type_data = type_data;
@@ -161,13 +162,14 @@ param_ref.decor_by_subsampl.test_fct = 'b';
 
 file_res = fct_file_save_1st_result(param_ref);
 
-file_res = file_res(1:end - 4); % delete the .mat at the end of the filename
+file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
 file_res=[file_res '_fullsto'];
 
 if ~ adv_corrected
     file_res=[file_res '_no_correct_drift'];    
 end
 
+file_res=[ file_res '_integ_' stochastic_integration];
 file_res=[ file_res '.mat'];
 load(file_res)
 
@@ -354,22 +356,45 @@ param.N_test=param.N_test*n_simu;
 % %end BETA
 % Reconstruction in the deterministic case
 bt_forecast_deter=bt_tronc;
-for l = 1:param.N_test
-    bt_forecast_deter= [bt_forecast_deter; ...
-        evol_forward_bt_RK4( ...
-        ILC_a_cst.deter.I,ILC_a_cst.deter.L,ILC_a_cst.deter.C, ...
-        param.dt, bt_forecast_deter)];
+global stochastic_integration
+if strcmp(stochastic_integration, 'Ito')
+    for l = 1:param.N_test
+        bt_forecast_deter= [bt_forecast_deter; ...
+            evol_forward_bt_RK4( ...
+            ILC_a_cst.deter.I,ILC_a_cst.deter.L,ILC_a_cst.deter.C, ...
+            param.dt, bt_forecast_deter)];
+    end
+elseif strcmp(stochastic_integration, 'Str')
+    for l = 1 : param.N_test
+        bt_forecast_deter= [bt_forecast_deter; ...
+            evol_forward_bt_SSPRK3_3( ...
+            ILC_a_cst.deter.I,ILC_a_cst.deter.L,ILC_a_cst.deter.C, ...
+            param.dt, bt_forecast_deter)];
+    end
+else
+    error('Invalid stochastic integration path')
 end
 
 % Reconstruction in the stochastic case
 bt_forecast_sto=bt_tronc;
-for l = 1:param.N_test
-    bt_forecast_sto = [bt_forecast_sto; ...
-        evol_forward_bt_RK4(...
-        ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-        param.dt, bt_forecast_sto) ];
-%         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
-%         param.dt, bt_forecast_sto) ];
+if strcmp(stochastic_integration, 'Ito')
+    for l = 1:param.N_test
+        bt_forecast_sto = [bt_forecast_sto; ...
+            evol_forward_bt_RK4(...
+            ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+            param.dt, bt_forecast_sto) ];
+        %         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
+        %         param.dt, bt_forecast_sto) ];
+    end
+elseif strcmp(stochastic_integration, 'Str')
+    for l = 1 : param.N_test
+        bt_forecast_sto = [bt_forecast_sto; ...
+            evol_forward_bt_SSPRK3_3(...
+            ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+            param.dt, bt_forecast_sto) ];
+    end
+else
+    error('Invalid stochastic integration path')
 end
 
 % param.dt = param.dt/n_simu;
