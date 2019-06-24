@@ -33,10 +33,10 @@ vect_adv_corrected = [ true false]
 % % type_data = 'turb2D_blocks_truncated'
 
 % These 3D data ( Re 300) gives good results
-type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+% type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
 
 % These 2D data ( Re 100) gives good results
-% type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
 
 % Smaller dataset for debuging
 % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
@@ -100,7 +100,7 @@ decor_by_subsampl.meth='bt_decor';
 decor_by_subsampl.choice_n_subsample = 'corr_time';
 % Stochastic integration path : 'Ito' or 'Str'
 global stochastic_integration;
-stochastic_integration = 'Str';
+stochastic_integration = 'Ito';
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;

@@ -199,7 +199,7 @@ plot_bts = true;
 % else
     param.folder_results = [ pwd '/resultats/current_results/'];
     current_pwd = pwd; cd ..
-    param.folder_data = [ pwd '/data/' ];
+    param.folder_data = [ pwd '/data/'];
     cd(current_pwd); clear current_pwd
 %     param.folder_results = ['/Users/Resseguier/Documents/MATLAB/POD/all/resultats/current_results/'];
 %     param.folder_data = '/Users/Resseguier/Documents/MATLAB/POD/data/';
@@ -265,15 +265,14 @@ global stochastic_integration
 if param.adv_corrected
     [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
 else
+    [F1 F2] = coefficients_sto(param);
     if strcmp(stochastic_integration, 'Ito')
-%     [F1 F2] = coefficients_sto(param);
-%     F = F1 + F2;
-    [F1 ~] = coefficients_sto(param);
-    F = F1;
+        F = F1 + F2;
+%         F = F1;
+        clear F1 F2;
     elseif strcmp(stochastic_integration, 'Str')
-        [F1, ~] = coefficients_sto(param);
         F = F1;
-        clear F1;
+        clear F1 F2;
     else
         error('Invalid stochastic integration path')
     end
