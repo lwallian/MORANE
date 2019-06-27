@@ -100,7 +100,7 @@ decor_by_subsampl.meth='bt_decor';
 decor_by_subsampl.choice_n_subsample = 'corr_time';
 % Stochastic integration path : 'Ito' or 'Str'
 global stochastic_integration;
-stochastic_integration = 'Ito';
+stochastic_integration = 'Str';
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;

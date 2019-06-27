@@ -356,115 +356,143 @@ param.N_test=param.N_test*n_simu;
 % %end BETA
 % Reconstruction in the deterministic case
 bt_forecast_deter=bt_tronc;
-global stochastic_integration
-if strcmp(stochastic_integration, 'Ito')
-    for l = 1:param.N_test
-        bt_forecast_deter= [bt_forecast_deter; ...
-            evol_forward_bt_RK4( ...
-            ILC_a_cst.deter.I,ILC_a_cst.deter.L,ILC_a_cst.deter.C, ...
-            param.dt, bt_forecast_deter)];
-    end
-elseif strcmp(stochastic_integration, 'Str')
-    for l = 1 : param.N_test
-        bt_forecast_deter= [bt_forecast_deter; ...
-            evol_forward_bt_SSPRK3_3( ...
-            ILC_a_cst.deter.I,ILC_a_cst.deter.L,ILC_a_cst.deter.C, ...
-            param.dt, bt_forecast_deter)];
-    end
-else
-    error('Invalid stochastic integration path')
+for l = 1:param.N_test
+    bt_forecast_deter= [bt_forecast_deter; ...
+        evol_forward_bt_RK4( ...
+        ILC_a_cst.deter.I,ILC_a_cst.deter.L,ILC_a_cst.deter.C, ...
+        param.dt, bt_forecast_deter)];
 end
 
 % Reconstruction in the stochastic case
 bt_forecast_sto=bt_tronc;
-if strcmp(stochastic_integration, 'Ito')
-    for l = 1:param.N_test
-        bt_forecast_sto = [bt_forecast_sto; ...
-            evol_forward_bt_RK4(...
-            ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-            param.dt, bt_forecast_sto) ];
-        %         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
-        %         param.dt, bt_forecast_sto) ];
-    end
-elseif strcmp(stochastic_integration, 'Str')
-    for l = 1 : param.N_test
-        bt_forecast_sto = [bt_forecast_sto; ...
-            evol_forward_bt_SSPRK3_3(...
-            ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-            param.dt, bt_forecast_sto) ];
-    end
-else
-    error('Invalid stochastic integration path')
+for l = 1:param.N_test
+    bt_forecast_sto = [bt_forecast_sto; ...
+        evol_forward_bt_RK4(...
+        ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+        param.dt, bt_forecast_sto) ];
+    %         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
+    %         param.dt, bt_forecast_sto) ];
 end
 
 % param.dt = param.dt/n_simu;
 % param.N_test=param.N_test*n_simu;
 
 % Reconstruction in the stochastic case
-bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
-bt_fv=bt_MCMC;
-bt_m=zeros(1,param.nb_modes,param.N_particules);
-iii_realization = zeros(param.N_particules,1);
-for l = 1:param.N_test
-    [bt_MCMC(l+1,:,:),bt_fv(l+1,:,:),bt_m(l+1,:,:)] = ...
-        evol_forward_bt_MCMC(...
-        ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-        pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
-        bt_fv(l,:,:),bt_m(l,:,:));
-%         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
-%         pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
-%         bt_fv(l,:,:),bt_m(l,:,:));
-
-    iii_realization =  permute( any( ...
-        isnan( bt_MCMC(l+1,:,:) ) | isinf( bt_MCMC(l+1,:,:) ) ...
-        , 2) ,[3 1 2]); % N_particules
-    if any(iii_realization)
-        if all(iii_realization)
-            warning('all realization of the simulation have blown up.')
-            if l < param.N_test
-                bt_MCMC((l+2):param.N_test,:,:) = ...
-                    nan( param.N_test-l-1,param.nb_modes,param.N_particules);
-                bt_fv((l+2):param.N_test,:,:) = ...
-                    nan( param.N_test-l-1,param.nb_modes,param.N_particules);
-                bt_m((l+2):param.N_test,:,:) = ...
-                    nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+if strcmp(stochastic_integration, 'Ito')
+    bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
+    bt_fv=bt_MCMC;
+    bt_m=zeros(1,param.nb_modes,param.N_particules);
+    iii_realization = zeros(param.N_particules,1);
+    for l = 1:param.N_test
+        [bt_MCMC(l+1,:,:),bt_fv(l+1,:,:),bt_m(l+1,:,:)] = ...
+            evol_forward_bt_MCMC(...
+            ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+            pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
+            bt_fv(l,:,:),bt_m(l,:,:));
+        %         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
+        %         pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
+        %         bt_fv(l,:,:),bt_m(l,:,:));
+        
+        iii_realization =  permute( any( ...
+            isnan( bt_MCMC(l+1,:,:) ) | isinf( bt_MCMC(l+1,:,:) ) ...
+            , 2) ,[3 1 2]); % N_particules
+        if any(iii_realization)
+            if all(iii_realization)
+                warning('all realization of the simulation have blown up.')
+                if l < param.N_test
+                    bt_MCMC((l+2):param.N_test,:,:) = ...
+                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+                    bt_fv((l+2):param.N_test,:,:) = ...
+                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+                    bt_m((l+2):param.N_test,:,:) = ...
+                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+                end
+                break
             end
-            break
+            nb_blown_up = sum(iii_realization);
+            warning([ num2str(nb_blown_up) ...
+                ' realizations have blown up and will be replaced.']);
+            bt_MCMC_good = bt_MCMC(l+1,:, ~ iii_realization);
+            bt_fv_good = bt_fv(l+1,:, ~ iii_realization);
+            bt_m_good = bt_m(l+1,:, ~ iii_realization);
+            rand_index =  randi( param.N_particules - nb_blown_up, nb_blown_up,1);
+            bt_MCMC(l+1,:, iii_realization) = bt_MCMC_good(1,:, rand_index);
+            bt_fv(l+1,:, iii_realization) = bt_fv_good(1,:, rand_index);
+            bt_m(l+1,:, iii_realization) = bt_m_good(1,:, rand_index);
+            clear bt_MCMC_good rand_index nb_blown_up iii_realization
         end
-        nb_blown_up = sum(iii_realization);
-        warning([ num2str(nb_blown_up) ...
-            ' realizations have blown up and will be replaced.']);
-        bt_MCMC_good = bt_MCMC(l+1,:, ~ iii_realization);
-        bt_fv_good = bt_fv(l+1,:, ~ iii_realization);
-        bt_m_good = bt_m(l+1,:, ~ iii_realization);
-        rand_index =  randi( param.N_particules - nb_blown_up, nb_blown_up,1);
-        bt_MCMC(l+1,:, iii_realization) = bt_MCMC_good(1,:, rand_index);   
-        bt_fv(l+1,:, iii_realization) = bt_fv_good(1,:, rand_index);   
-        bt_m(l+1,:, iii_realization) = bt_m_good(1,:, rand_index);   
-        clear bt_MCMC_good rand_index nb_blown_up iii_realization
     end
+    clear bt_tronc
+    
+    % warning('keeping small time step')
+    param.dt = param.dt*n_simu;
+    param.N_test=param.N_test/n_simu;
+    bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
+    bt_fv=bt_fv(1:n_simu:end,:,:);
+    bt_m=bt_m(1:n_simu:end,:,:);
+    bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
+    bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
+    
+    struct_bt_MCMC.tot.mean = mean(bt_MCMC,3);
+    struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
+    struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+    % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+    struct_bt_MCMC.fv.mean = mean(bt_fv,3);
+    struct_bt_MCMC.fv.var = var(bt_fv,0,3);
+    struct_bt_MCMC.fv.one_realiz = bt_fv(:,:,1);
+    struct_bt_MCMC.m.mean = mean(bt_m,3);
+    struct_bt_MCMC.m.var = var(bt_m,0,3);
+    struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
+    
+elseif strcmp(stochastic_integration, 'Str')
+    bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
+    iii_realization = zeros(param.N_particules,1);
+    for l = 1:param.N_test
+        [bt_MCMC(l+1,:,:)] = ...
+            evol_forward_bt_SSPRK3_MCMC(...
+            ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+            pchol_cov_noises, param.dt, bt_MCMC(l,:,:));
+        %         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
+        %         pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
+        %         bt_fv(l,:,:),bt_m(l,:,:));
+        
+        iii_realization =  permute( any( ...
+            isnan( bt_MCMC(l+1,:,:) ) | isinf( bt_MCMC(l+1,:,:) ) ...
+            , 2) ,[3 1 2]); % N_particules
+        if any(iii_realization)
+            if all(iii_realization)
+                warning('all realization of the simulation have blown up.')
+                if l < param.N_test
+                    bt_MCMC((l+2):param.N_test,:,:) = ...
+                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+                end
+                break
+            end
+            nb_blown_up = sum(iii_realization);
+            warning([ num2str(nb_blown_up) ...
+                ' realizations have blown up and will be replaced.']);
+            bt_MCMC_good = bt_MCMC(l+1,:, ~ iii_realization);
+            rand_index =  randi( param.N_particules - nb_blown_up, nb_blown_up,1);
+            bt_MCMC(l+1,:, iii_realization) = bt_MCMC_good(1,:, rand_index);
+            clear bt_MCMC_good rand_index nb_blown_up iii_realization
+        end
+    end
+    clear bt_tronc
+    
+    % warning('keeping small time step')
+    param.dt = param.dt*n_simu;
+    param.N_test=param.N_test/n_simu;
+    bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
+    bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
+    bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
+    
+    struct_bt_MCMC.tot.mean = mean(bt_MCMC,3);
+    struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
+    struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+    % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+else
+    error('Invalid stochastic integration path')
 end
-clear bt_tronc
-
-% warning('keeping small time step')
-param.dt = param.dt*n_simu;
-param.N_test=param.N_test/n_simu;
-bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
-bt_fv=bt_fv(1:n_simu:end,:,:);
-bt_m=bt_m(1:n_simu:end,:,:);
-bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
-bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
-
-struct_bt_MCMC.tot.mean = mean(bt_MCMC,3);
-struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
-struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
-% struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
-struct_bt_MCMC.fv.mean = mean(bt_fv,3);
-struct_bt_MCMC.fv.var = var(bt_fv,0,3);
-struct_bt_MCMC.fv.one_realiz = bt_fv(:,:,1);
-struct_bt_MCMC.m.mean = mean(bt_m,3);
-struct_bt_MCMC.m.var = var(bt_m,0,3);
-struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
 
 % BETA : confidence interval
 % struct_bt_MCMC.qtl = quantile(bt_MCMC, 0.025, 3);

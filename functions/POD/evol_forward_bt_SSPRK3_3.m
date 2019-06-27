@@ -33,7 +33,7 @@ end
 
 end
 
-function b_tp1 = SSPRK3_3(bt,I,L,C,dt)
+function b_tp1 = SSPRK3_3(bt, I, L, C, dt)
 
 k1 = deriv_bt( I(1,:)', squeeze(L(1,:,:)), C, bt);
 k2 = deriv_bt( I(2,:)', squeeze(L(2,:,:)), C, bt + k1*dt/2);
