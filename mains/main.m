@@ -267,8 +267,8 @@ if param.adv_corrected
 else
     [F1 F2] = coefficients_sto(param);
     if strcmp(stochastic_integration, 'Ito')
-        F = F1 + F2;
-%         F = F1;
+%         F = F1 + F2;
+        F = F1;
         clear F1 F2;
     elseif strcmp(stochastic_integration, 'Str')
         F = F1;
