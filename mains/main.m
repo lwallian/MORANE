@@ -263,20 +263,24 @@ end
 % Additional coefficients due to stochastic terms
 global stochastic_integration
 if param.adv_corrected
-    [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
-else
-    [F1 F2] = coefficients_sto(param);
     if strcmp(stochastic_integration, 'Ito')
-%         F = F1 + F2;
-        F = F1;
-        clear F1 F2;
+        [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
     elseif strcmp(stochastic_integration, 'Str')
-        F = F1;
-        clear F1 F2;
+        [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
+        [F1, ~] = coefficients_sto(param);
+        L_sto = L_sto - F1;
+    else
+        error('Invalid stochastic integration path');
+    end
+else
+    if strcmp(stochastic_integration, 'Ito')
+        [F1, ~] = coefficients_sto(param);
+    elseif strcmp(stochastic_integration, 'Str')
+        F1 = zeros([param.nb_modes param.nb_modes 1]);
     else
         error('Invalid stochastic integration path')
     end
-    L_sto = F;
+    L_sto = F1;
     I_sto = zeros([param.nb_modes 1]);
     C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);
 end

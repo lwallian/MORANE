@@ -11,12 +11,12 @@ if nargin == 0
     init;
     
     %% Number of modes for the the ROM
-    vect_nb_modes = [2 4 8 16]
+    vect_nb_modes = [2 4 6 8]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 %     vect_adv_corrected = [ true false]
-    vect_adv_corrected = [ true]
+    vect_adv_corrected = [ false]
     
     % To choose between the shannon and correlation time downsampling
     % methods
@@ -43,10 +43,10 @@ if nargin == 0
     % % type_data = 'turb2D_blocks_truncated'
     
     % These 3D data ( Re 300) gives good results
-    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+%     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
     
     % These 2D data ( Re 100) gives good results
-%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
