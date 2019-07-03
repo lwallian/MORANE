@@ -1,10 +1,10 @@
-function [result,pseudo_chol] = estimation_noises(param,bt)
+function [result, pseudo_chol] = estimation_correlated_noises(param, bt)
 % This function estimates the covariance of the additive and multiplicative
 % noises, assuming that the Chronos are orthogonal
 
 
 %% Get parameters
-param = fct_name_file_noise_cov(param);
+param = fct_name_file_correlated_noise_cov(param);
 
 if exist(param.name_file_noise_cov,'file')==2
     load(param.name_file_noise_cov,'pseudo_chol');
@@ -24,31 +24,27 @@ else
     % The last time step is not used
     T = T -dt;
     
-    d_bt = bt(2:end,:)-bt(1:end-1,:);
+    dbt = bt(2:end,:) - bt(1:end-1,:);
+    d2bt = dbt(2:end,:) - dbt(1:end-1,:);
     
     %% compute the RHS of equation
-    % R1 for the equation for finding theta_theta
-    % R2 for the equation for finding alpha_theta
-    % R3 for the equation for finding alpha_alpha
+    % R1 is proportional to theta_theta
+    % R2 is proportional to Mi_sigma
     
-    if param.big_data
-        [R1,R2,R3] = fct_comp_RHS_big_data(param,bt,d_bt);
-    else
-        [R1,R2,R3] = fct_comp_RHS(param,bt,d_bt);
-    end
-    
-    % Compute alpha_theta
-    alpha_theta = bsxfun(@times,1./(T*lambda),R2);
+    % NO PARAMETER BIG DATA ?
+    [R1,R2] = fct_comp_correlated_RHS(param, bt, d2bt);
     
     % Compute theta_theta
-    theta_theta=R1/T;
+    theta_theta = bsxfun(@times, 1 ./ (lambda * T), R1);
     
-    % Compute alpha_alpha
-    alpha_alpha = bsxfun(@times,1./(T*lambda),R3);
+    % Compute Mi_sigma
+    Mi_sigma = R2 ./ T;
     
-    clear R1 R2 R3
+    clear R1 R2;
     
-    alpha_alpha = reshape(alpha_alpha,[m^2,m^2]);
+    % BELOW IS NOT FINISHED YET
+    
+    theta_theta = reshape(theta_theta, [m^2, m^2]);
     alpha_theta = reshape(alpha_theta,[m^2,m]);
     
     result1 = [theta_theta;alpha_theta];
@@ -77,3 +73,6 @@ else
 end
 
 end
+
+end
+
