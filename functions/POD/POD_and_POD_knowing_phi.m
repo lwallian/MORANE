@@ -171,8 +171,8 @@ elseif param.decor_by_subsampl.bool && ...
     param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1.0);
     param.decor_by_subsampl.n_subsampl_decor ...
         = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
-%         = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
 %         = max(floor(correlationTimeCut(c, bt)), 1);
+%         = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
 end
 clear c;
 

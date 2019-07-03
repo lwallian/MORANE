@@ -14,11 +14,10 @@ function [bt_evol] = evol_forward_bt_SSPRK3_MCMC(I,L,C, ...
 
 % Do the SSPRK3 integration by steps
 k1 = evolve_noisy_bt(bt, I, L ,C, pchol_cov_noises, dt);
-k2 = evolve_noisy_bt(bt + k1 * dt / 2, I, L ,C, pchol_cov_noises, dt);
-k3 = evolve_noisy_bt(bt + k2*dt, I, L ,C, pchol_cov_noises, dt);
-
 u1 = bt + dt * k1;
+k2 = evolve_noisy_bt(u1, I, L ,C, pchol_cov_noises, dt);
 u2 = 3 / 4 * bt + u1 / 4 + dt * k2 / 4;
+k3 = evolve_noisy_bt(u2, I, L ,C, pchol_cov_noises, dt);
 
 bt_evol = (bt / 3) + (2 / 3) * (u2 + dt * k3);
 

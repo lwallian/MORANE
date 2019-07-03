@@ -43,10 +43,10 @@ if nargin == 0
     % % type_data = 'turb2D_blocks_truncated'
     
     % These 3D data ( Re 300) gives good results
-%     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
     
     % These 2D data ( Re 100) gives good results
-    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
