@@ -30,12 +30,12 @@ end
 load(name_file_U_temp);
 
 % compute the sum((dw_ss*del)*dw_ss)
-Mi_sigma = zeros(m, d); % TODO: verifier dims
+Mi_sigma = zeros(M, d);
 %compute the sum(b_p*d2bt_i*dX_res)
 del_pi = zeros(M, m, m, d);% (M,m(p),m(i),d)
 
 for t = 1 : N_tot % loop on time
-    if t_local > size(U, 2) - 1 % A new file needs to be loaded
+    if t_local > size(U, 2) - 2 % A new file needs to be loaded
         % Save previous file with residual velocity
         save(name_file_U_temp, 'U', '-v7.3');
         % initialization of the index of the snapshot in the file
@@ -48,15 +48,17 @@ for t = 1 : N_tot % loop on time
         load(name_file_U_temp);
     end
     dU = diff(U, 1, 2);
-    dU_del_dU = calculate_dU_del_dU(dU, d, MX, dX);
+    dU_del_dU = calculate_dU_del_dU(dU, d, MX, dX); % [1, 1, Mx, My(, Mz), d]
+    dU_del_dU = squeeze(dU_del_dU);
+    dU_del_dU = reshape(dU_del_dU, [M, d]);
     for k = 1 : d
-        Mi_sigma(:, k) = Mi_sigma(:, k) + dU_del_dU(:, k); % TODO: verifier dims
+        Mi_sigma(:, k) = Mi_sigma(:, k) + dU_del_dU(:, k);
         for i = 1 : m + 1
             if i ~= m + 1
                 for p = 1 : m + 1
                     if p ~= m + 1
-                    del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
-                        + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
+                        del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
+                            + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
                     else
                         del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
                             + dU(:, t_local, k) * d2bt(t_local, i);
@@ -64,7 +66,12 @@ for t = 1 : N_tot % loop on time
                 end
             else
                 for p = 1 : m + 1
-                    del_pi(:, p, i, k) = del_pi(:, p, i, k);
+                    if p ~= m + 1
+                        del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
+                            + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
+                    else
+                        del_pi(:, p, i, k) = del_pi(:, p, i, k);
+                    end
                 end
             end
         end
@@ -132,10 +139,12 @@ for p = 1 : m + 1
             adv_ls = permute(adv_ls, [1, 2, 4 : ndims(adv_ls), 3]);%(1 1 Mx My (Mz) d)
             
             % Add the diffusion term if phi_0
-            Lap_del_pi = laplacian_mat(del_p_i,dX);
-            Lap_del_pi = nu*Lap_del_pi;
-            Lap_del_pi = permute(Lap_del_pi,[1 ndims(Lap_del_pi)+1 2:ndims(Lap_del_pi)]);
-            Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
+            if q == m + 1
+                Lap_del_pi = laplacian_mat(del_p_i,dX);
+                Lap_del_pi = nu*Lap_del_pi;
+                Lap_del_pi = permute(Lap_del_pi,[1 ndims(Lap_del_pi)+1 2:ndims(Lap_del_pi)]);
+                Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
+            end
             
             % projection on phi_j
             for j = 1 : m + 1
@@ -143,7 +152,11 @@ for p = 1 : m + 1
                 phi_j = permute(phi_j, [4, 2, 1, 3]);%(1,1,M,d)
                 phi_j = reshape(phi_j, [1, 1, MX, d]);%(1,1,Mx,My,(Mz),d)
                 
-                s_temp = adv_sl .* phi_j + adv_ls .* phi_j - Lap_del_pi .* phi_j; %(1,1,Mx,My,(Mz),d)
+                if q == m + 1
+                    s_temp = adv_sl .* phi_j + adv_ls .* phi_j - Lap_del_pi .* phi_j; %(1,1,Mx,My,(Mz),d)
+                else
+                    s_temp = adv_sl .* phi_j + adv_ls .* phi_j;
+                end
                 clear phi_j;
                 s_temp = sum(s_temp, ndims(s_temp));%(1,1,Mx,My,(Mz))
                 
@@ -179,7 +192,7 @@ if d == 2
     dU = permute(dU, [5, 6, 1, 2, 3, 4]);
     dU_del_dU = bsxfun(@times, dU, div_U);
     dU_del_dU = sum(dU_del_dU, 3);
-    dU_del_dU = permute(dU_del_dU, [1, 2, 4 : ndims(dU_del_dU), 3]);
+    dU_del_dU = permute(dU_del_dU, [1, 2, 4 : ndims(dU_del_dU), 3]); % [1, 1, Mx, My, d]
 else
     dx = diff_l(dU, 1, dX);
     dy = diff_l(dU, 2, dX);
@@ -189,7 +202,7 @@ else
     dU = permute(dU, [5, 6, 7, 1, 2, 3, 4]);
     dU_del_dU = bsxfun(@times, dU, div_U);
     dU_del_dU = sum(dU_del_dU, 3);
-    dU_del_dU = permute(dU_del_dU, [1, 2, 4 : ndims(dU_del_dU), 3]);
+    dU_del_dU = permute(dU_del_dU, [1, 2, 4 : ndims(dU_del_dU), 3]); % [1, 1, Mx, My, Mz, d]
 end
 
 end
