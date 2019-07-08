@@ -53,26 +53,10 @@ for t = 1 : N_tot % loop on time
     dU_del_dU = reshape(dU_del_dU, [M, d]);
     for k = 1 : d
         Mi_sigma(:, k) = Mi_sigma(:, k) + dU_del_dU(:, k);
-        for i = 1 : m + 1
-            if i ~= m + 1
-                for p = 1 : m + 1
-                    if p ~= m + 1
-                        del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
-                            + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
-                    else
-                        del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
-                            + dU(:, t_local, k) * d2bt(t_local, i);
-                    end
-                end
-            else
-                for p = 1 : m + 1
-                    if p ~= m + 1
-                        del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
-                            + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
-                    else
-                        del_pi(:, p, i, k) = del_pi(:, p, i, k);
-                    end
-                end
+        for i = 1 : m
+            for p = 1 : m
+                del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
+                    + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
             end
         end
     end
@@ -81,6 +65,15 @@ for t = 1 : N_tot % loop on time
     t_local = t_local + 1;
 end
 clear U;
+
+% Do the divergence free projection
+Mi_sigma = reshape(Mi_sigma, [M, 1, d]);
+if strcmp(param.type_data, 'turb2D_blocks_truncated')
+    Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, true);
+else
+    Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, false);
+end
+
 
 % Load the topos
 load(param.name_file_mode, 'phi_m_U')
@@ -105,10 +98,10 @@ end
 
 % Compute theta_theta:
 
-R1 = zeros(m + 1, m + 1, m + 1, m + 1);
+R1 = zeros(m, m, m + 1, m + 1);
 
-for p = 1 : m + 1
-    for i = 1 : m + 1
+for p = 1 : m
+    for i = 1 : m
         del_p_i = del_pi(:, p, i, :);
         del_p_i = permute(del_p_i, [3, 4, 1, 2]);%(1,d,M)
         del_p_i = reshape(del_p_i, [1, d, MX]);%(1,d,Mx,My,(Mz))
@@ -146,17 +139,30 @@ for p = 1 : m + 1
                 Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
             end
             
+            % Do the divergence free projection
+            if q ~= m + 1
+                integ = adv_sl + adv_ls;
+            else
+                integ = adv_sl + adv_ls - Lap_del_pi;
+            end
+            integ = permute(integ, [3 : ndims(integ) - 1, 1, 2, ndims(integ)]); % [Mx, My, (Mz), 1, 1, d]
+            integ = reshape(integ, [M, 1, d]);
+            if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, true);
+            else
+                Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, false);
+            end
+            integ = reshape(integ, [MX, 1, d]);
+            integ = permute(integ, [ndims(integ) - 1, 1 : ndims(integ) - 2, ndims(integ)]);
+            integ = reshape(integ, [1, 1, MX, d]);
+            
             % projection on phi_j
             for j = 1 : m + 1
                 phi_j = phi_m_U(:, j, :);
                 phi_j = permute(phi_j, [4, 2, 1, 3]);%(1,1,M,d)
                 phi_j = reshape(phi_j, [1, 1, MX, d]);%(1,1,Mx,My,(Mz),d)
-                
-                if q == m + 1
-                    s_temp = adv_sl .* phi_j + adv_ls .* phi_j - Lap_del_pi .* phi_j; %(1,1,Mx,My,(Mz),d)
-                else
-                    s_temp = adv_sl .* phi_j + adv_ls .* phi_j;
-                end
+                    
+                s_temp = integ .* phi_j; %(1,1,Mx,My,(Mz),d)
                 clear phi_j;
                 s_temp = sum(s_temp, ndims(s_temp));%(1,1,Mx,My,(Mz))
                 
