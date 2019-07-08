@@ -1,6 +1,17 @@
 function [R1, R2] = fct_comp_correlated_RHS(param, bt, d2bt)
-%UNTITLED4 Summary of this function goes here
-%   Detailed explanation goes here
+%FCT_COMP_CORRELATED_RHS Estimates the noise statistics in the correlated
+%non resolved modes scheme given the PCA residual and the chronos functions
+%   @param param: structure with lots of parameters concerning the current
+%   simulation
+%   @param bt: chronos function of the current model
+%   @param d2bt: second derivative (wrt time) of the aforementioned chronos
+%   function
+%   @return R1: value proportional to the theta_theta term (theta_theta * T)
+%   @return R2: value proportional to the Mi_sigma_sigma term (Mi_sigma_sigma * T)
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 
 dt = param.dt;
 N_tot = param.N_tot;
@@ -29,10 +40,10 @@ end
 
 load(name_file_U_temp);
 
-% compute the sum((dw_ss*del)*dw_ss)
+% compute the sum((dw_ss * del) * dw_ss)
 Mi_sigma = zeros(M, d);
-%compute the sum(b_p*d2bt_i*dX_res)
-del_pi = zeros(M, m, m, d);% (M,m(p),m(i),d)
+%compute the sum(b_p * d2bt_i * dX_res)
+del_pi = zeros(M, m, m, d); % (M,m(p),m(i),d)
 
 for t = 1 : N_tot % loop on time
     if t_local > size(U, 2) - 2 % A new file needs to be loaded
@@ -46,9 +57,12 @@ for t = 1 : N_tot % loop on time
         name_file_U_temp = param.name_file_U_temp{big_T};
         % Load new file
         load(name_file_U_temp);
+        
+        % Differentiate it wrt time
+        dU = diff(U, 1, 2);
     end
-    dU = diff(U, 1, 2);
-    dU_del_dU = calculate_dU_del_dU(dU, d, MX, dX); % [1, 1, Mx, My(, Mz), d]
+    % Calculate (dw_ss * del) * dw_ss
+    dU_del_dU = calculate_dU_del_dU(dU(:, t_local, :), d, MX, dX); % [1, 1, Mx, My(, Mz), d]
     dU_del_dU = squeeze(dU_del_dU);
     dU_del_dU = reshape(dU_del_dU, [M, d]);
     for k = 1 : d
@@ -60,20 +74,19 @@ for t = 1 : N_tot % loop on time
             end
         end
     end
-    clear dU dU_del_dU;
     % Incrementation of the index of the snapshot in the file
     t_local = t_local + 1;
 end
+clear dU dU_del_dU;
 clear U;
 
-% Do the divergence free projection
+% Do the divergence free projection before projecting onto each topos
 Mi_sigma = reshape(Mi_sigma, [M, 1, d]);
 if strcmp(param.type_data, 'turb2D_blocks_truncated')
     Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, true);
 else
     Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, false);
 end
-
 
 % Load the topos
 load(param.name_file_mode, 'phi_m_U')
@@ -97,7 +110,6 @@ for j = 1 : m + 1
 end
 
 % Compute theta_theta:
-
 R1 = zeros(m, m, m + 1, m + 1);
 
 for p = 1 : m
@@ -185,6 +197,7 @@ R2 = R2 * dt;
 end
 
 function dU_del_dU = calculate_dU_del_dU(dU, d, MX, dX)
+% Estimates (dw_ss * del) * dw_ss
 
 % Reshape dU to be able to differentiate
 dU = permute(dU, [3, 1, 2]);

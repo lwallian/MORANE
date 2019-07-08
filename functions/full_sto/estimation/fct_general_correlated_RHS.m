@@ -1,6 +1,18 @@
 function [R1, R2] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss)
-%UNTITLED6 Summary of this function goes here
-%   Detailed explanation goes here
+%FCT_COMP_CORRELATED_RHS Estimates the noise statistics in the correlated
+%non resolved modes scheme given the PCA residual and the chronos functions
+%   @param param: structure with lots of parameters concerning the current
+%   simulation
+%   @param bt: chronos function of the current model
+%   @param d2bt: second derivative (wrt time) of the aforementioned chronos
+%   function
+%   @param sigma_ss: noise correlation matrix for the non resolved modes
+%   @return R1: value proportional to the theta_theta term (theta_theta * T)
+%   @return R2: value proportional to the Mi_sigma_sigma term (Mi_sigma_sigma * T)
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 
 dt = param.dt;
 N_tot = param.N_tot;
@@ -12,10 +24,6 @@ dX = param.dX;
 MX = param.MX;
 d = param.d;
 lambda = param.lambda;
-
-% The last two time steps are not used
-% N_tot = N_tot - 2;
-% T = T - 2 * dt;
 
 % Estimate the terms using the orthogonality assumptions
 [R1, R2] = fct_comp_correlated_RHS(param, bt, d2bt);
@@ -31,7 +39,8 @@ G_pq = mean(bt' * bt, 1); % check that it's the outer product given the dimensio
 % We define psi_p
 psi = zeros(M, m, d); % vector in space and we reshape later on
 
-% Initialization
+% Estimate the psi modes for projections later on, calculated from the
+% residual of the velocity field
 t_local = 1; % index of the snapshot in a file
 if param.data_in_blocks.bool % if data are saved in several files
     big_T = 1; % index of the file
@@ -60,7 +69,6 @@ for t = 1 : N_tot % loop on time
             psi(:, p, k) = psi(:, p, k) + bt(t_local, p) .* U(:, t_local, k);
         end
     end
-    clear U;
     t_local = t_local + 1;
 end
 psi = psi ./ T;
