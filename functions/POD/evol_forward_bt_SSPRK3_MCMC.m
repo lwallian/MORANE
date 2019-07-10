@@ -28,22 +28,22 @@ function db = evolve_noisy_bt(bt, I, L, C, pchol_cov_noises, dt)
 [~ , n , nb_pcl ] = size(bt);
 
 db_fv = evolve_deter(bt, I, L, C);
-db_m = generate_noise(pchol_cov_noises, n, nb_pcl, dt, bt);
+db_m = evolve_sto(pchol_cov_noises, n, nb_pcl, dt, bt);
 
 db = db_fv + db_m;
 db = permute( db , [2 1 4 3]);
 
 end
 
-function db_m = generate_noise(pchol_cov_noises, n, nb_pcl, dt, bt)
+function db_m = evolve_sto(pchol_cov_noises, n, nb_pcl, dt, bt)
 
 bt = permute(bt,[2 1 4 3]); % m x 1 x 1 x nb_pcl
 
-noises=pchol_cov_noises*randn((n+1)*n,nb_pcl)*sqrt(dt);
-noises=permute(noises,[1 3 4 2]); % (n+1)*n x nb_pcl
+noises = pchol_cov_noises*randn((n+1)*n,nb_pcl)*sqrt(dt);
+noises = permute(noises,[1 3 4 2]); % (n+1)*n x nb_pcl
 clear pchol_cov_noises; % (n+1)*n x 1 x 1 x nb_pcl
 theta_alpha0_dB_t = noises(1:n,1,1,:); % n(i) x 1 x 1 x nb_pcl
-alpha_dB_t =reshape(noises(n+1:end,1,1,:),[n n 1 nb_pcl]); % n(j) x n(i) x 1 x nb_pcl
+alpha_dB_t = reshape(noises(n+1:end,1,1,:),[n n 1 nb_pcl]); % n(j) x n(i) x 1 x nb_pcl
 clear noises
 
 alpha_dB_t = bsxfun(@times,bt,alpha_dB_t); % m(j) x m(i) x 1 x nb_pcl
