@@ -1,31 +1,37 @@
 function [param] = field_periodicity_filter(param, delay, order)
-%UNTITLED2 Summary of this function goes here
+%FIELD_PERIODICITY_FILTER Filters out the periodic component close to the given delay of a 
+%velocity field with an LMS adaptive filter of a given order
+%   @param param: structure containing the following elements :
+%   folder_data, type_data, N_tot, M, MX, d
 %   @param order: amount of taps in the LMS filter estimated during the
 %   correlation function filtering process
 %   @param delay: delay that is going to be introduced to the field to
 %   suppress that periodic component
 %   @return param: modified parameter structure with the filenames of each
 %   part of the filtered field
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 
-dt = param.dt;
+% dt = param.dt;
 N_tot = param.N_tot;
-m = param.nb_modes;
-nu = param.viscosity;
-T = N_tot*dt;
+% m = param.nb_modes;
+% nu = param.viscosity;
+% T = N_tot*dt;
 M = param.M;
-dX = param.dX;
+% dX = param.dX;
 MX = param.MX;
 d = param.d;
-lambda = param.lambda;
 
-if param.data_in_blocks.bool
+if ~param.data_in_blocks.bool
     name_file_U_centered=[param.folder_data param.type_data '_U_centered'];
-    load(name_file_U_centered);
+    load(name_file_U_centered, 'U');
     filtered_field = LMS_filter_one_block_field(U, MX, d, delay, order);
-    filename = get_filename(param);
+    filename = get_save_filename(param);
     save(filename, 'filtered_field');
-elseif ~param.data_in_blocks && ~param.big_data
-    % TODO: process each data point on the grid as a time series iteratively
+else
+    % Initialize the filter with zeros
 	w_filter = zeros([M, d, order]);
     
     % Load the first file to get some statistics to manage the amount of
@@ -34,30 +40,143 @@ elseif ~param.data_in_blocks && ~param.big_data
     load(filename, 'U');
     field = U; % Rename U in case we'll need to load multiple files
     clear U;
+    field = reshape(field, M, [], d);
     data_size = size(field); % [M, t, d]
-    T_file = data_size(2);
-    t = 1;
+    T_file = data_size(2); % amount of time steps per file
+    % Simplified case, otherwise it would be quite difficult to manage.
+    % TODO: code it for the general case
+    if order > T_file
+        order = T_file;
+    end
+    t_delay = delay; % amount of steps left to delay the input signal
+    t = 1; % global time
+    n_file = 1; % next file to read
+    reg_term = 1e-4 * order * max(field(:,1,:), [], 'all');
     if T_file > delay
         % We'll work with two files max
         % Do the first delayed input by padding
         ref_signal = [zeros([MX, delay, d]), field(:, delay : end, :)];
         ref_signal = ref_signal(1 : T_file);
-    else
-        ref_signal = zeros([MX, delay, d]); % plutôt travailler avec ref à taux fixe
+        t_delay = 0;
+        n_file = n_file + 1;
+        [filtered_field, w_filter] = LMS_filter_block(field, ref_signal, w_filter, d, order, reg_term);
+        filename = get_save_filename(param, n_file);
+        U = filtered_field;
+        save(filename, 'U');
+        clear U;
+        t = t + T_file;
         
-        n_files = ceil(delay / T_file); % Amount of files to load
-        for i = 2 : n_files
-            filename = [param.folder_data, param.type_data, num2str(i), '_U_centered'];
-            load(filename, 'U');
-            field = cat(2, field, U);
+        % Filter the rest of the field
+        while t < N_tot
+            filename = get_field_filename(param, n_file);
+            [field, ref_signal] = get_next_field(filename, field, M, d, order);
+            [filtered_field, w_filter] = LMS_filter_block(field, ref_signal, w_filter, d, order, reg_term);
+            filename = get_save_filename(param, n_file);
+            U = filtered_field;
+            save(filename, 'U');
+            clear U filtered_field;
+            t = t + T_file;
+        end
+    else
+        n_delayed = 0; % Amount of files we delay the reference signal
+        % If the delay is more than a file, the filter is not going to
+        % change the field's value, so we just save the original field
+        while t_delay > T_file
+            filename = get_save_filename(param, n_file);
+            U = field;
+            save(filename, 'U');
             clear U;
+            n_file = n_file + 1;
+            t_delay = t_delay - T_file;
+            t = t + T_file;
+            filename = get_field_filename(param, n_file);
+            load(filename, 'U');
+            field = U;
+            clear U;
+            n_delayed = n_delayed + 1;
+        end
+        t_delay = 0;
+        filename = get_field_filename(param, n_file - n_delayed);
+        ref_signal = get_next_reference(filename, [], delay);
+        n_file = n_file + 1;
+        [filtered_field, w_filter] = LMS_filter_block(field, ref_signal, w_filter, d, order, reg_term);
+        filename = get_save_filename(param, n_file);
+        U = filtered_field;
+        save(filename, 'U');
+        clear U filtered_field;
+        t = t + T_file;
+        
+        % Filter the rest of the field
+        while t > N_tot
+            filename = get_field_filename(param, n_file - n_delayed);
+            ref_signal = get_next_reference(filename, ref_signal, delay);
+            n_file = n_file + 1;
+            [filtered_field, w_filter] = LMS_filter_block(field, ref_signal, w_filter, d, order, reg_term);
+            filename = get_save_filename(param, n_file);
+            U = filtered_field;
+            save(filename, 'U');
+            clear U filtered_field;
+            t = t + T_file;
         end
     end
-        
-            
+end
+
+param.filtered.filename = get_save_filename(param);
+param.filtered.order = order;
+param.filtered.delay = delay;
+param.filtered.n_blocks = n_file;
+
+end
+
+
+function [field, reference] = get_next_field(filename, field, M, d, order, reference, delay)
+
+if nargin == 7
+    load(filename, 'U');
+    U = reshape(U, M, [], d);
+    T_U = size(U);
+    if T_U(2) > delay
+        reference = cat(2, field(:, end - delay : end, :), U(:, 1 : end - delay, :));
+    else
+        reference = cat(2, field(:, end - delay : end, :), U(:, :, :));
+    end
+    field = cat(2, field(:, end - order - 1 : end, :), U);
+    clear U;
 else
-	% TODO: Deal with the multiple files problem, namely having to open
-    % multiple ones at the same time if the order or the delay are too big
+    load(filename, 'U');
+    U = reshape(U, M, [], d);
+    field = cat(2, field(:, end - order - 1 : end, :), U);
+    clear U;
+end
+
+end
+
+
+function [ref_signal] = get_next_reference(filename, ref_signal, delay)
+
+load(filename, 'U');
+U = reshape(U, M, [], d);
+T_U = size(U);
+if isempty(ref_signal)
+    ref_signal = [zeros(M, delay, d), U(:, 1 : end - delay, :)];
+else
+    if T_U(2) > delay
+        ref_signal = cat(2, ref_signal(:, end - delay : end, :), U(:, 1 : end - delay, :));
+    else
+        ref_signal = cat(2, ref_signal(:, end - delay : end, :), U(:, :, :));
+    end
+end
+clear U;
+
+end
+
+
+function [load_filename] = get_field_filename(param, n_block)
+
+if nargin == 2
+    load_filename = [param.folder_data, param.type_data, num2str(n_block), '_U_centered'];
+else
+    load_filename = [param.folder_data, param.type_data, '_U_centered'];
 end
 
 end
@@ -128,12 +247,12 @@ end
 
 end
 
-function [save_filename] = get_filename(param, n_block)
+function [save_filename] = get_save_filename(param, n_block)
 
 if nargin == 2
-    save_filename = [param.folder_data, param.type_data, num2str(n_block)];
+    save_filename = [param.folder_data, param.type_data, num2str(n_block), '_filtered'];
 else
-    save_filename = [param.folder_data, param.type_data];
+    save_filename = [param.folder_data, param.type_data, '_filtered'];
 end
 
 end
