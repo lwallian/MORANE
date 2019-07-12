@@ -7,8 +7,6 @@ function [param] = field_periodicity_filter(param, delay, order)
 %   correlation function filtering process
 %   @param delay: delay that is going to be introduced to the field to
 %   suppress that periodic component
-%   @return param: modified parameter structure with the filenames of each
-%   part of the filtered field
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor

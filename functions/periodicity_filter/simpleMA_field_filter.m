@@ -1,6 +1,13 @@
-function [outputArg1,outputArg2] = simpleMA_field_filter(param, window_size)
-%UNTITLED5 Summary of this function goes here
-%   Detailed explanation goes here
+function [param] = simpleMA_field_filter(param, window_size)
+%SIMPLEMA_FIELD_FILTER Filters the velocity field in time with a moving
+%average filter with the specified window size
+%   @param param: structure containing the following elements :
+%   folder_data, type_data, N_tot, M, MX, d
+%   @param window_size: size of the filter's window
+%
+% Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
+% supervisor
+%
 
 assert(isinteger(window_size), 'Window size must be an integer');
 assert(isfield(param, 'folder_data'), 'Missing folder_data field in parameter structure');
@@ -22,6 +29,7 @@ MX = param.MX;
 d = param.d;
 
 if ~param.data_in_blocks.bool
+    % Deal first with the case where the data is in just one file
     name_file_U_centered=[param.folder_data, param.type_data, '_U_centered'];
     load(name_file_U_centered, 'U');
     filtered_field = MA_filter_one_block_field(U, MX, d, window_size);
