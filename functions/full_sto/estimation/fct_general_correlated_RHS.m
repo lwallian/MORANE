@@ -34,7 +34,7 @@ beta = bsxfun(@times, R1, 1 / lambda);
 
 % Compute gamma
 % First, we define G_pq
-G_pq = mean(bt' * bt, 1); % check that it's the outer product given the dimensions, should be nxn
+G_pq = mean(bt(1 : end - 1, :) * bt(1 : end - 1, :)', 2); % check that it's the outer product given the dimensions, should be nxn
 
 % We define psi_p
 psi = zeros(M, m, d); % vector in space and we reshape later on
@@ -94,12 +94,13 @@ end
 gamma = gamma .* dt / T;
 
 % Use Least Squares to estimate the theta_theta in the general case
-G_pinv = pinv(G_pq);
+% G_pinv = pinv(G_pq);
 for i = 1 : m
     for q = 1 : m + 1
         for j = 1 : m
             kappa = beta(:, i, q, j) - gamma(:, i, q, j);
-            R1(:, i, q, j) = G_pinv * kappa;
+            R1(:, i, q, j) = linsolve(G_pinv, kappa); % more efficient than solving with pinv
+%             R1(:, i, q, j) = G_pinv * kappa;
         end
     end
 end
