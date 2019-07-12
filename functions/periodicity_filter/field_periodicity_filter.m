@@ -14,6 +14,15 @@ function [param] = field_periodicity_filter(param, delay, order)
 % supervisor
 %
 
+assert(isinteger(delay), 'Delay must be an integer');
+assert(isinteger(order), 'Filter order must be an integer');
+assert(isfield(param, 'folder_data'), 'Missing folder_data field in parameter structure');
+assert(isfield(param, 'type_data'), 'Missing type_data field in parameter structure');
+assert(isfield(param, 'N_tot'), 'Missing N_tot field in parameter structure');
+assert(isfield(param, 'M'), 'Missing M field in parameter structure');
+assert(isfield(param, 'MX'), 'Missing MX field in parameter structure');
+assert(isfield(param, 'd'), 'Missing d field in parameter structure');
+
 % dt = param.dt;
 N_tot = param.N_tot;
 % m = param.nb_modes;
@@ -25,7 +34,7 @@ MX = param.MX;
 d = param.d;
 
 if ~param.data_in_blocks.bool
-    name_file_U_centered=[param.folder_data param.type_data '_U_centered'];
+    name_file_U_centered=[param.folder_data, param.type_data, '_U_centered'];
     load(name_file_U_centered, 'U');
     filtered_field = LMS_filter_one_block_field(U, MX, d, delay, order);
     filename = get_save_filename(param);
@@ -47,6 +56,7 @@ else
     % TODO: code it for the general case
     if order > T_file
         order = T_file;
+        warning('Order too big. Fixing it to temporal file length')
     end
     t_delay = delay; % amount of steps left to delay the input signal
     t = 1; % global time
@@ -107,9 +117,11 @@ else
         t = t + T_file;
         
         % Filter the rest of the field
-        while t > N_tot
+        while t < N_tot
             filename = get_field_filename(param, n_file - n_delayed);
             ref_signal = get_next_reference(filename, ref_signal, delay);
+            filename = get_field_filename(param, n_file);
+            field = get_next_field(filename, field, M, d, order);
             n_file = n_file + 1;
             [filtered_field, w_filter] = LMS_filter_block(field, ref_signal, w_filter, d, order, reg_term);
             filename = get_save_filename(param, n_file);
@@ -222,6 +234,8 @@ end
 
 function [filtered_field] = LMS_filter_one_block_field(field, MX, d, delay, order)
 
+[~, T, ~] = size(field);
+field = reshape(field, [MX, T, d]);
 filtered_field = zeros(size(field));
 
 if d == 2 
@@ -244,6 +258,7 @@ else
     end
 end
 
+filtered_field = reshape(filtered_field, M, [], d);
 
 end
 
