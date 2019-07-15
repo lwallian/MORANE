@@ -12,14 +12,22 @@ function [bt_evol] = evol_forward_bt_SSPRK3_MCMC(I,L,C, ...
 % supervisor
 %
 
-% Do the SSPRK3 integration by steps
-k1 = evolve_noisy_bt(bt, I, L ,C, pchol_cov_noises, dt);
-u1 = bt + dt * k1;
-k2 = evolve_noisy_bt(u1, I, L ,C, pchol_cov_noises, dt);
-u2 = 3 / 4 * bt + u1 / 4 + dt * k2 / 4;
-k3 = evolve_noisy_bt(u2, I, L ,C, pchol_cov_noises, dt);
+[~ , n , nb_pcl ] = size(bt);
 
-bt_evol = (bt / 3) + (2 / 3) * (u2 + dt * k3);
+% Do the SSPRK3 integration by steps
+db_m = evolve_sto(pchol_cov_noises, n, nb_pcl, dt, bt);
+db_m = permute( db_m , [2 1 4 3]);
+k1 = evolve_deter(bt, I, L ,C);
+k1 = permute( k1 , [2 1 4 3]);
+u1 = bt + dt * k1 + db_m;
+k2 = evolve_deter(u1, I, L ,C);
+k2 = permute( k2 , [2 1 4 3]);
+u2 = 3 / 4 * bt + u1 / 4 + dt * k2 / 4 + db_m / 4;
+k3 = evolve_deter(u2, I, L ,C);
+k3 = permute( k3 , [2 1 4 3]);
+
+bt_evol = (bt / 3) + (2 / 3) * (u2 + dt * k3 + db_m);
+bt_evol = permute( bt_evol , [2 1 4 3]);
 
 end
 
