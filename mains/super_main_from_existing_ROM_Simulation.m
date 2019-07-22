@@ -12,11 +12,12 @@ if nargin == 0
     
     %% Number of modes for the the ROM
     vect_nb_modes = [2 4 6 8]
+%     vect_nb_modes = [16]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 %     vect_adv_corrected = [ true false]
-    vect_adv_corrected = [ false]
+    vect_adv_corrected = [ true]
     
     % To choose between the shannon and correlation time downsampling
     % methods
