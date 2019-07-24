@@ -95,9 +95,11 @@ decor_by_subsampl.test_fct='b';
 decor_by_subsampl.meth='bt_decor';
 % Meth to choose the time sub-sampling
 % ('auto_shanon'=maxim frequency of resolved chronos)
-% ('corr_time' = autocorrelation time estimation of the unresolved chronos)
-decor_by_subsampl.choice_n_subsample='auto_shanon';
-% decor_by_subsampl.choice_n_subsample = 'corr_time';
+% ('lms' = correlation time estimation of the unresolved chronos through an lms filtered correlation function)
+% ('truncated' = correlation time estimation of the unresolved chronos through a truncated correlation function)
+% ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
+% decor_by_subsampl.choice_n_subsample='auto_shanon';
+decor_by_subsampl.choice_n_subsample = 'htgen';
 % Stochastic integration path : 'Ito' or 'Str'
 global stochastic_integration;
 stochastic_integration = 'Str';
@@ -106,7 +108,7 @@ stochastic_integration = 'Str';
 global choice_n_subsample;
 choice_n_subsample = decor_by_subsampl.choice_n_subsample;
 
-if strcmp(choice_n_subsample, 'corr_time')
+if ~strcmp(choice_n_subsample, 'auto_shanon')
     v_threshold = NaN;
 end
 

@@ -4,6 +4,7 @@ function param = sub_sample_U(param)
 %
 
 %% Initialization
+global choice_n_subsample;
 
 param.folder_file_U_temp = fct_folder_temp(param);
 
@@ -47,7 +48,7 @@ elseif ~ param.big_data
         % Subsample
         U=U(:,find(vt(:,big_T)),:);
         
-        if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
+        if ~strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
             name_file_U_temp=[param.folder_file_U_temp ...
             num2str(big_T) '_U_temp'];
         else
@@ -113,7 +114,7 @@ else
     if param.data_in_blocks.bool
 %         name_file_U_temp=[param.folder_file_U_temp param.type_data ...
 %             num2str(big_T) '_U_temp'];
-        name_file_U_temp=[param.folder_file_U_temp 'strat' ...
+        name_file_U_temp=[param.folder_file_U_temp 'decor_' choice_n_subsample '_' ...
             num2str(big_T) '_U_temp'];
         param_ref.name_file_U_temp=[param_ref.name_file_U_temp ...
             {name_file_U_temp}];
@@ -121,7 +122,7 @@ else
     else
 %         name_file_U_temp=[param.folder_file_U_temp param.type_data ...
 %              '_U_temp'];
-        name_file_U_temp=[param.folder_file_U_temp 'strat' ...
+        name_file_U_temp=[param.folder_file_U_temp 'decor_' choice_n_subsample '_' ...
              '_U_temp'];
         param.name_file_U_temp=name_file_U_temp;  
     end
