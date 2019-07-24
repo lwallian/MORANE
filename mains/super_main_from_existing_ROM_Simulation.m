@@ -128,7 +128,6 @@ for modal_dt=vect_modal_dt
                 iii = (threshold =='.');
                 threshold(iii)='_';
                 
-                global choice_n_subsample;
                 switch choice_n_subsample
                     case 'auto_shanon'
                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
