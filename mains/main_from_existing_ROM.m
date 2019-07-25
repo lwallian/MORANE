@@ -153,6 +153,7 @@ param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
 global choice_n_subsample;
 global stochastic_integration;
+global correlated_model;
 param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
 param_ref.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref.type_data = type_data;
@@ -378,7 +379,7 @@ end
 % param.N_test=param.N_test*n_simu;
 
 % Reconstruction in the stochastic case
-if strcmp(stochastic_integration, 'Ito')
+if strcmp(stochastic_integration, 'Ito') && ~correlated_model
     bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
     bt_fv=bt_MCMC;
     bt_m=zeros(1,param.nb_modes,param.N_particules);
@@ -444,7 +445,7 @@ if strcmp(stochastic_integration, 'Ito')
     struct_bt_MCMC.m.var = var(bt_m,0,3);
     struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
     
-elseif strcmp(stochastic_integration, 'Str')
+elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
     bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
     iii_realization = zeros(param.N_particules,1);
     for l = 1:param.N_test
@@ -490,6 +491,45 @@ elseif strcmp(stochastic_integration, 'Str')
     struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
     % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+elseif correlated_model
+    bt_MCMC = repmat(bt_tronc, [1, 1, param.N_particules]);
+    bt_fv = bt_MCMC;
+    bt_m = zeros(1, param.nb_modes, param.N_particules);
+    
+    % Initialization of model's stochastic variables
+    eta = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
+    Gr = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
+    Mi_ss = zeros(1, param.nb_modes, param.N_particles);
+    
+    for l = 1 : param.N_test
+        [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
+            eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+            evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
+            pchol_cov_noises, param.decor_by_subsampl.tau_corr, param.dt, bt_MCMC(l, :, :), ...
+            eta, Gr, Mi_ss, Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+    end
+    clear bt_tronc
+    
+    param.dt = param.dt * n_simu;
+    param.N_test = param.N_test / n_simu;
+    bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+    bt_fv = bt_fv(1 : n_simu : end, :, :);
+    bt_m = bt_m(1 : n_simu : end, :, :);
+    eta = eta(1 : n_simu : end, :, :, :);
+    Gr = Gr(1 : n_simu : end, :, :, :);
+    Mi_ss = Mi_ss(1: n_simu : end, :, :);
+    bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+    bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
+    
+    struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+    struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+    struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+    struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+    struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+    struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+    struct_bt_MCMC.m.mean = mean(bt_m, 3);
+    struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+    struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
 else
     error('Invalid stochastic integration path')
 end

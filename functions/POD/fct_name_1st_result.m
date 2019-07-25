@@ -2,6 +2,7 @@ function param = fct_name_1st_result(param)
 % Create the name of the file where the 1st reuslts (the ROM defintion) are saved
 %
 global stochastic_integration;
+global correlated_model;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -20,7 +21,7 @@ if param.decor_by_subsampl.bool
                 dependance_on_time_of_a char_filter ...
                 '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
                 '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
-                '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold)  ...
+                '_thr_' num2str(param.decor_by_subsampl.spectrum_threshold)  ...
                 'fct_test_' param.decor_by_subsampl.test_fct ];
         otherwise
             param.name_file_1st_result=[ param.folder_results '1stresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
@@ -36,6 +37,9 @@ end
 param.name_file_1st_result=[param.name_file_1st_result '_fullsto'];
 if ~ param.adv_corrected
     param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];    
+end
+if correlated_model
+    param.name_file_1st_result=[param.name_file_1st_result '_correlated_'];
 end
 param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_integration];
 param.name_file_1st_result=[param.name_file_1st_result '.mat'];

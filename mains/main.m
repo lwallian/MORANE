@@ -144,8 +144,12 @@ if ~exist('decor_by_subsampl','var')
         % 'auto_shanon' means that it use a Nyquist-Shanon based criterion
         % 'tuning' means that param.decor_by_subsampl.n_subsampl_decor is
         % set manually
-        % 'corr_time' uses the autocorrelation time to choose the
-        % subsampling rate.
+        % 'lms' uses the correlation time estimated through an lms filtered
+        % correlation function to choose the subsampling rate.
+        % 'truncated' uses the correlation time estimated through a 
+        % truncated correlation function to choose the subsampling rate.
+        % 'htgen' uses the correlation time estimated through an
+        % heterogeneous estimator to choose the subsampling rate.
         param.decor_by_subsampl.choice_n_subsample='auto_shanon';
         % param.decor_by_subsampl.spectrum_threshold and param.decor_by_subsampl.test_fct
         % are parameters used in the new time sampling period choice.
@@ -177,7 +181,7 @@ param.eq_proj_div_free = true;
 % if param.save_all_bi = true, the N Chronos will be computed and saved
 % with N = the number of time steps
 % It can be useful for offline studies
-if ~exist('save_all_bi','var')
+if ~exist('save_all_bi', 'var')
     param.save_all_bi = false;
 else % the variable is already defined in a super_main
     param.save_all_bi = save_all_bi;
@@ -293,7 +297,12 @@ if param.big_data
     disp('Galerkin projection on stochastic Navier-Stokes done');
 end
 
-[Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot);
+global correlated_model;
+if correlated_model
+    [Cov_noises,pchol_cov_noises, Mi_sigma] = estimation_correlated_noises(param, bt_tot);
+else
+    [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot);
+end
 
 if param.big_data
 	toc;tic;
@@ -376,54 +385,93 @@ if ~param.igrida && reconstruct_chronos
 %     param.N_test=param.N_test*n_simu;
     
     % Reconstruction in the stochastic case
-    if strcmp(stochastic_integration, 'Ito')
-        bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
-        bt_fv=bt_MCMC;
-        bt_m=zeros(1,param.nb_modes,param.N_particules);
-        for l = 1:param.N_test
-            [bt_MCMC(l+1,:,:),bt_fv(l+1,:,:),bt_m(l+1,:,:)] = ...
-                evol_forward_bt_MCMC(I_sto,L_sto,C_sto, ...
-                pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
-                bt_fv(l,:,:),bt_m(l,:,:));
+    if strcmp(stochastic_integration, 'Ito') && ~correlated_model
+        bt_MCMC = repmat(bt_tronc,[1 1 param.N_particules]);
+        bt_fv = bt_MCMC;
+        bt_m = zeros(1, param.nb_modes, param.N_particules);
+        for l = 1 : param.N_test
+            [bt_MCMC(l+1, :, :), bt_fv(l+1, :, :), bt_m(l+1, :, :)] = ...
+                evol_forward_bt_MCMC(I_sto, L_sto, C_sto, ...
+                pchol_cov_noises, param.dt, bt_MCMC(l, :, :), ...
+                bt_fv(l, :, :),bt_m(l, :, :));
         end
         clear bt_tronc
         
-        param.dt = param.dt*n_simu;
-        param.N_test=param.N_test/n_simu;
-        bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
-        bt_fv=bt_fv(1:n_simu:end,:,:);
-        bt_m=bt_m(1:n_simu:end,:,:);
-        bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
-        bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
+        param.dt = param.dt * n_simu;
+        param.N_test = param.N_test / n_simu;
+        bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+        bt_fv = bt_fv(1 : n_simu : end, :, :);
+        bt_m = bt_m(1 : n_simu : end, :, :);
+        bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+        bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
         
-        struct_bt_MCMC.tot.mean = mean(bt_MCMC,3);
-        struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
-        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
-        struct_bt_MCMC.fv.mean = mean(bt_fv,3);
-        struct_bt_MCMC.fv.var = var(bt_fv,0,3);
-        struct_bt_MCMC.fv.one_realiz = bt_fv(:,:,1);
-        struct_bt_MCMC.m.mean = mean(bt_m,3);
-        struct_bt_MCMC.m.var = var(bt_m,0,3);
-        struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
+        struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+        struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+        struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+        struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+        struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+        struct_bt_MCMC.m.mean = mean(bt_m, 3);
+        struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+        struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
         
-    elseif strcmp(stochastic_integration, 'Str')
-        bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
-        for l = 1:param.N_test
-            [bt_MCMC(l+1,:,:)] = ...
-                evol_forward_bt_SSPRK3_MCMC(I_sto,L_sto,C_sto, ...
-                pchol_cov_noises, param.dt, bt_MCMC(l,:,:));
+    elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
+        bt_MCMC = repmat(bt_tronc, [1 1 param.N_particules]);
+        for l = 1 : param.N_test
+            [bt_MCMC(l+1, :, :)] = ...
+                evol_forward_bt_SSPRK3_MCMC(I_sto, L_sto, C_sto, ...
+                pchol_cov_noises, param.dt, bt_MCMC(l, :, :));
         end
         clear bt_tronc
         
-        param.dt = param.dt*n_simu;
-        param.N_test=param.N_test/n_simu;
-        bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
-        bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
-        bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
+        param.dt = param.dt * n_simu;
+        param.N_test = param.N_test / n_simu;
+        bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+        bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+        bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
         
-        struct_bt_MCMC.tot.mean = mean(bt_MCMC,3);
-        struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
-        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
+        struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+        struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+    elseif correlated_model
+        bt_MCMC = repmat(bt_tronc, [1, 1, param.N_particules]);
+        bt_fv = bt_MCMC;
+        bt_m = zeros(1, param.nb_modes, param.N_particules);
+        
+        % Initialization of model's stochastic variables
+        eta = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
+        Gr = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
+        Mi_ss = zeros(1, param.nb_modes, param.N_particles);
+        
+        for l = 1 : param.N_test
+            [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
+                eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+                evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
+                pchol_cov_noises, param.decor_by_subsampl.tau_corr, param.dt, bt_MCMC(l, :, :), ...
+                eta, Gr, Mi_ss, Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+        end
+        clear bt_tronc
+        
+        param.dt = param.dt * n_simu;
+        param.N_test = param.N_test / n_simu;
+        bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+        bt_fv = bt_fv(1 : n_simu : end, :, :);
+        bt_m = bt_m(1 : n_simu : end, :, :);
+        eta = eta(1 : n_simu : end, :, :, :);
+        Gr = Gr(1 : n_simu : end, :, :, :);
+        Mi_ss = Mi_ss(1: n_simu : end, :, :);
+        bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+        bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
+        
+        struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+        struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+        struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+        struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+        struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+        struct_bt_MCMC.m.mean = mean(bt_m, 3);
+        struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+        struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
     else
         error('Invalid stochastic integration path')
     end
@@ -440,7 +488,7 @@ if ~param.igrida && reconstruct_chronos
     
     %% Save 2nd results, especially I, L, C and the reconstructed Chronos
     if param.decor_by_subsampl.bool
-        if strcmp(dependance_on_time_of_a,'a_t')
+        if strcmp(dependance_on_time_of_a, 'a_t')
             char_filter = [ '_on_' param.type_filter_a ];
         else
             char_filter = [];
@@ -453,15 +501,15 @@ if ~param.igrida && reconstruct_chronos
 %             '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
 %             'fct_test_' param.decor_by_subsampl.test_fct ];
     else
-        file_save=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
+        file_save = [ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
             dependance_on_time_of_a ];
     end
-    file_save=[file_save '_fullsto'];
+    file_save = [file_save '_fullsto'];
     if ~ param.adv_corrected
-        file_save=[file_save '_no_correct_drift'];
+        file_save = [file_save '_no_correct_drift'];
     end
-    file_save=[file_save '_reconstruction'];
-    file_save=[file_save '.mat'];
+    file_save = [file_save '_reconstruction'];
+    file_save = [file_save '.mat'];
     save(file_save);
     clear C_deter C_sto L_deter L_sto I_deter I_sto
     if param.big_data
@@ -471,24 +519,23 @@ end
 %% Plots of the reconstructed Chronos
 plot_bts = false;
 if plot_bts
-    
-    param.plot.plot_deter=plot_deterministic;
-    param.plot.plot_EV=false;
-    param.plot.plot_tuned=false;
+    param.plot.plot_deter = plot_deterministic;
+    param.plot.plot_EV = false;
+    param.plot.plot_tuned = false;
     param.plot_modal_dt = false;
     
     % plot_bt_dB(param,bt_tot,bt_tot,...
     %     bt_tot, bt_tot, bt_forecast_deter,...
     %     bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot)
     
-    plot_bt_dB_MCMC(param,bt_tot,bt_tot,...
+    plot_bt_dB_MCMC(param, bt_tot, bt_tot,...
             bt_tot, bt_tot, bt_forecast_deter,...
-            bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+            bt_tot, bt_forecast_sto, bt_forecast_sto, bt_tot, struct_bt_MCMC)
     
     if plot_each_mode
         plot_bt_MCMC(param,bt_tot,bt_tot,...
             bt_tot, bt_tot, bt_forecast_deter,...
-            bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+            bt_tot, bt_forecast_sto, bt_forecast_sto, bt_tot, struct_bt_MCMC)
     end
 end
 % if plot_bts

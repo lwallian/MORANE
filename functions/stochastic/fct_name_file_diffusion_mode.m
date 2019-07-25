@@ -2,6 +2,7 @@ function param = fct_name_file_diffusion_mode(param)
 % Create the name of the file whe the diffusion mode(s) are saved
 %
 
+global correlated_model;
 % Name of the saving file
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -30,6 +31,9 @@ if isfield(param,'N_estim')
     param.name_file_diffusion_mode = ...
         [ param.name_file_diffusion_mode ...
         '_p_estim_' num2str(param.period_estim)];
+end
+if correlated_model
+    param.name_file_diffusion_mode = [param.name_file_diffusion_mode, 'correlated'];
 end
 param.name_file_diffusion_mode = ...
     [param.name_file_diffusion_mode '.mat'];

@@ -2,6 +2,7 @@ function [rate_dt, ILC,pchol_cov_noises ] = ...
     fct_cut_frequency_2_full_sto(bt,ILC,param,pchol_cov_noises,modal_dt)
 % Compute how much we can subsample in time the resolved modes with respect to the Shanon
 % criterion
+global correlated_model;
 
 if nargin < 5
     modal_dt = true;
@@ -37,7 +38,7 @@ for k=1:nb_modes % loop on number of modes
     threshold=max_s*spectrum_threshold;
     
     % Find from which frequency the maximum spectrum is null
-    if isnan(threshold)
+    if isnan(threshold) || correlated_model
         n_subsampl_decor = 1;
     else
         idx =( spectrum > threshold);

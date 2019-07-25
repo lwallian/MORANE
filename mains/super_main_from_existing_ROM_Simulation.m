@@ -6,6 +6,7 @@ function super_main_from_existing_ROM_Simulation(...
 %
 
 close all
+global choice_n_subsample;
 
 if nargin == 0
     init;
@@ -21,7 +22,6 @@ if nargin == 0
     
     % To choose between the shannon and correlation time downsampling
     % methods
-    global choice_n_subsample;
 %     choice_n_subsample = 'auto_shannon';
     choice_n_subsample = 'corr_time';
     

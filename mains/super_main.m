@@ -7,8 +7,8 @@ init;
 igrida=false;
 
 %% Number of modes for the the ROM
-% vect_nb_modes = 2 % For debugging
-vect_nb_modes = [ 8 6 4 2] % For a full test
+vect_nb_modes = 2 % For debugging
+% vect_nb_modes = [ 16 8 6 4 2] % For a full test
  % vect_nb_modes = 2.^(4:-1:1)
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 vect_adv_corrected = [ false]
@@ -99,9 +99,13 @@ decor_by_subsampl.meth='bt_decor';
 % ('truncated' = correlation time estimation of the unresolved chronos through a truncated correlation function)
 % ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
 decor_by_subsampl.choice_n_subsample='auto_shanon';
-% Stochastic integration path : 'Ito' or 'Str'
+% Stochastic integration path: 'Ito' or 'Str'
 global stochastic_integration;
 stochastic_integration = 'Str';
+
+% Choose the correlated model (if true)
+global correlated_model
+correlated_model = true;
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;

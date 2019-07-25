@@ -3,6 +3,7 @@ function param = fct_name_2nd_result(param,modal_dt,reconstruction)
 %(the ROM defintion + ROM simmulations) are saved
 %
 global stochastic_integration;
+global correlated_model;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -54,6 +55,9 @@ if reconstruction
     param.name_file_2nd_result=[param.name_file_2nd_result '_reconstruction'];
 else
     param.reconstruction=false;
+end
+if correlated_model
+    param.name_file_2nd_result=[param.name_file_2nd_result '_correlated_'];
 end
 param.name_file_2nd_result = [param.name_file_2nd_result '_integ_' stochastic_integration];
 param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];

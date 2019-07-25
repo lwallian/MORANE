@@ -5,11 +5,16 @@ function param = sub_sample_U(param)
 
 %% Initialization
 global choice_n_subsample;
+global correlated_model;
 
 param.folder_file_U_temp = fct_folder_temp(param);
 
 % Subsampling rate
-n_subsampl_decor=param.decor_by_subsampl.n_subsampl_decor;
+if correlated_model
+    n_subsampl_decor = 1;
+else
+    n_subsampl_decor=param.decor_by_subsampl.n_subsampl_decor;
+end
 t_local=1; % index of the snapshot in a file before subsampling
 t_local_sub=1; % index of the snapshot in a file after subsampling
 
@@ -48,14 +53,12 @@ elseif ~ param.big_data
         % Subsample
         U=U(:,find(vt(:,big_T)),:);
         
-        if ~strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
-            name_file_U_temp=[param.folder_file_U_temp ...
+        name_file_U_temp=[param.folder_file_U_temp 'decor_' choice_n_subsample '_' ...
             num2str(big_T) '_U_temp'];
-        else
-            name_file_U_temp=[param.folder_file_U_temp param.type_data ...
-                num2str(big_T) '_U_temp'];
+        if correlated_model
+            name_file_U_temp = [name_file_U_temp ...
+                '_correlated'];
         end
-        
         param_ref.name_file_U_temp=[param_ref.name_file_U_temp ...
             {name_file_U_temp}];
         % Save previous file with subsampled velocity
@@ -72,10 +75,14 @@ else
             
 %             name_file_U_temp=[param.folder_file_U_temp param.type_data ...
 %                             num2str(big_T) '_U_temp'];
-            name_file_U_temp=[param.folder_file_U_temp 'strat' ...
+            name_file_U_temp=[param.folder_file_U_temp 'decor_' choice_n_subsample '_' ...
                 num2str(big_T) '_U_temp'];
             param_ref.name_file_U_temp=[param_ref.name_file_U_temp ...
                 {name_file_U_temp}];
+            if correlated_model
+                name_file_U_temp = [name_file_U_temp ...
+                    '_correlated'];
+            end
             
             % Save previous file with subsampled velocity
 %             save(name_file_U_temp,'U');
@@ -118,12 +125,20 @@ else
             num2str(big_T) '_U_temp'];
         param_ref.name_file_U_temp=[param_ref.name_file_U_temp ...
             {name_file_U_temp}];
+        if correlated_model
+            param_ref.name_file_U_temp=[param_ref.name_file_U_temp ...
+            '_correlated'];
+        end
         param.name_file_U_temp=param_ref.name_file_U_temp;
     else
 %         name_file_U_temp=[param.folder_file_U_temp param.type_data ...
 %              '_U_temp'];
         name_file_U_temp=[param.folder_file_U_temp 'decor_' choice_n_subsample '_' ...
              '_U_temp'];
+         if correlated_model
+            name_file_U_temp = [name_file_U_temp ...
+            '_correlated'];
+        end
         param.name_file_U_temp=name_file_U_temp;  
     end
     save(name_file_U_temp,'U', '-v7.3');

@@ -200,15 +200,16 @@ param_temp = param;
 param_temp.a_time_dependant = true;
 param = fct_name_file_diffusion_mode(param);
 param_temp = fct_name_file_diffusion_mode(param_temp);
+
 bool = (exist(param.name_file_noise_cov,'file')==2 ) && ( ...
     (exist(param.name_file_diffusion_mode,'file')==2) || ...
-        (exist(param_temp.name_file_diffusion_mode,'file')==2) );
+    (exist(param_temp.name_file_diffusion_mode,'file')==2) );
 % bool = (exist(param.name_file_diffusion_mode,'file')==2) || ...
 %         (exist(param_temp.name_file_diffusion_mode,'file')==2);
 
 % Subsample residual velocity
 if ~ bool
-% if ~ ( exist(name_file_temp,'file')==2 )
+    % if ~ ( exist(name_file_temp,'file')==2 )
     %     if n_subsampl_decor > 1
     % Subsample snapshots
     param = sub_sample_U(param);
@@ -216,19 +217,23 @@ else
     param = gen_file_U_temp(param);
 end
 
-%     end
-if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
-    % Change the time period
-    param.dt=n_subsampl_decor*param.dt;
-    % Subsample Chronos
-    bt=bt(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
-    % Change total numbers of snapshots
-    param.N_tot=ceil(param.N_tot/n_subsampl_decor);
-    param.N_test=ceil((param.N_test+1)/n_subsampl_decor)-1;
+% If we chose the correlated model, we will not downsample
+% Downsampling above already taken care of inside the corresponding
+% functions
+global correlated_model;
+if ~correlated_model
+    if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
+        % Change the time period
+        param.dt=n_subsampl_decor*param.dt;
+        % Subsample Chronos
+        bt=bt(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+        % Change total numbers of snapshots
+        param.N_tot=ceil(param.N_tot/n_subsampl_decor);
+        param.N_test=ceil((param.N_test+1)/n_subsampl_decor)-1;
+    end
+    toc
+    disp('Subsampling done')
 end
-toc
-disp('Subsampling done')
-
 %% Residual velocity
 if ~ bool
     tic
