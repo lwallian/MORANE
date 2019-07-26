@@ -38,7 +38,7 @@ if isfield(param,'N_estim')
     file_save=[file_save '_p_estim_' num2str(param.period_estim)];
 end
 if correlated_model
-    file_save = [file_save, '_correlated_'];
+    file_save = [file_save, '_correlated'];
 end
 file_save = [file_save '_integ_' stochastic_integration];
 file_save=[file_save '.mat'];

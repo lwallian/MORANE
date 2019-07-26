@@ -1,4 +1,4 @@
-function [result, pseudo_chol] = estimation_correlated_noises(param, bt)
+function [result, pseudo_chol, Mi_sigma] = estimation_correlated_noises(param, bt)
 % This function estimates the covariance of the additive and multiplicative
 % noises, assuming that the Chronos are orthogonal
 
@@ -7,7 +7,7 @@ function [result, pseudo_chol] = estimation_correlated_noises(param, bt)
 param = fct_name_file_correlated_noise_cov(param);
 
 if exist(param.name_file_noise_cov,'file')==2
-    load(param.name_file_noise_cov,'pseudo_chol');
+    load(param.name_file_noise_cov,'pseudo_chol', 'Mi_sigma');
     result = nan;
 else
     M = param.M;
@@ -21,8 +21,8 @@ else
     lambda = param.lambda;
     param.replication_data=false;
     
-    % The last time step is not used
-    T = T -dt;
+    % The last two time steps are not used
+    T = T - 2 * dt;
     
     dbt = bt(2:end,:) - bt(1:end-1,:);
     d2bt = dbt(2:end,:) - dbt(1:end-1,:);
@@ -31,8 +31,10 @@ else
     % R1 is proportional to theta_theta
     % R2 is proportional to Mi_sigma
     
-    % NO PARAMETER BIG DATA ?
-    [R1,R2] = fct_comp_correlated_RHS(param, bt, d2bt);
+    [R1, R2, R3] = fct_comp_correlated_RHS(param, bt, d2bt);
+    % Pour tester
+    sigma_ss = generate_sigma_ss(1, [MX, d], 100, dX);
+    [R1t, R2t, R3t] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss);
     
     % Compute theta_theta
     theta_theta = bsxfun(@times, 1 ./ (lambda * T), R1);
@@ -40,38 +42,34 @@ else
     % Compute Mi_sigma
     Mi_sigma = R2 ./ T;
     
-    clear R1 R2;
+    % Compute xi_xi_inf
+    xi_xi_inf = R3 ./ T;
     
-    % BELOW IS NOT FINISHED YET
+    clear R1 R2 R3;
     
-    theta_theta = reshape(theta_theta, [m^2, m^2]);
-    alpha_theta = reshape(alpha_theta,[m^2,m]);
+    theta_theta = reshape(theta_theta, [m * (m + 1), m * (m + 1)]);
+    xi_xi_inf = reshape(xi_xi_inf, [m, m]);
+    theta_xi = zeros(m * (m + 1), m);
+    % Mi_sigma is an array
     
-    result1 = [theta_theta;alpha_theta];
-    result2 = [alpha_theta'; alpha_alpha];
-    result = [result1,result2];
+    result1 = [xi_xi_inf; theta_xi];
+    result2 = [theta_xi'; theta_theta];
+    result = [result1, result2];
     clear result1 result2;
     
     %% Force the symetry and the positivity of the matrix
-    result = 1/2*(result +result');
-    [V,D]=eig(result);
-    D=diag(D);
-    D(D<0)=0;
-    result=V*diag(D)*V';
+    result = 1 / 2 * (result + result');
+    [V, D] = eig(result);
+    D = diag(D);
+    D(D < 0) = 0;
+    result = V * diag(D) * V';
     
-    pseudo_chol = V*diag(sqrt(D));
-    
-    % To circumvent the effect of thresholding on the downsampling rate
-    if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
-        pseudo_chol = pseudo_chol * sqrt(param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor);
-    end
+    pseudo_chol = V * diag(sqrt(D));
     
     % %% Remove temporary files
     % rmdir(param.folder_file_U_temp,'s')
-    save(param.name_file_noise_cov,'pseudo_chol','-v7.3');
+    save(param.name_file_noise_cov, 'pseudo_chol', 'Mi_sigma','-v7.3');
     
-end
-
 end
 
 end

@@ -299,7 +299,7 @@ end
 
 global correlated_model;
 if correlated_model
-    [Cov_noises,pchol_cov_noises, Mi_sigma] = estimation_correlated_noises(param, bt_tot);
+    [Cov_noises, pchol_cov_noises, Mi_sigma] = estimation_correlated_noises(param, bt_tot);
 else
     [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot);
 end
@@ -448,7 +448,7 @@ if ~param.igrida && reconstruct_chronos
                 eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
                 evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
                 pchol_cov_noises, param.decor_by_subsampl.tau_corr, param.dt, bt_MCMC(l, :, :), ...
-                eta, Gr, Mi_ss, Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+                eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
         end
         clear bt_tronc
         

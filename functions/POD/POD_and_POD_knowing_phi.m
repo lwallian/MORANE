@@ -180,6 +180,10 @@ if param.decor_by_subsampl.bool
 end
 clear c;
 
+% To ease the testing phase of the correlated model
+global tau_corr;
+tau_corr = param.decor_by_subsampl.n_subsampl_decor;
+
 % Subsampling
 % if param.decor_by_subsampl.bool && ...
 %         ( strcmp(param.decor_by_subsampl.meth,'a_estim_decor') || ...
@@ -217,23 +221,17 @@ else
     param = gen_file_U_temp(param);
 end
 
-% If we chose the correlated model, we will not downsample
-% Downsampling above already taken care of inside the corresponding
-% functions
-global correlated_model;
-if ~correlated_model
-    if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
-        % Change the time period
-        param.dt=n_subsampl_decor*param.dt;
-        % Subsample Chronos
-        bt=bt(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
-        % Change total numbers of snapshots
-        param.N_tot=ceil(param.N_tot/n_subsampl_decor);
-        param.N_test=ceil((param.N_test+1)/n_subsampl_decor)-1;
-    end
-    toc
-    disp('Subsampling done')
+if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
+    % Change the time period
+    param.dt=n_subsampl_decor*param.dt;
+    % Subsample Chronos
+    bt=bt(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+    % Change total numbers of snapshots
+    param.N_tot=ceil(param.N_tot/n_subsampl_decor);
+    param.N_test=ceil((param.N_test+1)/n_subsampl_decor)-1;
 end
+toc
+disp('Subsampling done')
 %% Residual velocity
 if ~ bool
     tic

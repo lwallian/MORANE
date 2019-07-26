@@ -10,11 +10,7 @@ global correlated_model;
 param.folder_file_U_temp = fct_folder_temp(param);
 
 % Subsampling rate
-if correlated_model
-    n_subsampl_decor = 1;
-else
-    n_subsampl_decor=param.decor_by_subsampl.n_subsampl_decor;
-end
+n_subsampl_decor=param.decor_by_subsampl.n_subsampl_decor;
 t_local=1; % index of the snapshot in a file before subsampling
 t_local_sub=1; % index of the snapshot in a file after subsampling
 

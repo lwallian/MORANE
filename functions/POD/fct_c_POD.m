@@ -3,6 +3,8 @@ function [c, param]=fct_c_POD(param_ref,bool_init)
 % the snapshots method (Sirovich)
 %
 
+global correlated_model;
+
 if param_ref.data_in_blocks.bool % if data are saved in several files
     % Get some information on how the data are saved
     param_blocks=read_data_blocks(param_ref.type_data,param_ref.folder_data);

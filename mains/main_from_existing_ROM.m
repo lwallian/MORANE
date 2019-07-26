@@ -159,19 +159,31 @@ param_ref.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref.type_data = type_data;
 param_ref.nb_modes = nb_modes;
 param_ref.decor_by_subsampl.meth = 'bt_decor';
-param_ref.decor_by_subsampl.test_fct = 'b';
+param_ref.decor_by_subsampl.test_fct = 'db';
+param_ref.adv_corrected = adv_corrected;
 
-file_res = fct_file_save_1st_result(param_ref);
+% file_res = fct_file_save_1st_result(param_ref);
+file_name_struct = fct_name_1st_result(param_ref);
+file_res = file_name_struct.name_file_1st_result;
 
-file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
-file_res=[file_res '_fullsto'];
-
-if ~ adv_corrected
-    file_res=[file_res '_no_correct_drift'];    
-end
-
-file_res=[ file_res '_integ_' stochastic_integration];
-file_res=[ file_res '.mat'];
+% if correlated_model
+%     file_res = file_res(1:end - 25); % delete the .mat at the end of the filename
+%     file_res=[file_res '_fullsto'];
+%     if ~ adv_corrected
+%         file_res=[file_res '_no_correct_drift'];
+%     end
+%     file_res=[file_res '_correlated'];
+%     file_res=[ file_res '_integ_' stochastic_integration];
+%     file_res=[ file_res '.mat'];
+% else
+%     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
+%     file_res=[file_res '_fullsto'];
+%     if ~ adv_corrected
+%         file_res=[file_res '_no_correct_drift'];
+%     end
+%     file_res=[ file_res '_integ_' stochastic_integration];
+%     file_res=[ file_res '.mat'];
+% end
 load(file_res)
 
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
@@ -492,21 +504,22 @@ elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
     % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 elseif correlated_model
+    global tau_corr;
     bt_MCMC = repmat(bt_tronc, [1, 1, param.N_particules]);
     bt_fv = bt_MCMC;
     bt_m = zeros(1, param.nb_modes, param.N_particules);
     
     % Initialization of model's stochastic variables
-    eta = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
-    Gr = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
-    Mi_ss = zeros(1, param.nb_modes, param.N_particles);
+    eta = zeros(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+    Gr = zeros(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+    Mi_ss = zeros(param.N_test, param.nb_modes, param.N_particules);
     
     for l = 1 : param.N_test
         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
             evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
-            pchol_cov_noises, param.decor_by_subsampl.tau_corr, param.dt, bt_MCMC(l, :, :), ...
-            eta, Gr, Mi_ss, Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+            pchol_cov_noises, tau_corr, param.dt, bt_MCMC(l, :, :), ...
+            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
     

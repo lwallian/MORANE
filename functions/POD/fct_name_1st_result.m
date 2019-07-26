@@ -39,7 +39,7 @@ if ~ param.adv_corrected
     param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];    
 end
 if correlated_model
-    param.name_file_1st_result=[param.name_file_1st_result '_correlated_'];
+    param.name_file_1st_result=[param.name_file_1st_result '_correlated'];
 end
 param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_integration];
 param.name_file_1st_result=[param.name_file_1st_result '.mat'];
