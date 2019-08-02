@@ -176,13 +176,15 @@ if param.decor_by_subsampl.bool
         case 'truncated'
             param.decor_by_subsampl.tau_corr = max(correlationTimeCut(c, bt), 1);
             param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(c, bt)), 1);
+        otherwise
+            error('Invalid downsampling method.')
     end
 end
 clear c;
 
 % To ease the testing phase of the correlated model
 global tau_corr;
-tau_corr = param.decor_by_subsampl.n_subsampl_decor;
+tau_corr = param.decor_by_subsampl.tau_corr;
 
 % Subsampling
 % if param.decor_by_subsampl.bool && ...

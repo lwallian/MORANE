@@ -138,6 +138,13 @@ else
     [param.M , param.N_tot, param.d] = size(U1);
     d = param.d;
     
+    % If working with the correlated model
+    if correlated_model == true && ...
+            ~strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
+        U1 = diff(U1, 2);
+        param.N_tot = param.N_tot - 1; % REVISER
+    end 
+    
     if strcmp(param.type_data, param.data_in_blocks.type_data2)
         % if left file = right file
         % An autocorrelation is computed
