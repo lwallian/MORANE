@@ -439,7 +439,7 @@ if ~param.igrida && reconstruct_chronos
         bt_m = zeros(1, param.nb_modes, param.N_particules);
         
         % Initialization of model's stochastic variables
-        eta = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
+        eta = zeros(1, param.nb_modes + 1, param.nb_modes, param.N_particles);
         Gr = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
         Mi_ss = zeros(1, param.nb_modes, param.N_particles);
         

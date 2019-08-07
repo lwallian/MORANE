@@ -117,6 +117,7 @@ a_t='_a_cst_';
 
 global choice_n_subsample;
 global stochastic_integration;
+global correlated_model;
 switch choice_n_subsample
     case 'auto_shanon'
         file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
@@ -163,6 +164,9 @@ if no_subampl_in_forecast
 end
 if reconstruction
     file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
+end
+if correlated_model
+    file_res_2nd_res = [file_res_2nd_res '_correlated_'];
 end
 file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
 file_res_2nd_res=[file_res_2nd_res '.mat'];
