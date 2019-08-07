@@ -1,10 +1,12 @@
-function [result,pseudo_chol] = estimation_noises(param,bt)
+function [result,pseudo_chol] = estimation_noises(param,bt,ILC)
 % This function estimates the covariance of the additive and multiplicative
 % noises, assuming that the Chronos are orthogonal
 
 
 %% Get parameters
 param = fct_name_file_noise_cov(param);
+global estim_rmv_fv
+global stochastic_integration
 
 if exist(param.name_file_noise_cov,'file')==2
     load(param.name_file_noise_cov,'pseudo_chol');
@@ -25,6 +27,21 @@ else
     T = T -dt;
     
     d_bt = bt(2:end,:)-bt(1:end-1,:);
+    
+    %% Possibly remove the finite-variation part of the chronos
+    if estim_rmv_fv
+        if strcmp(stochastic_integration, 'Str')
+            [F1, ~] = coefficients_sto(param);
+            ILC.L = ILC.L + F1;
+        end
+        bt_temp = permute( bt(1:end-1,:), [3 2 1]);
+        % Exchange time and realization dimension
+        d_bt_fv = evol_forward_bt_MCMC(ILC.I,ILC.L,ILC.C, 0, param.dt, bt_temp);
+        clear bt_temp
+        d_bt_fv = permute( d_bt_fv, [3 2 1]);  
+        % Exchange back time and realization dimension      
+        d_bt = d_bt - d_bt_fv;
+    end
     
     %% compute the RHS of equation
     % R1 for the equation for finding theta_theta

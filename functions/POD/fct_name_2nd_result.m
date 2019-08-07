@@ -3,6 +3,7 @@ function param = fct_name_2nd_result(param,modal_dt,reconstruction)
 %(the ROM defintion + ROM simmulations) are saved
 %
 global stochastic_integration;
+global estim_rmv_fv;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -56,6 +57,9 @@ else
     param.reconstruction=false;
 end
 param.name_file_2nd_result = [param.name_file_2nd_result '_integ_' stochastic_integration];
+if estim_rmv_fv
+    param.name_file_2nd_result=[param.name_file_2nd_result '_estim_rmv_fv'];
+end
 param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];
 % save(param.name_file_2nd_result,'-v7.3');
 % % save(param.name_file_2nd_result);
