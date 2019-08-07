@@ -7,8 +7,9 @@ function [R1, R2, R3] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss)
 %   @param d2bt: second derivative (wrt time) of the aforementioned chronos
 %   function
 %   @param sigma_ss: noise correlation matrix for the non resolved modes
-%   @return R1: value proportional to the theta_theta term (theta_theta * T)
-%   @return R2: value proportional to the Mi_sigma_sigma term (Mi_sigma_sigma * T)
+%   @return R1: value proportional to the theta_theta term
+%   @return R2: value proportional to the Mi_sigma_sigma term
+%   @return R3: value proportional to the xi_xi_inf term
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
@@ -35,7 +36,6 @@ beta = R1 ./ lambda;
 % Compute gamma
 % First, we define G_pq
 G_pq = bt(1 : end - 1, :)' * bt(1 : end - 1, :); % check that it's the outer product given the dimensions, should be nxn
-% G_pq = mean(bt(1 : end - 1, :) * bt(1 : end - 1, :)', 2); % check that it's the outer product given the dimensions, should be nxn
 
 % We define psi_p
 psi = zeros(M, m, d); % vector in space and we reshape later on

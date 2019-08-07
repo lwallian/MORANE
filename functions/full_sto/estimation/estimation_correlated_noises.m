@@ -30,6 +30,7 @@ else
     %% compute the RHS of equation
     % R1 is proportional to theta_theta
     % R2 is proportional to Mi_sigma
+    % R3 is proportional to xi_xi_inf
     
     [R1, R2, R3] = fct_comp_correlated_RHS(param, bt, d2bt);
     % Pour tester
