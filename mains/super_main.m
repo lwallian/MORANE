@@ -92,7 +92,7 @@ if (~ decor_by_subsampl.bool) || no_subampl_in_forecast
     error('There will be a problem in fct_name_2nd_result_new');
 end
 % Choice of subsampling time step based on chronos
-decor_by_subsampl.test_fct='db';
+decor_by_subsampl.test_fct='b';
 % Way the subsampling is done (in which part of the code)
 % (can be  'bt_decor' or  'a_estim_decor')
 decor_by_subsampl.meth='bt_decor';
