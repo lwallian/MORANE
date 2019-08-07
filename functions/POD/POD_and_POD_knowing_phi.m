@@ -184,7 +184,11 @@ clear c;
 
 % To ease the testing phase of the correlated model
 global tau_corr;
-tau_corr = param.decor_by_subsampl.tau_corr;
+if strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
+    tau_corr = param.decor_by_subsampl.n_subsampl_decor;
+else
+    tau_corr = param.decor_by_subsampl.tau_corr;
+end
 
 % Subsampling
 % if param.decor_by_subsampl.bool && ...

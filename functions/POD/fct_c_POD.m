@@ -142,7 +142,8 @@ else
     if correlated_model == true && ...
             ~strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
         U1 = diff(U1, 2);
-        param.N_tot = param.N_tot - 1; % REVISER
+        U1 = cat(2, U1, zeros(param.M, param.d)); % Pad with 0 the last time step
+%         param.N_tot = param.N_tot - 1;
     end 
     
     if strcmp(param.type_data, param.data_in_blocks.type_data2)
