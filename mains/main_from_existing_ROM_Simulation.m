@@ -132,9 +132,8 @@ param_ref2.adv_corrected = adv_corrected;
 param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
 
 param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
-if exist(param_ref2.name_file_2nd_result,'file') == 2
-    load(param_ref2.name_file_2nd_result)
-else
+file_res_2nd_res = param_ref2.name_file_2nd_result;
+if ~ (exist(file_res_2nd_res,'file') == 2)
 
 switch choice_n_subsample
     case 'auto_shanon'
@@ -181,10 +180,10 @@ if estim_rmv_fv
     param.estim_rmv_fv = true;
 end
 file_res_2nd_res=[file_res_2nd_res '.mat'];
-load(file_res_2nd_res)
 
 end
 
+load(file_res_2nd_res)
 
 if reconstruction
     param.reconstruction=true;

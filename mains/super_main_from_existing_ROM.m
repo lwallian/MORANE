@@ -5,6 +5,9 @@ function super_main_from_existing_ROM(...
 % Especially several number of modes
 %
 
+global choice_n_subsample;
+global stochastic_integration;
+global estim_rmv_fv;
 
 % % Number of periods reconstructed
 % nb_period_test = 9;% for DNS 300
@@ -82,6 +85,30 @@ if nargin == 0
             v_threshold=0.0005
             vect_modal_dt=false
     end
+    
+    % (specific) time sub-sampling (forced time-decorrelation of unresolved chronos)
+    decor_by_subsampl.bool=true;
+    % Choice of subsampling time step based on chronos
+    decor_by_subsampl.test_fct='b';
+    % Way the subsampling is done (in which part of the code)
+    % (can be  'bt_decor' or  'a_estim_decor')
+    decor_by_subsampl.meth='bt_decor';
+    % Meth to choose the time sub-sampling
+    % ('auto_shanon'=maxim frequency of resolved chronos)
+    % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
+    decor_by_subsampl.choice_n_subsample='auto_shanon';
+    % decor_by_subsampl.choice_n_subsample = 'corr_time';
+    
+    % Stochastic integration path : 'Ito' or 'Str'
+    stochastic_integration = 'Ito';
+    
+    % Definition of global variable to manage methods more easily
+    choice_n_subsample = decor_by_subsampl.choice_n_subsample;
+    
+    % During the noise covariance estimation,
+    % remove the finite-variation part of the chronos
+    estim_rmv_fv = true;
+
 end
 
 % v_threshold=[1 10]/1000;
