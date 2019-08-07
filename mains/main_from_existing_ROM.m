@@ -515,11 +515,15 @@ elseif correlated_model
     Mi_ss = zeros(param.N_test, param.nb_modes, param.N_particules);
     
     for l = 1 : param.N_test
-        [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
-            eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
-            evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
+        [bt_MCMC(l + 1, :, :), eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+            evol_forward_correlated_SSPRK3(I_sto, L_sto, C_sto, ...
             pchol_cov_noises, tau_corr * param.dt, param.dt, bt_MCMC(l, :, :), ...
-            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma);
+%         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
+%             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+%             evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
+%             pchol_cov_noises, tau_corr * param.dt, param.dt, bt_MCMC(l, :, :), ...
+%             eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
     
@@ -537,12 +541,12 @@ elseif correlated_model
     struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
     struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
-    struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
-    struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
-    struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
-    struct_bt_MCMC.m.mean = mean(bt_m, 3);
-    struct_bt_MCMC.m.var = var(bt_m, 0, 3);
-    struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
+%     struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+%     struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+%     struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+%     struct_bt_MCMC.m.mean = mean(bt_m, 3);
+%     struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+%     struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
 else
     error('Invalid stochastic integration path')
 end

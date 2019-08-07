@@ -204,8 +204,8 @@ for i = 1 : m
     for j = 1 : m
         lambda_theta_theta = 0;
         for k = 1 : m
-%             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j) * lambda(k);
-            lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j);
+            lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j) * lambda(k);
+%             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j);
         end
         R3(i, j) = d2bt(:, i)' * d2bt(:, j) - lambda_theta_theta;
     end
