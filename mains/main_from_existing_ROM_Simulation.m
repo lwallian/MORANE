@@ -131,7 +131,7 @@ param_ref2.nb_modes = nb_modes;
 param_ref2.adv_corrected = adv_corrected;
 param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
 
-param_ref2 = fct_name_2nd_result_new(param_ref2);
+param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
 if exist(param_ref2.name_file_2nd_result,'file') == 2
     load(param_ref2.name_file_2nd_result)
 else

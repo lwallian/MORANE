@@ -40,9 +40,9 @@ end
 if ~ param.adv_corrected
     param.name_file_2nd_result=[param.name_file_2nd_result '_no_correct_drift'];
 end
-if param.decor_by_subsampl.no_subampl_in_forecast
-    param.name_file_2nd_result=[param.name_file_2nd_result '_no_subampl_in_forecast'];
-end
+% if param.decor_by_subsampl.no_subampl_in_forecast
+%     param.name_file_2nd_result=[param.name_file_2nd_result '_no_subampl_in_forecast'];
+% end
 if reconstruction
     param.reconstruction=true;
     param.name_file_2nd_result=[param.name_file_2nd_result '_reconstruction'];
