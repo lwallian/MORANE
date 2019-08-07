@@ -379,8 +379,8 @@ elseif strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')...
     % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
     % %     end
 elseif strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
-%     subplot(2,2,param.nb_modes/2);
-subplot(2,2,log2(param.nb_modes));
+    subplot(2,2,param.nb_modes/2);
+% subplot(2,2,log2(param.nb_modes));
     %     subplot(3,2,log2(param.nb_modes));
     % % elseif ( strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated') ) ...
     % %         && (param.nb_modes<=16)
@@ -449,7 +449,7 @@ plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
 
 hold off;
 
-%%
+% %%
 
 if ~logscale
     err_min=0;
