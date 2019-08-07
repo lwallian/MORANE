@@ -6,7 +6,10 @@ function super_main_from_existing_ROM_Simulation(...
 %
 
 close all
+
 global choice_n_subsample;
+global stochastic_integration;
+global estim_rmv_fv;
 
 if nargin == 0
     init;
@@ -24,6 +27,8 @@ if nargin == 0
     % methods
 %     choice_n_subsample = 'auto_shannon';
     choice_n_subsample = 'corr_time';
+    stochastic_integration = 'Str';
+    estim_rmv_fv = true;
     
     %% Type of data
     % Other datasets (do not use)
@@ -152,6 +157,10 @@ for modal_dt=vect_modal_dt
                     str =[ str '_reconstruction'];
                 else
                     str =[ str '_forecast'];
+                end
+                str = [str '_integ_' stochastic_integration];
+                if estim_rmv_fv
+                    str=[str '_estim_rmv_fv'];
                 end
                 str =[ str '.png'];
                 str

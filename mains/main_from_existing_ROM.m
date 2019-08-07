@@ -1,11 +1,14 @@
 function main_from_existing_ROM(nb_modes,threshold,type_data,...
     nb_period_test,...
-    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
 %
 
+global choice_n_subsample;
+global stochastic_integration;
+global estim_rmv_fv;
 
 
 %% Make the randomness reproducible
@@ -151,20 +154,46 @@ test_fct='b'; % 'b' is better than db
 a_t = '_a_cst_';
 param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
-global choice_n_subsample;
-global stochastic_integration;
-global correlated_model;
+
 param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
 param_ref.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref.type_data = type_data;
 param_ref.nb_modes = nb_modes;
 param_ref.decor_by_subsampl.meth = 'bt_decor';
-param_ref.decor_by_subsampl.test_fct = 'db';
+
 param_ref.adv_corrected = adv_corrected;
 
+if nargin < 9 
+    test_fct = 'b';
+end
+param_ref.decor_by_subsampl.test_fct = test_fct;
+
+param_ref = fct_name_1st_result_new(param_ref);
+if exist(param_ref.name_file_1st_result,'file') == 2
+    load(param_ref.name_file_1st_result)
+else
+
+file_res = fct_file_save_1st_result(param_ref);
+
+file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
+file_res=[file_res '_fullsto'];
+
+if ~ adv_corrected
+    file_res=[file_res '_no_correct_drift'];    
+end
+
+file_res=[ file_res '_integ_' stochastic_integration];
+if estim_rmv_fv
+    file_res=[file_res '_estim_rmv_fv'];
+end
+file_res=[ file_res '.mat'];
+
+% param_ref.decor_by_subsampl.test_fct = 'db';
+% param_ref.adv_corrected = adv_corrected;
+
 % file_res = fct_file_save_1st_result(param_ref);
-file_name_struct = fct_name_1st_result(param_ref);
-file_res = file_name_struct.name_file_1st_result;
+% file_name_struct = fct_name_1st_result(param_ref);
+% file_res = file_name_struct.name_file_1st_result;
 
 % if correlated_model
 %     file_res = file_res(1:end - 25); % delete the .mat at the end of the filename
@@ -184,7 +213,10 @@ file_res = file_name_struct.name_file_1st_result;
 %     file_res=[ file_res '_integ_' stochastic_integration];
 %     file_res=[ file_res '.mat'];
 % end
+
 load(file_res)
+
+end
 
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 
@@ -562,7 +594,8 @@ end
 
 %% Save 2nd results, especially I, L, C and the reconstructed Chronos
 
-param = fct_name_2nd_result(param,modal_dt,reconstruction);
+param = fct_name_2nd_result_new(param,modal_dt,reconstruction);
+% param = fct_name_2nd_result(param,modal_dt,reconstruction);
 save(param.name_file_2nd_result,'-v7.3');
 % save(param.name_file_1st_result,'-v7.3');
 clear C_deter C_sto L_deter L_sto I_deter I_sto

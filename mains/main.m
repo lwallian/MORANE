@@ -4,6 +4,8 @@ function main(type_data,nb_modes,igrida,coef_correctif_estim,...
 % Launch a complete simulation with a fixed set of parameters
 %
 
+global computed_PIV_variance_tensor
+
 %% Reset
 
 % init; 
@@ -234,6 +236,12 @@ end
 % Computation of the variance tensor a
 % or computation of its parameters z_i(x)
 % Since it is big data, they are saved in specific files
+if computed_PIV_variance_tensor
+    quadratic_variation_estimation_PIV(param,bt_tot);
+    toc;tic;
+    disp('PIV variance tensor estimation done');
+    keyboard;
+end
 param = quadratic_variation_estimation(param,bt_tot);
 if param.big_data
     toc;tic;
@@ -289,9 +297,13 @@ else
     C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);
 end
 
+deter = struct('I',I_deter,'L',L_deter,'C',C_deter);
+sto = struct('I',I_sto,'L',L_sto,'C',C_sto);
 I_sto = I_deter + I_sto;
 L_sto = L_deter + L_sto;
 C_sto = C_deter + C_sto;
+tot = struct('I',I_sto,'L',L_sto,'C',C_sto);
+ILC=struct('deter',deter,'sto',sto,'tot',tot);
 if param.big_data
     toc;tic;
     disp('Galerkin projection on stochastic Navier-Stokes done');
@@ -301,7 +313,7 @@ global correlated_model;
 if correlated_model
     [Cov_noises, pchol_cov_noises, Mi_sigma] = estimation_correlated_noises(param, bt_tot);
 else
-    [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot);
+    [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot,ILC.tot);
 end
 
 if param.big_data
@@ -311,7 +323,8 @@ end
 
 %% Save first results, especially I, L, C
 clear plot_modal_dt
-param = fct_name_1st_result(param);
+% param = fct_name_1st_result(param);
+param = fct_name_1st_result_new(param);
 save(param.name_file_1st_result,'-v7.3');
 clear coef_correctif_estim
 if param.igrida

@@ -1,5 +1,5 @@
 function main_from_existing_ROM_Simulation(type_data,nb_modes,...
-    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -49,7 +49,7 @@ plot_each_mode=false;
 % % % n_simu = 100;
 
 % On which function the Shanon ctriterion is used
-test_fct='b'; % 'b' is better than db
+% test_fct='b'; % 'b' is better than db
 
 % Learning duration
 % period_estim=3;
@@ -79,6 +79,12 @@ test_fct='b'; % 'b' is better than db
 if nargin == 0
     nb_modes = 2;
 end
+
+% On which function the Shanon ctriterion is used
+if nargin < 9 
+    test_fct = 'b';
+end
+param_ref2.decor_by_subsampl.test_fct = test_fct;
 
 % % On which function the Shanon ctriterion is used
 % decor_by_subsampl.test_fct = 'b';
@@ -117,7 +123,19 @@ a_t='_a_cst_';
 
 global choice_n_subsample;
 global stochastic_integration;
+global estim_rmv_fv;
 global correlated_model;
+
+param_ref2.decor_by_subsampl.spectrum_threshold = threshold;
+param_ref2.type_data = type_data;
+param_ref2.nb_modes = nb_modes;
+param_ref2.adv_corrected = adv_corrected;
+param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
+
+param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
+file_res_2nd_res = param_ref2.name_file_2nd_result;
+if ~ (exist(file_res_2nd_res,'file') == 2)
+
 switch choice_n_subsample
     case 'auto_shanon'
         file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
@@ -169,9 +187,15 @@ if correlated_model
     file_res_2nd_res = [file_res_2nd_res '_correlated_'];
 end
 file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
+if estim_rmv_fv
+    file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
+    param.estim_rmv_fv = true;
+end
 file_res_2nd_res=[file_res_2nd_res '.mat'];
-load(file_res_2nd_res)
 
+end
+
+load(file_res_2nd_res)
 
 if reconstruction
     param.reconstruction=true;

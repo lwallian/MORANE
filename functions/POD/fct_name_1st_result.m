@@ -2,6 +2,7 @@ function param = fct_name_1st_result(param)
 % Create the name of the file where the 1st reuslts (the ROM defintion) are saved
 %
 global stochastic_integration;
+global estim_rmv_fv;
 global correlated_model;
 
 if param.a_time_dependant
@@ -42,6 +43,10 @@ if correlated_model
     param.name_file_1st_result=[param.name_file_1st_result '_correlated'];
 end
 param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_integration];
+if estim_rmv_fv
+    param.name_file_1st_result=[param.name_file_1st_result '_estim_rmv_fv'];
+    param.estim_rmv_fv = true;
+end
 param.name_file_1st_result=[param.name_file_1st_result '.mat'];
 % save(param.name_file_1st_result);
 % clear coef_correctif_estim

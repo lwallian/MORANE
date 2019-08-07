@@ -1,42 +1,34 @@
-function param = fct_name_2nd_result(param,modal_dt,reconstruction)
+function param = fct_name_2nd_result_new(param,modal_dt,reconstruction)
 % Create the name of the file where the 2nd reuslts
 %(the ROM defintion + ROM simmulations) are saved
 %
 global stochastic_integration;
 global estim_rmv_fv;
-global correlated_model;
+global choice_n_subsample;
 
-if param.a_time_dependant
-    dependance_on_time_of_a = '_a_time_dependant_';
-else
-    dependance_on_time_of_a = '_a_cst_';
+% if param.decor_by_subsampl.bool
+%     switch param.decor_by_subsampl.choice_n_subsample
+switch choice_n_subsample
+    case 'auto_shanon'
+        param.name_file_2nd_result=[ param.folder_results '2ndresult_' ...
+            param.type_data '_' num2str(param.nb_modes) '_modes_' ...
+            num2str(choice_n_subsample)  ...
+            '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
+            param.decor_by_subsampl.test_fct ];
+    case 'corr_time'
+        param.name_file_2nd_result=[ param.folder_results '2ndresult_' ...
+            param.type_data '_' num2str(param.nb_modes) '_modes_' ...
+            num2str(choice_n_subsample)  ...
+            param.decor_by_subsampl.test_fct ];
 end
-if param.decor_by_subsampl.bool
-    if strcmp(dependance_on_time_of_a,'a_t')
-        char_filter = [ '_on_' param.type_filter_a ];
-    else
-        char_filter = [];
-    end
-    switch param.decor_by_subsampl.choice_n_subsample
-        case 'auto_shanon'
-            param.name_file_2nd_result=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
-                dependance_on_time_of_a char_filter ...
-                '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
-                '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
-                '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
-                'fct_test_' param.decor_by_subsampl.test_fct ];
-        otherwise
-            param.name_file_2nd_result=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
-                dependance_on_time_of_a char_filter ...
-                '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
-                '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
-                '_fct_test_' param.decor_by_subsampl.test_fct ];
-    end
-else
-    param.name_file_2nd_result=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
-        dependance_on_time_of_a ];
-end
+% else
+%     param.name_file_2nd_result=[ param.folder_results '2ndresult_' ...
+%         param.type_data '_' num2str(param.nb_modes) '_modes_' ...
+%         ];
+% end
 param.name_file_2nd_result=[param.name_file_2nd_result '_fullsto'];
+mkdir(param.name_file_2nd_result)
+param.name_file_1st_result=[param.name_file_2nd_result '\'];
 % if modal_dt
 %     param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
 % end
@@ -46,19 +38,16 @@ elseif modal_dt == 2
     param.name_file_2nd_result=[param.name_file_2nd_result '_real_dt'];
 end
 if ~ param.adv_corrected
-    param.name_file_2nd_result=[param.name_file_2nd_result '_no_correct_drift'];    
+    param.name_file_2nd_result=[param.name_file_2nd_result '_no_correct_drift'];
 end
-if param.decor_by_subsampl.no_subampl_in_forecast
-    param.name_file_2nd_result=[param.name_file_2nd_result '_no_subampl_in_forecast'];
-end
+% if param.decor_by_subsampl.no_subampl_in_forecast
+%     param.name_file_2nd_result=[param.name_file_2nd_result '_no_subampl_in_forecast'];
+% end
 if reconstruction
     param.reconstruction=true;
     param.name_file_2nd_result=[param.name_file_2nd_result '_reconstruction'];
 else
     param.reconstruction=false;
-end
-if correlated_model
-    param.name_file_2nd_result=[param.name_file_2nd_result '_correlated_'];
 end
 param.name_file_2nd_result = [param.name_file_2nd_result '_integ_' stochastic_integration];
 if estim_rmv_fv
@@ -88,14 +77,14 @@ param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];
 %         '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
 %         '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold)  ...
 %         'fct_test_' param.decor_by_subsampl.test_fct ];
-%     
+%
 % else
 %     param.name_file_1st_result=[ param.folder_results '1stresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
 %         dependance_on_time_of_a];
 % end
 % param.name_file_1st_result=[param.name_file_1st_result '_fullsto'];
 % if ~ param.adv_corrected
-%     param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];    
+%     param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];
 % end
 % param.name_file_1st_result=[param.name_file_1st_result '.mat'];
 % % save(param.name_file_1st_result);
@@ -104,9 +93,9 @@ param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];
 % %     toc;tic;
 % %     disp('1st result saved');
 % % end
-% 
-% 
-% 
+%
+%
+%
 % % str_threshold = num2str(param.decor_by_subsampl.spectrum_threshold);
 % % i_str_threshold = (str_threshold == '.');
 % % str_threshold(i_str_threshold)='_';

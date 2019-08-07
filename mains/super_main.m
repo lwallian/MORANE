@@ -88,8 +88,11 @@ a_t = false;
 save_all_bi=false;
 % (specific) time sub-sampling (forced time-decorrelation of unresolved chronos)
 decor_by_subsampl.bool=true;
+if (~ decor_by_subsampl.bool) || no_subampl_in_forecast
+    error('There will be a problem in fct_name_2nd_result_new');
+end
 % Choice of subsampling time step based on chronos
-decor_by_subsampl.test_fct='db';
+decor_by_subsampl.test_fct='b';
 % Way the subsampling is done (in which part of the code)
 % (can be  'bt_decor' or  'a_estim_decor')
 decor_by_subsampl.meth='bt_decor';
@@ -111,9 +114,21 @@ correlated_model = true;
 global choice_n_subsample;
 choice_n_subsample = decor_by_subsampl.choice_n_subsample;
 
+% During the noise covariance estimation,
+% remove the finite-variation part of the chronos
+global estim_rmv_fv;
+% estim_rmv_fv = false
+estim_rmv_fv = false
+
 if ~strcmp(choice_n_subsample, 'auto_shanon')
     v_threshold = NaN;
 end
+
+% Compute the variance tensor in the PIV space
+% (if yes do not run the main code until the end)
+global computed_PIV_variance_tensor
+computed_PIV_variance_tensor = false
+% DEFAULT : computed_PIV_variance_tensor = false
 
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis
