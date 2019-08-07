@@ -1,4 +1,4 @@
-function [R1, R2] = fct_comp_correlated_RHS(param, bt, d2bt)
+function [R1, R2, R3] = fct_comp_correlated_RHS(param, bt, d2bt)
 %FCT_COMP_CORRELATED_RHS Estimates the noise statistics in the correlated
 %non resolved modes scheme given the PCA residual and the chronos functions
 %   @param param: structure with lots of parameters concerning the current
@@ -8,6 +8,7 @@ function [R1, R2] = fct_comp_correlated_RHS(param, bt, d2bt)
 %   function
 %   @return R1: value proportional to the theta_theta term (theta_theta * T)
 %   @return R2: value proportional to the Mi_sigma_sigma term (Mi_sigma_sigma * T)
+%   @return R3: value proportional to the xi_xi_inf term (xi_xi_inf * T)
 %
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
@@ -22,6 +23,7 @@ M = param.M;
 dX = param.dX;
 MX = param.MX;
 d = param.d;
+lambda = param.lambda;
 
 % The last two time steps are not used
 N_tot = N_tot - 2;
@@ -38,7 +40,8 @@ else
     name_file_U_temp=param.name_file_U_temp; % Name of the next file
 end
 
-load(name_file_U_temp);
+load(name_file_U_temp, 'U');
+dU = diff(U, 1, 2);
 
 % compute the sum((dw_ss * del) * dw_ss)
 Mi_sigma = zeros(M, d);
@@ -56,7 +59,7 @@ for t = 1 : N_tot % loop on time
         % Name of the new file
         name_file_U_temp = param.name_file_U_temp{big_T};
         % Load new file
-        load(name_file_U_temp);
+        load(name_file_U_temp, 'U');
         
         % Differentiate it wrt time
         dU = diff(U, 1, 2);
@@ -94,7 +97,7 @@ load(param.name_file_mode, 'phi_m_U')
 % Compute the projection over each mode for Mi_sigma
 R2 = zeros(m, 1);
 Mi_sigma = reshape(Mi_sigma, [1, 1, MX, d]);
-for j = 1 : m + 1
+for j = 1 : m
     phi_j = phi_m_U(:, j, :);
     phi_j = permute(phi_j, [4, 2, 1, 3]);%(1,1,M,d)
     phi_j = reshape(phi_j, [1, 1, MX, d]);%(1,1,Mx,My,(Mz),d)
@@ -117,10 +120,10 @@ for p = 1 : m
         del_p_i = del_pi(:, p, i, :);
         del_p_i = permute(del_p_i, [3, 4, 1, 2]);%(1,d,M)
         del_p_i = reshape(del_p_i, [1, d, MX]);%(1,d,Mx,My,(Mz))
-        del_p_i = permute(del_p_i, [ndims(del_p_i) + 1, 1 : ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
         
-        ddel_p_i = gradient_mat(del_p_i);
+        ddel_p_i = gradient_mat(del_p_i, dX);
         ddel_p_i = permute(ddel_p_i, [ndims(ddel_p_i) + 1, 1, ndims(ddel_p_i), 3 : ndims(ddel_p_i) - 1, 2]);
+        del_p_i = permute(del_p_i, [ndims(del_p_i) + 1, 1 : ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
         
         % compute the gradient of phi_q
         for q = 1 : m + 1
@@ -139,16 +142,19 @@ for p = 1 : m
             adv_sl = permute(adv_sl, [1, 2, 4 : ndims(adv_sl), 3]);%(1 1 Mx My (Mz) d)
             
             % Large scale advected by small scale
+            phi_q = permute(phi_q, [ndims(phi_q) + 1, 1 : ndims(phi_q)]);
             adv_ls = bsxfun(@times, ddel_p_i, phi_q);
             adv_ls = sum(adv_ls, 3);
             adv_ls = permute(adv_ls, [1, 2, 4 : ndims(adv_ls), 3]);%(1 1 Mx My (Mz) d)
             
             % Add the diffusion term if phi_0
             if q == m + 1
+                del_p_i = reshape(del_p_i, [1, d, MX]);
                 Lap_del_pi = laplacian_mat(del_p_i,dX);
                 Lap_del_pi = nu*Lap_del_pi;
                 Lap_del_pi = permute(Lap_del_pi,[1 ndims(Lap_del_pi)+1 2:ndims(Lap_del_pi)]);
                 Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
+                del_p_i = permute(del_p_i, [ndims(del_p_i) + 1, 1 : ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
             end
             
             % Do the divergence free projection
@@ -160,9 +166,9 @@ for p = 1 : m
             integ = permute(integ, [3 : ndims(integ) - 1, 1, 2, ndims(integ)]); % [Mx, My, (Mz), 1, 1, d]
             integ = reshape(integ, [M, 1, d]);
             if strcmp(param.type_data, 'turb2D_blocks_truncated')
-                Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, true);
+                integ = integ - proj_div_propre(integ, MX, dX, true);
             else
-                Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, false);
+                integ = integ - proj_div_propre(integ, MX, dX, false);
             end
             integ = reshape(integ, [MX, 1, d]);
             integ = permute(integ, [ndims(integ) - 1, 1 : ndims(integ) - 2, ndims(integ)]);
@@ -190,6 +196,20 @@ for p = 1 : m
     end
 end
 clear del_pi;
+
+% Compute xi_xi_inf
+R3 = zeros(m, m);
+
+for i = 1 : m
+    for j = 1 : m
+        lambda_theta_theta = 0;
+        for k = 1 : m
+%             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j) * lambda(k);
+            lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j);
+        end
+        R3(i, j) = d2bt(:, i)' * d2bt(:, j) - lambda_theta_theta;
+    end
+end
 
 R1 = R1 * dt;
 R2 = R2 * dt;

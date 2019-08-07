@@ -13,6 +13,8 @@ function [param_ref, bt,truncated_error2]=Chronos_test_basis(param_ref)
 
 % Now the name depends on the subsampling rate instead of the threshold
 % value for generalization purposes.
+global correlated_model;
+
 name_file = ...
     [param_ref.folder_data param_ref.type_data ...
     '_' num2str(param_ref.nb_modes) '_modes' ...
@@ -35,7 +37,11 @@ else
     phi=phi_m_U; clear phi_m_U
     phi = permute(phi,[1 4 3 2]);
     
-    n_subsampl = param.decor_by_subsampl.n_subsampl_decor;
+    if correlated_model
+        n_subsampl = 1;
+    else
+        n_subsampl = param.decor_by_subsampl.n_subsampl_decor;
+    end
     
     if isfield(param_ref,'data_in_blocks') && ...
             isfield(param_ref.data_in_blocks,'bool') && ...

@@ -1,35 +1,39 @@
-function [sigma_ss] = generate_sigma_ss(f, dims, stdev, dx)
+function [sigma_ss] = generate_sigma_ss(f, dims, stdev, dX)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-d = length(dims);
+d = length(dX);
 sigma_ss = zeros(dims);
 
 if d == 2
-    c = [dims(1) / 2, dims(2) / 2] .* dx;
-    x = 1 : dx : dims(1);
+    x = 1 : dims(1);
+    y = 1 : dims(2);
+    c = [dims(1) / 2, dims(2) / 2];
     x = x - c(1);
-    y = 1 : dx : dims(2);
     y = y - c(2);
-    for i = 1 : dims(1)
-        for j = 1 : dims(2)
-            sigma_ss(i, j) = sin(2 * pi * f * norm([x(i), y(j)])) * ...
-                exp(-norm([x(i), y(j)]).^2 / stdev.^2);
+    for l = 1 : d
+        for i = 1 : length(x)
+            for j = 1 : length(y)
+                sigma_ss(i, j, l) = sin(2 * pi * f * norm([x(i), y(j)])) * ...
+                    exp(-norm([x(i), y(j)]).^2 / stdev.^2);
+            end
         end
     end
 elseif d == 3
+    x = 1 : dims(1);
+    y = 1 : dims(2);
+    z = 1 : dims(3);
     c = [dims(1) / 2, dims(2) / 2, dims(3) / 2];
-    x = 1 : dx : dims(1);
     x = x - c(1);
-    y = 1 : dx : dims(2);
     y = y - c(2);
-    z = 1 : dx : dims(3);
     z = z - c(3);
-    for i = 1 : dims(1)
-        for j = 1 : dims(2)
-            for k = 1 : dims(3)
-                sigma_ss(i, j, k) = sin(2 * pi * f * norm([x(i), y(j), z(k)])) * ...
-                    exp(-norm([x(i), y(j), z(k)]).^2 / stdev.^2);
+    for l = 1 : d
+        for i = 1 : length(x)
+            for j = 1 : length(y)
+                for k = 1 : length(z)
+                    sigma_ss(i, j, k, l) = sin(2 * pi * f * norm([x(i), y(j), z(k)])) * ...
+                        exp(-norm([x(i), y(j), z(k)]).^2 / stdev.^2);
+                end
             end
         end
     end

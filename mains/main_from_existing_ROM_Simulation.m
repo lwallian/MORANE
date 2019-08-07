@@ -124,6 +124,7 @@ a_t='_a_cst_';
 global choice_n_subsample;
 global stochastic_integration;
 global estim_rmv_fv;
+global correlated_model;
 
 param_ref2.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref2.type_data = type_data;
@@ -141,9 +142,17 @@ switch choice_n_subsample
             a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
             num2str(threshold) ...
             'fct_test_' test_fct ];
-    case 'corr_time'
+    case 'lms'
         file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_corr_time_' ...
+            a_t '_decor_by_subsampl_bt_decor_choice_lms_' ...
+            'fct_test_' test_fct];
+    case 'truncated'
+        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+            a_t '_decor_by_subsampl_bt_decor_choice_truncated_' ...
+            'fct_test_' test_fct];
+    case 'htgen'
+        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+            a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
             'fct_test_' test_fct];
 end
 
@@ -173,6 +182,9 @@ if no_subampl_in_forecast
 end
 if reconstruction
     file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
+end
+if correlated_model
+    file_res_2nd_res = [file_res_2nd_res '_correlated_'];
 end
 file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
 if estim_rmv_fv

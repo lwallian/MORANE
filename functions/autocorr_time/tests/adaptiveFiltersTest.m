@@ -9,11 +9,11 @@ dt = 0.05;
 % data = load('C_DNS300_16Modes.mat');
 % dt = 0.25;
 cov_v = data.c;
+cov_v = cov_v(1 : 10000, 1 : 10000);
 bt = data.bt;
 clear data;
 cov_s = smallScaleVelocityCov(cov_v, bt);
 correlation = estimateAutocorrelation(cov_s);
-correlation = correlation(1 : 10000);
 period = periodicityFromAutocorrelation(cov_v);
 
 %% Test LMS / NLMS filter to clean the periodic part

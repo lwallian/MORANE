@@ -162,19 +162,33 @@ toc
 
 tic
 % Choice of the subsampling rate
-if param.decor_by_subsampl.bool && ...
-        strcmp(param.decor_by_subsampl.choice_n_subsample,'auto_shanon')
-    param.decor_by_subsampl.n_subsampl_decor ...
-        = fct_cut_frequency(bt,lambda,param);
-elseif param.decor_by_subsampl.bool && ...
-        strcmp(param.decor_by_subsampl.choice_n_subsample,'corr_time')
-    param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1);
-    param.decor_by_subsampl.n_subsampl_decor ...
-        = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
-%         = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
-%         = max(floor(correlationTimeCut(c, bt)), 1);
+
+if param.decor_by_subsampl.bool
+    switch param.decor_by_subsampl.choice_n_subsample
+        case 'auto_shanon'
+            param.decor_by_subsampl.n_subsampl_decor = fct_cut_frequency(bt,lambda,param);
+        case 'lms'
+            param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1);
+            param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
+        case 'htgen'
+            param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(c, bt, param.dt), 1);
+            param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
+        case 'truncated'
+            param.decor_by_subsampl.tau_corr = max(correlationTimeCut(c, bt), 1);
+            param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(c, bt)), 1);
+        otherwise
+            error('Invalid downsampling method.')
+    end
 end
 clear c;
+
+% To ease the testing phase of the correlated model
+global tau_corr;
+if strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
+    tau_corr = param.decor_by_subsampl.n_subsampl_decor;
+else
+    tau_corr = param.decor_by_subsampl.tau_corr;
+end
 
 % Subsampling
 % if param.decor_by_subsampl.bool && ...
@@ -196,9 +210,10 @@ param_temp = param;
 param_temp.a_time_dependant = true;
 param = fct_name_file_diffusion_mode(param);
 param_temp = fct_name_file_diffusion_mode(param_temp);
+
 bool = (exist(param.name_file_noise_cov,'file')==2 ) && ( ...
     (exist(param.name_file_diffusion_mode,'file')==2) || ...
-        (exist(param_temp.name_file_diffusion_mode,'file')==2) );
+    (exist(param_temp.name_file_diffusion_mode,'file')==2) );
 % bool = (exist(param.name_file_diffusion_mode,'file')==2) || ...
 %         (exist(param_temp.name_file_diffusion_mode,'file')==2);
 
@@ -210,7 +225,7 @@ bool = (exist(param.name_file_noise_cov,'file')==2 ) && ( ...
 
 % Subsample residual velocity
 if ~ bool
-% if ~ ( exist(name_file_temp,'file')==2 )
+    % if ~ ( exist(name_file_temp,'file')==2 )
     %     if n_subsampl_decor > 1
     % Subsample snapshots
     param = sub_sample_U(param);
@@ -218,7 +233,6 @@ else
     param = gen_file_U_temp(param);
 end
 
-%     end
 if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
     % Change the time period
     param.dt=n_subsampl_decor*param.dt;
@@ -230,7 +244,6 @@ if  strcmp(param.decor_by_subsampl.meth,'bt_decor')
 end
 toc
 disp('Subsampling done')
-
 %% Residual velocity
 if ~ bool
     tic

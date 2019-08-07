@@ -15,8 +15,8 @@ if nargin == 0
     init;
     
     %% Number of modes for the the ROM
-    vect_nb_modes = [2 4 6 8]
-%     vect_nb_modes = [16]
+%     vect_nb_modes = [2 4 6 8]
+    vect_nb_modes = [16]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
@@ -133,13 +133,12 @@ for modal_dt=vect_modal_dt
                 iii = (threshold =='.');
                 threshold(iii)='_';
                 
-%                 global choice_n_subsample;
                 switch choice_n_subsample
                     case 'auto_shanon'
                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
                             num2str(nb_modes_max) '_threshold_' threshold ...
                             '_fullsto'];
-                    case 'corr_time'
+                    otherwise
                         str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
                             num2str(nb_modes_max) 'auto_corr_time_fullsto'];
                 end

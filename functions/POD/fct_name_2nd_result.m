@@ -4,6 +4,7 @@ function param = fct_name_2nd_result(param,modal_dt,reconstruction)
 %
 global stochastic_integration;
 global estim_rmv_fv;
+global correlated_model;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -24,7 +25,7 @@ if param.decor_by_subsampl.bool
                 '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
                 '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
                 'fct_test_' param.decor_by_subsampl.test_fct ];
-        case 'corr_time'
+        otherwise
             param.name_file_2nd_result=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
                 dependance_on_time_of_a char_filter ...
                 '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
@@ -55,6 +56,9 @@ if reconstruction
     param.name_file_2nd_result=[param.name_file_2nd_result '_reconstruction'];
 else
     param.reconstruction=false;
+end
+if correlated_model
+    param.name_file_2nd_result=[param.name_file_2nd_result '_correlated_'];
 end
 param.name_file_2nd_result = [param.name_file_2nd_result '_integ_' stochastic_integration];
 if estim_rmv_fv
