@@ -510,7 +510,7 @@ elseif correlated_model
     bt_m = zeros(1, param.nb_modes, param.N_particules);
     
     % Initialization of model's stochastic variables
-    eta = zeros(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+    eta = zeros(param.N_test, param.nb_modes + 1, param.nb_modes, param.N_particules);
     Gr = zeros(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
     Mi_ss = zeros(param.N_test, param.nb_modes, param.N_particules);
     
@@ -518,7 +518,7 @@ elseif correlated_model
         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
             evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
-            pchol_cov_noises, tau_corr, param.dt, bt_MCMC(l, :, :), ...
+            pchol_cov_noises, tau_corr * param.dt, param.dt, bt_MCMC(l, :, :), ...
             eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
@@ -548,8 +548,8 @@ else
 end
 
 % BETA : confidence interval
-% struct_bt_MCMC.qtl = quantile(bt_MCMC, 0.025, 3);
-% struct_bt_MCMC.diff = quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
+struct_bt_MCMC.qtl = fx_quantile(bt_MCMC, 0.025, 3);
+struct_bt_MCMC.diff = fx_quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
 % end BETA
 if param.igrida
     toc;tic
