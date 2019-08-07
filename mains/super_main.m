@@ -101,14 +101,14 @@ decor_by_subsampl.meth='bt_decor';
 % ('lms' = correlation time estimation of the unresolved chronos through an lms filtered correlation function)
 % ('truncated' = correlation time estimation of the unresolved chronos through a truncated correlation function)
 % ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
-decor_by_subsampl.choice_n_subsample = 'auto_shanon';
+decor_by_subsampl.choice_n_subsample = 'lms';
 % Stochastic integration path: 'Ito' or 'Str'
 global stochastic_integration;
-stochastic_integration = 'Ito';
+stochastic_integration = 'Str'
 
 % Choose the correlated model (if true)
 global correlated_model;
-correlated_model = true;
+correlated_model = false
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;

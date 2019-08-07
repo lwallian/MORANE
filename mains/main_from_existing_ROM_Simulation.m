@@ -135,64 +135,51 @@ param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
 param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
 file_res_2nd_res = param_ref2.name_file_2nd_result;
 if ~ (exist(file_res_2nd_res,'file') == 2)
-
-switch choice_n_subsample
-    case 'auto_shanon'
-        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
-            num2str(threshold) ...
-            'fct_test_' test_fct ];
-    case 'lms'
-        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_lms_' ...
-            'fct_test_' test_fct];
-    case 'truncated'
-        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_truncated_' ...
-            'fct_test_' test_fct];
-    case 'htgen'
-        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
-            'fct_test_' test_fct];
-end
-
-% file_res_2nd_res = [ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-%             a_t '_decor_by_subsampl_bt_decor_choice_auto_corr_time_'...
-%             'fct_test_' test_fct ]; % there's no param...
-        
-% file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-%             a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
-%             num2str(threshold) ...
-%             'fct_test_' test_fct ];
-% if modal_dt
-%     file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
-% end
-
-file_res_2nd_res=[file_res_2nd_res '_fullsto'];
-if modal_dt == 1
-    file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
-elseif modal_dt == 2
-    file_res_2nd_res=[file_res_2nd_res '_real_dt'];
-end
-if ~ adv_corrected
-    file_res_2nd_res=[file_res_2nd_res '_no_correct_drift'];
-end
-if no_subampl_in_forecast
-    file_res_2nd_res=[file_res_2nd_res '_no_subampl_in_forecast'];
-end
-if reconstruction
-    file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
-end
-if correlated_model
-    file_res_2nd_res = [file_res_2nd_res '_correlated_'];
-end
-file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
-if estim_rmv_fv
-    file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
-    param.estim_rmv_fv = true;
-end
-file_res_2nd_res=[file_res_2nd_res '.mat'];
-
+    
+    switch choice_n_subsample
+        case 'auto_shanon'
+            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
+                num2str(threshold) ...
+                'fct_test_' test_fct ];
+        case 'lms'
+            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                a_t '_decor_by_subsampl_bt_decor_choice_lms_' ...
+                'fct_test_' test_fct];
+        case 'truncated'
+            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                a_t '_decor_by_subsampl_bt_decor_choice_truncated_' ...
+                'fct_test_' test_fct];
+        case 'htgen'
+            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
+                'fct_test_' test_fct];
+    end
+    
+    file_res_2nd_res=[file_res_2nd_res '_fullsto'];
+    if modal_dt == 1
+        file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
+    elseif modal_dt == 2
+        file_res_2nd_res=[file_res_2nd_res '_real_dt'];
+    end
+    if ~ adv_corrected
+        file_res_2nd_res=[file_res_2nd_res '_no_correct_drift'];
+    end
+    if no_subampl_in_forecast
+        file_res_2nd_res=[file_res_2nd_res '_no_subampl_in_forecast'];
+    end
+    if reconstruction
+        file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
+    end
+    if correlated_model
+        file_res_2nd_res = [file_res_2nd_res '_correlated_'];
+    end
+    file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
+    if estim_rmv_fv
+        file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
+        param.estim_rmv_fv = true;
+    end
+    file_res_2nd_res=[file_res_2nd_res '.mat'];
 end
 
 load(file_res_2nd_res)

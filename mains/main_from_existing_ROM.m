@@ -25,7 +25,7 @@ param_ref.n_simu = 1e2;
 N_particules=100;
 param_ref.N_particules=N_particules;
 
-%% Default parameters 
+%% Default parameters
 % Number of POD modes
 if nargin == 0
     nb_modes = 2;
@@ -95,7 +95,7 @@ end
 
 % % Rate of increase of the time step to simulate accurately the SDE
 % % if strcmp( type_data,'DNS100_inc3d_2D_2018_11_16_blocks_truncated')
-% %     param_ref.n_simu = 1e1;    
+% %     param_ref.n_simu = 1e1;
 % % else
 %     % param_ref.n_simu = 1e7;
 %     % param_ref.n_simu = 1e4;
@@ -163,7 +163,7 @@ param_ref.decor_by_subsampl.meth = 'bt_decor';
 
 param_ref.adv_corrected = adv_corrected;
 
-if nargin < 9 
+if nargin < 9
     test_fct = 'b';
 end
 param_ref.decor_by_subsampl.test_fct = test_fct;
@@ -172,50 +172,43 @@ param_ref = fct_name_1st_result_new(param_ref);
 if exist(param_ref.name_file_1st_result,'file') == 2
     load(param_ref.name_file_1st_result)
 else
-
-file_res = fct_file_save_1st_result(param_ref);
-
-file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
-file_res=[file_res '_fullsto'];
-
-if ~ adv_corrected
-    file_res=[file_res '_no_correct_drift'];    
-end
-
-file_res=[ file_res '_integ_' stochastic_integration];
-if estim_rmv_fv
-    file_res=[file_res '_estim_rmv_fv'];
-end
-file_res=[ file_res '.mat'];
-
-% param_ref.decor_by_subsampl.test_fct = 'db';
-% param_ref.adv_corrected = adv_corrected;
-
-% file_res = fct_file_save_1st_result(param_ref);
-% file_name_struct = fct_name_1st_result(param_ref);
-% file_res = file_name_struct.name_file_1st_result;
-
-% if correlated_model
-%     file_res = file_res(1:end - 25); % delete the .mat at the end of the filename
-%     file_res=[file_res '_fullsto'];
-%     if ~ adv_corrected
-%         file_res=[file_res '_no_correct_drift'];
-%     end
-%     file_res=[file_res '_correlated'];
-%     file_res=[ file_res '_integ_' stochastic_integration];
-%     file_res=[ file_res '.mat'];
-% else
-%     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
-%     file_res=[file_res '_fullsto'];
-%     if ~ adv_corrected
-%         file_res=[file_res '_no_correct_drift'];
-%     end
-%     file_res=[ file_res '_integ_' stochastic_integration];
-%     file_res=[ file_res '.mat'];
-% end
-
-load(file_res)
-
+    file_res = fct_file_save_1st_result(param_ref);
+    file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
+    file_res=[file_res '_fullsto'];
+    if ~ adv_corrected
+        file_res=[file_res '_no_correct_drift'];
+    end
+    file_res=[ file_res '_integ_' stochastic_integration];
+    if estim_rmv_fv
+        file_res=[file_res '_estim_rmv_fv'];
+    end
+    file_res=[ file_res '.mat'];
+    % param_ref.decor_by_subsampl.test_fct = 'db';
+    % param_ref.adv_corrected = adv_corrected;
+    
+    % file_res = fct_file_save_1st_result(param_ref);
+    % file_name_struct = fct_name_1st_result(param_ref);
+    % file_res = file_name_struct.name_file_1st_result;
+    
+    % if correlated_model
+    %     file_res = file_res(1:end - 25); % delete the .mat at the end of the filename
+    %     file_res=[file_res '_fullsto'];
+    %     if ~ adv_corrected
+    %         file_res=[file_res '_no_correct_drift'];
+    %     end
+    %     file_res=[file_res '_correlated'];
+    %     file_res=[ file_res '_integ_' stochastic_integration];
+    %     file_res=[ file_res '.mat'];
+    % else
+    %     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
+    %     file_res=[file_res '_fullsto'];
+    %     if ~ adv_corrected
+    %         file_res=[file_res '_no_correct_drift'];
+    %     end
+    %     file_res=[ file_res '_integ_' stochastic_integration];
+    %     file_res=[ file_res '.mat'];
+    % end
+    load(file_res)
 end
 
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
@@ -281,7 +274,7 @@ param.plot_bts=plot_bts;
 %% Choice of modal time step
 
 if modal_dt >0
-% if modal_dt
+    % if modal_dt
     [rate_dt, ILC_a_cst,pchol_cov_noises] = fct_cut_frequency_2_full_sto( ...
         bt_tot,ILC_a_cst,param,pchol_cov_noises, modal_dt);
     % [rate_dt, ILC_a_cst] = fct_cut_frequency_2(bt_tot,ILC_a_cst,param);
@@ -304,7 +297,7 @@ end
 % L_sto= coef_mod^2 * ILC_a_cst.sto.L;
 % C_sto= coef_mod^2 * ILC_a_cst.sto.C;
 % pchol_cov_noises = coef_mod * pchol_cov_noises;
-% 
+%
 % ILC_a_cst.modal_dt.I=I_sto+I_deter;
 % ILC_a_cst.modal_dt.L=L_sto+L_deter;
 % ILC_a_cst.modal_dt.C=C_sto+C_deter;
@@ -326,7 +319,7 @@ end
 % param.N_learn_coef_a=size(bt_tot,1);
 
 %% Learning corrective coefficients
-% 
+%
 % [coef_beta, ILC_beta] = estim_vector_mat_beta(bt_tot,ILC,param);
 % param.coef_correctif_estim.type_estim='scalar';
 % [coef_scalar, ILC_scalar] = estim_vector_mat_beta(bt_tot,ILC,param);
@@ -334,12 +327,12 @@ end
 % [NLMEV, ILC] = estim_modal_non_lin_eddy_viscosity(bt_tot,ILC,param);
 
 
-%% Duration of the test 
+%% Duration of the test
 
 % % warning('nb periods changed by hands')
 % % param.type_data = [param.type_data '++'];
 % % nb_period_test = 5*nb_period_test;
-% 
+%
 % if strcmp(param.type_data, 'inc3D_Re3900_blocks')
 %     param.N_test = ceil(5*5/param.dt);
 %     warning('simulation on only 5 periods')
@@ -356,7 +349,7 @@ end
 % %         T_period = 5;
 %     end
 % %     param.N_test = ceil( T_period * nb_period_test/param.dt);
-% %     warning(['simulation on only ' num2str(nb_period_test) ' periods']);    
+% %     warning(['simulation on only ' num2str(nb_period_test) ' periods']);
 % end
 
 %% Do not temporally subsample, in order to prevent aliasing in the results
@@ -365,12 +358,12 @@ end
 %     error('The reconstruction is only coded with the subsampled data');
 % end
 if ~ reconstruction
-%     if param.decor_by_subsampl.no_subampl_in_forecast
-%         param.dt = param.dt / param.decor_by_subsampl.n_subsampl_decor;
-%         param.N_test = param.N_test * param.decor_by_subsampl.n_subsampl_decor;
-%         param.N_tot = param.N_tot * param.decor_by_subsampl.n_subsampl_decor;
-%         param.decor_by_subsampl.n_subsampl_decor = 1;
-%     end
+    %     if param.decor_by_subsampl.no_subampl_in_forecast
+    %         param.dt = param.dt / param.decor_by_subsampl.n_subsampl_decor;
+    %         param.N_test = param.N_test * param.decor_by_subsampl.n_subsampl_decor;
+    %         param.N_tot = param.N_tot * param.decor_by_subsampl.n_subsampl_decor;
+    %         param.decor_by_subsampl.n_subsampl_decor = 1;
+    %     end
     
     %% Creation of the test basis
     [param,bt_tot,truncated_error2]=Chronos_test_basis(param);
@@ -551,11 +544,11 @@ elseif correlated_model
             evol_forward_correlated_SSPRK3(I_sto, L_sto, C_sto, ...
             pchol_cov_noises, tau_corr * param.dt, param.dt, bt_MCMC(l, :, :), ...
             eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma);
-%         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
-%             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
-%             evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
-%             pchol_cov_noises, tau_corr * param.dt, param.dt, bt_MCMC(l, :, :), ...
-%             eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+        %         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
+        %             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+        %             evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
+        %             pchol_cov_noises, tau_corr * param.dt, param.dt, bt_MCMC(l, :, :), ...
+        %             eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
     
@@ -573,12 +566,12 @@ elseif correlated_model
     struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
     struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
-%     struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
-%     struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
-%     struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
-%     struct_bt_MCMC.m.mean = mean(bt_m, 3);
-%     struct_bt_MCMC.m.var = var(bt_m, 0, 3);
-%     struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
+    %     struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+    %     struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+    %     struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+    %     struct_bt_MCMC.m.mean = mean(bt_m, 3);
+    %     struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+    %     struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
 else
     error('Invalid stochastic integration path')
 end
@@ -603,7 +596,7 @@ if param.igrida
     toc;tic;
     disp('2nd result saved');
 end
-% 
+%
 % if param.decor_by_subsampl.bool
 %     if strcmp(dependance_on_time_of_a,'a_t')
 %         char_filter = [ '_on_' param.type_filter_a ];
@@ -625,7 +618,7 @@ end
 %     file_save=[file_save '_modal_dt'];
 % end
 % if ~ adv_corrected
-%     file_save=[file_save '_no_correct_drift'];    
+%     file_save=[file_save '_no_correct_drift'];
 % end
 % if no_subampl_in_forecast
 %     file_save=[file_save '_no_subampl_in_forecast'];
@@ -662,41 +655,41 @@ end
 
 % if plot_bts
 %     param.folder_data =param_ref.folder_data ;
-%     
+%
 %     param.plot.plot_deter=plot_deterministic;
 %     param.plot.plot_EV=plot_EV;
 %     param.plot.plot_tuned=plot_tuned;
 %     param.plot_modal_dt = false;
 % %     param.plot_modal_dt = plot_modal_dt;
-%     
+%
 % %     plot_bt_dB_MCMC(param,bt_tot,bt_tot,...
 % %             bt_tot, bt_tot, bt_forecast_deter,...
 % %             bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
-%     
+%
 %     zzz = nan(size(bt_tot));
 %     param.plot.plot_EV = false;
-%     
+%
 %     param.test_basis = true;
 %     %     param.folder_results = [param.folder_results '_test_basis'];
 %     plot_each_mode = true;
-%         
+%
 %     if plot_each_mode
 %         plot_bt_MCMC(param,zzz,zzz,...
 %             zzz, zzz, bt_forecast_deter,...
 %             zzz,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC)
 %         figure;
 %     end
-% 
+%
 % %     plot_bt_dB_MCMC(param,zzz,zzz,...
 %     plot_bt_dB_MCMC_varying_error(param,zzz,zzz,...
 %             zzz, zzz, bt_forecast_deter,...
 %             zzz,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
-%     
-% 
+%
+%
 % % if plot_bts
 % %     plot_bt5(param,bt_forecast_sto,bt_forecast_deter,bt_tot)
 % % end
 %     toc;tic
 %     disp('plot done');
 % end
-    
+
