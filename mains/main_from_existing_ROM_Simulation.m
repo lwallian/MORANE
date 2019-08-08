@@ -155,6 +155,8 @@ if ~ (exist(file_res_2nd_res,'file') == 2)
             file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
                 a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
                 'fct_test_' test_fct];
+        otherwise
+            error('unknown case');
     end
     
     file_res_2nd_res=[file_res_2nd_res '_fullsto'];
@@ -175,12 +177,24 @@ if ~ (exist(file_res_2nd_res,'file') == 2)
     if correlated_model
         file_res_2nd_res = [file_res_2nd_res '_correlated_'];
     end
+    file_res_2nd_res_save = file_res_2nd_res;
     file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
     if estim_rmv_fv
         file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
         param.estim_rmv_fv = true;
     end
     file_res_2nd_res=[file_res_2nd_res '.mat'];
+    if (~(exist(file_res_2nd_res,'file') == 2)) ...
+            && strcmp(stochastic_integration,'Ito')
+        file_res_2nd_res = file_res_2nd_res_save;
+        if estim_rmv_fv
+            file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
+            param.estim_rmv_fv = true;
+        end
+        file_res_2nd_res=[file_res_2nd_res '.mat'];
+    else
+        clear file_res_2nd_res_save;
+    end
 end
 
 load(file_res_2nd_res)
