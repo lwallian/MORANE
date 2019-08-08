@@ -108,7 +108,7 @@ for j = 1 : m
     
     % compute the integration of s_temp
     s_temp = integration_mat(s_temp, dX);
-    R2(j) = s_temp;
+    R2(j) = -s_temp;
     clear s_temp;
 end
 
@@ -136,33 +136,19 @@ for p = 1 : m
                     %(1,1,d!,Mx,My,(Mz),d
             
             % compute the advection term_piq ::adv_piq
-            adv_sl = bsxfun(@times, dphi_q, del_p_i); % 1 x (1) x d x Mx x My (x Mz) d
+            adv_sl = bsxfun(@times, del_p_i, dphi_q); % 1 x (1) x d x Mx x My (x Mz) d
             clear dphi_q;
             adv_sl = sum(adv_sl, 3);
             adv_sl = permute(adv_sl, [1, 2, 4 : ndims(adv_sl), 3]);%(1 1 Mx My (Mz) d)
             
             % Large scale advected by small scale
             phi_q = permute(phi_q, [ndims(phi_q) + 1, 1 : ndims(phi_q)]);
-            adv_ls = bsxfun(@times, ddel_p_i, phi_q);
+            adv_ls = bsxfun(@times, phi_q, ddel_p_i);
             adv_ls = sum(adv_ls, 3);
             adv_ls = permute(adv_ls, [1, 2, 4 : ndims(adv_ls), 3]);%(1 1 Mx My (Mz) d)
             
-            % Add the diffusion term if phi_0
-            if q == m + 1
-                del_p_i = reshape(del_p_i, [1, d, MX]);
-                Lap_del_pi = laplacian_mat(del_p_i,dX);
-                Lap_del_pi = nu*Lap_del_pi;
-                Lap_del_pi = permute(Lap_del_pi,[1 ndims(Lap_del_pi)+1 2:ndims(Lap_del_pi)]);
-                Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
-                del_p_i = permute(del_p_i, [ndims(del_p_i) + 1, 1 : ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
-            end
-            
             % Do the divergence free projection
-            if q ~= m + 1
-                integ = adv_sl + adv_ls;
-            else
-                integ = adv_sl + adv_ls - Lap_del_pi;
-            end
+            integ = adv_sl + adv_ls;
             integ = permute(integ, [3 : ndims(integ) - 1, 1, 2, ndims(integ)]); % [Mx, My, (Mz), 1, 1, d]
             integ = reshape(integ, [M, 1, d]);
             if strcmp(param.type_data, 'turb2D_blocks_truncated')
@@ -173,6 +159,18 @@ for p = 1 : m
             integ = reshape(integ, [MX, 1, d]);
             integ = permute(integ, [ndims(integ) - 1, 1 : ndims(integ) - 2, ndims(integ)]);
             integ = reshape(integ, [1, 1, MX, d]);
+            
+            % Add the diffusion term if phi_0
+            if q == m + 1
+                del_p_i = reshape(del_p_i, [1, d, MX]);
+                Lap_del_pi = laplacian_mat(del_p_i,dX);
+                Lap_del_pi = nu*Lap_del_pi;
+                Lap_del_pi = permute(Lap_del_pi,[1 ndims(Lap_del_pi)+1 2:ndims(Lap_del_pi)]);
+                Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
+                del_p_i = permute(del_p_i, [ndims(del_p_i) + 1, 1 : ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
+                
+                integ = integ - Lap_del_pi;
+            end
             
             % projection on phi_j
             for j = 1 : m + 1

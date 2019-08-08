@@ -246,22 +246,8 @@ for q = 1 : m + 1
     adv_ls = sum(adv_ls, 3);
     adv_ls = permute(adv_ls, [1, 2, 4 : ndims(adv_ls), 3]);%(1 1 Mx My (Mz) d)
     
-    % Add the diffusion term if phi_0
-    if q == m + 1
-        xi = reshape(xi, [1, d, MX]);
-        Lap_xi = laplacian_mat(xi, dX);
-        Lap_xi = nu*Lap_xi;
-        Lap_xi = permute(Lap_xi,[1 ndims(Lap_xi)+1 2:ndims(Lap_xi)]);
-        Lap_xi = permute(Lap_xi, [1 2 4:ndims(Lap_xi) 3]);%(1,1,Mx,My,(Mz),d)
-        xi = permute(xi, [ndims(xi) + 1, 1 : ndims(xi)]);%(1,1,d,Mx ,My,(Mz))
-    end
-    
     % Do the divergence free projection
-    if q ~= m + 1
-        integ = adv_sl + adv_ls;
-    else
-        integ = adv_sl + adv_ls - Lap_xi;
-    end
+    integ = adv_sl + adv_ls;
     integ = permute(integ, [3 : ndims(integ) - 1, 1, 2, ndims(integ)]); % [Mx, My, (Mz), 1, 1, d]
     integ = reshape(integ, [M, 1, d]);
     if strcmp(param.type_data, 'turb2D_blocks_truncated')
@@ -272,6 +258,18 @@ for q = 1 : m + 1
     integ = reshape(integ, [MX, 1, d]);
     integ = permute(integ, [ndims(integ) - 1, 1 : ndims(integ) - 2, ndims(integ)]);
     integ = reshape(integ, [1, 1, MX, d]);
+    
+    % Add the diffusion term if phi_0
+    if q == m + 1
+        xi = reshape(xi, [1, d, MX]);
+        Lap_xi = laplacian_mat(xi, dX);
+        Lap_xi = nu*Lap_xi;
+        Lap_xi = permute(Lap_xi,[1 ndims(Lap_xi)+1 2:ndims(Lap_xi)]);
+        Lap_xi = permute(Lap_xi, [1 2 4:ndims(Lap_xi) 3]);%(1,1,Mx,My,(Mz),d)
+        xi = permute(xi, [ndims(xi) + 1, 1 : ndims(xi)]);%(1,1,d,Mx ,My,(Mz))
+        
+        integ = integ + Lap_xi;
+    end
     
     % projection on phi_j
     for j = 1 : m + 1
@@ -285,7 +283,7 @@ for q = 1 : m + 1
         
         % compute the integration of s_temp
         s_temp = integration_mat(s_temp, dX);
-        Q(q,j) = - s_temp;
+        Q(q,j) = -s_temp;
         
         clear s_temp;
     end
