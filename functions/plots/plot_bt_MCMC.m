@@ -1,6 +1,7 @@
 function plot_bt_MCMC(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,...
     bt_forecast_sto_a_cst_modal_dt, bt_forecast_sto_a_NC_modal_dt, bt_forecast_deter, ...
-    bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC)
+    bt_forecast_MEV,struct_bt_MEV_noise,bt_pseudoSto,bt_tot,struct_bt_MCMC)
+%     bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC)
 %% Plot the first coefficients bt along time
 
 clear height
@@ -62,7 +63,11 @@ end
 
 % warning('N_test is changed');
 % N_test = 100;
-
+if param.plot_EV_noise
+    struct_bt_MEV_noise.tot.mean=struct_bt_MEV_noise.tot.mean(1:N_test,:);
+    struct_bt_MEV_noise.tot.var=struct_bt_MEV_noise.tot.var(1:N_test,:);
+    struct_bt_MEV_noise.tot.one_realiz=struct_bt_MEV_noise.tot.one_realiz(1:N_test,:);
+end
 struct_bt_MCMC.tot.mean=struct_bt_MCMC.tot.mean(1:N_test,:);
 struct_bt_MCMC.tot.var=struct_bt_MCMC.tot.var(1:N_test,:);
 struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
@@ -82,7 +87,7 @@ struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
 bt_tot=bt_tot(1:N_test,:);
 bt_forecast_MEV=bt_forecast_MEV(1:N_test,:);
 bt_forecast_deter=bt_forecast_deter(1:N_test,:);
-bt_sans_coef1=bt_sans_coef1(1:N_test,:);
+bt_pseudoSto=bt_pseudoSto(1:N_test,:);
 struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
 N_test=N_test-1;
 
@@ -165,7 +170,7 @@ for k=1:nb_modes
         %     semilogy(time, (bt_forecast_deter(:,k))','b');
     end
     
-    plot(time, (bt_sans_coef1(:,k))','r--');
+    plot(time, (bt_pseudoSto(:,k))','r--');
     
     % Real values
     plot(time_ref,bt_tot(:,k)','k-.');

@@ -13,6 +13,7 @@ tic
 % Plots to do
 plot_deterministic=true; % deterministic POD-Galerkin
 plot_EV=true; % estimated Eddy Visocvity
+plot_EV_noise=false; % estimated Eddy Visocvity
 plot_tuned=false; % estimated corrective coefficients
 
 if nargin < 7
@@ -263,6 +264,35 @@ struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 
 
 %% Eddy viscosity solutions
+
+param.plot_EV_noise = plot_EV_noise;
+if plot_EV_noise
+    param.plot.plot_EV= plot_EV;
+    file_EV=[ param.folder_results 'EV_result_' param.type_data ...
+        '_' num2str(param.nb_modes) '_modes'];
+    file_EV=[file_EV '_noise.mat'];
+    load(file_EV,'param_deter',...
+        'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+    %     load(file_EV,'param_deter',...
+    %         'bt_forecast_deter',...
+    %         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+    %     if modal_dt ~= 1
+    bt_forecast_EV_noise = bt_forecast_EV; clear bt_forecast_EV
+    bt_forecast_MEV_noise = bt_forecast_MEV; clear bt_forecast_MEV
+    bt_forecast_MEV_noise = bt_forecast_EV;
+    %     end
+    clear bt_forecast_EV_noise
+    bt_forecast_MEV_noise = ...
+        bt_forecast_MEV_noise(1:param.decor_by_subsampl.n_subsampl_decor:end,:,:);
+    
+    struct_bt_MEV_noise.tot.mean = mean(bt_forecast_MEV_noise, 3);
+    struct_bt_MEV_noise.tot.var = var(bt_forecast_MEV_noise, 0, 3);
+    struct_bt_MEV_noise.tot.one_realiz = bt_forecast_MEV_noise(:, :, 1);
+else
+    struct_bt_MEV_noise = nan;
+    bt_forecast_MEV_noise = nan;
+end
+
 if plot_EV
     param.plot.plot_EV= plot_EV;
     file_EV=[ param.folder_results 'EV_result_' param.type_data ...
@@ -301,7 +331,9 @@ if plot_bts
     %     if param_ref.plot_each_mode
     plot_bt_MCMC(param,bt_tot,bt_tot,...
         bt_tot, bt_tot, bt_forecast_deter,...
-        bt_forecast_MEV,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+        bt_forecast_MEV,struct_bt_MEV_noise,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+%         bt_forecast_MEV,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+
     %     plot_bt_MCMC(param,bt_tot,bt_tot,...
     %         bt_tot, bt_tot, bt_forecast_deter,...
     %         bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
@@ -317,8 +349,10 @@ if plot_bts
     
     [ idx_min_error, idx_min_err_tot] = ...
         plot_bt_dB_MCMC_varying_error(param,zzz,zzz,...
-        zzz, zzz, bt_forecast_deter,...
-        bt_forecast_MEV,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
+        bt_forecast_sto, zzz, bt_forecast_deter,...
+        bt_forecast_MEV,bt_forecast_MEV_noise,struct_bt_MEV_noise,...
+        bt_tot,struct_bt_MCMC,bt_MCMC)
+%         bt_forecast_MEV,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
     save(file_res_2nd_res,'idx_min_error','idx_min_err_tot','-append')
     %         otherwise
     %             %     plot_bt_dB_MCMC(param,zzz,zzz,...

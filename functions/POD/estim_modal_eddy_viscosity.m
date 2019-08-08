@@ -90,4 +90,17 @@ ILC.MEV.L=L_deter + L_correction;
 % ILC.MEV.L=L_deter + bsxfun(@times, eddy_visco/param.viscosity , L_used );
 ILC.MEV.C=C_deter;
 
+%% Noise
+if param.add_noise    
+    sigma_err=zeros(1,nb_modes);
+    for i=1:nb_modes
+        Y_i = Y(i,:)';
+        X_i = X(i,:)';
+        eddy_visco(i) = max(0,eddy_visco(i));
+        err_i = Y_i  - eddy_visco(i) * X_i;
+        sigma_err(i) = sqrt( mean(err_i(:).^2) * dt );
+    end
+    ILC.MEV.sigma_err = sigma_err;
+end
+
 end

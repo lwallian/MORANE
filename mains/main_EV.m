@@ -1,4 +1,4 @@
-function main_EV(nb_modes,type_data)
+function main_EV(nb_modes,type_data,add_noise)
 % param = main_EV(nb_modes,type_data,threshold,igrida,coef_correctif_estim)
 % Load simulation results, estimate modal time step by Shanon 
 % and compare it with modal Eddy Viscosity ROM and
@@ -40,6 +40,9 @@ test_fct='b'; % 'b' is better than db
 % Number of POD modes
 if nargin == 0
     nb_modes = 2;
+end
+if nargin < 3
+    add_noise = false;
 end
 
 % % On which function the Shanon ctriterion is used
@@ -219,6 +222,7 @@ end
 param.N_learn_coef_a = inf;
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 param.nb_period_test = nan;
+param.add_noise = add_noise;
 
 [coef_beta, ILC_beta] = estim_vector_mat_beta(bt_tot,ILC,param);
 param.coef_correctif_estim.type_estim='scalar';
@@ -228,8 +232,12 @@ param.coef_correctif_estim.type_estim='scalar';
 [NLMEV, ILC] = estim_modal_non_lin_eddy_viscosity(bt_tot,ILC,param);
 
 %% Time integration of the b(t)
-
-n_simu = 10;
+if param.add_noise
+    n_simu = 100;
+    param.N_particules = 100;
+else
+    n_simu = 10;
+end
 param.decor_by_subsampl.spectrum_threshold = 0;
 param.decor_by_subsampl.n_subsampl_decor = 1;
 
@@ -301,14 +309,68 @@ for l = 1:N_test
         evol_forward_bt_RK4(I_deter,L_deter,C_deter, dt_tot, bt_forecast_deter)];
 end
 bt_forecast_MEV=bt_init;
+if param.add_noise
+    bt_forecast_MEV=repmat(bt_forecast_MEV,[1 1 param.N_particules]);
+end
 for l = 1:N_test
     bt_forecast_MEV= [bt_forecast_MEV; ...
         evol_forward_bt_RK4(ILC.MEV.I,ILC.MEV.L,ILC.MEV.C, dt_tot, bt_forecast_MEV)];
+    if param.add_noise
+        bt_forecast_MEV(end,:)= bt_forecast_MEV(end,:) + ...
+            (1/sqrt(dt_tot)) * ILC.MEV.sigma_err .* randn(1,param.nb_modes);
+        iii_realization =  permute( any( ...
+            isnan( bt_forecast_MEV(l+1,:,:) ) | isinf( bt_forecast_MEV(l+1,:,:) ) ...
+            , 2) ,[3 1 2]); % N_particules
+        if any(iii_realization)
+            if all(iii_realization)
+                warning('all realization of the simulation have blown up.')
+                if l < param.N_test
+                    bt_forecast_MEV((l+2):param.N_test,:,:) = ...
+                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+                end
+                break
+            end
+            nb_blown_up = sum(iii_realization);
+            warning([ num2str(nb_blown_up) ...
+                ' realizations have blown up and will be replaced.']);
+            bt_forecast_MEV_good = bt_forecast_MEV(l+1,:, ~ iii_realization);
+            rand_index =  randi( param.N_particules - nb_blown_up, nb_blown_up,1);
+            bt_forecast_MEV(l+1,:, iii_realization) = bt_forecast_MEV_good(1,:, rand_index);
+            clear bt_forecast_MEV_good rand_index nb_blown_up iii_realization
+        end
+    end
 end
 bt_forecast_EV=bt_init;
+if param.add_noise
+    bt_forecast_EV=repmat(bt_forecast_EV,[1 1 param.N_particules]);
+end
 for l = 1:N_test
     bt_forecast_EV= [bt_forecast_EV; ...
         evol_forward_bt_RK4(ILC.EV.I,ILC.EV.L,ILC.EV.C, dt_tot, bt_forecast_EV)];
+    if param.add_noise
+        bt_forecast_EV(end,:)= bt_forecast_EV(end,:) + ...
+            (1/sqrt(dt_tot)) * ILC.EV.sigma_err .* randn(1,param.nb_modes);
+        iii_realization =  permute( any( ...
+            isnan( bt_forecast_EV(l+1,:,:) ) | isinf( bt_forecast_EV(l+1,:,:) ) ...
+            , 2) ,[3 1 2]); % N_particules
+        if any(iii_realization)
+            if all(iii_realization)
+                warning('all realization of the simulation have blown up.')
+                if l < param.N_test
+                    bt_forecast_EV((l+2):param.N_test,:,:) = ...
+                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+                end
+                break
+            end
+            nb_blown_up = sum(iii_realization);
+            warning([ num2str(nb_blown_up) ...
+                ' realizations have blown up and will be replaced.']);
+            bt_forecast_EV_good = bt_forecast_EV(l+1,:, ~ iii_realization);
+            rand_index =  randi( param.N_particules - nb_blown_up, nb_blown_up,1);
+            bt_forecast_EV(l+1,:, iii_realization) = bt_forecast_EV_good(1,:, rand_index);
+            clear bt_forecast_EV_good rand_index nb_blown_up iii_realization
+        end
+    end
 end
 bt_forecast_NLMEV=bt_init;
 for l = 1:N_test
@@ -400,6 +462,9 @@ file_save=[ param.folder_results 'EV_result_' param.type_data '_' num2str(param.
 % if isfield(param,'N_estim')
 %     file_save=[file_save '_p_estim_' num2str(param.period_estim)];
 % end
+if param.add_noise
+    file_save=[file_save '_noise'];
+end
 file_save=[file_save '.mat'];
 ILC_EV = ILC;
 param_deter = param;
