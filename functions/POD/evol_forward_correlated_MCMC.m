@@ -89,12 +89,12 @@ function [db_Mi_ss, db_Gr] = evolve_Mi_ss(pchol_cov_noises, tau, Mi_sigma, Mi_ss
 % Evolve Mi_ss with Euler-Maruyama
 mi_ss_noise = randn(1, 1, n, nb_pcl) .* sqrt(dt);
 db_Gr = evolve_Gr(pchol_cov_noises, Gr, tau, dt, nb_pcl, n);
-db_deter = -Mi_ss / tau + reshape(repmat(Mi_sigma, [1, 1, nb_pcl]), size(Mi_ss));
+db_deter = - 2 * Mi_ss / tau + reshape(repmat(Mi_sigma, [1, 1, nb_pcl]), size(Mi_ss));
 db_sto = bsxfun(@times, db_Gr, mi_ss_noise);
 db_sto = sum(db_sto, 3);
 db_sto = reshape(db_sto, [1, n, nb_pcl]);
 
-db_Mi_ss = Mi_ss + dt * db_deter + db_sto;
+db_Mi_ss = Mi_ss + dt * db_deter - db_sto;
 
 end
 
