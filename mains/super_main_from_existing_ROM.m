@@ -5,16 +5,15 @@ function super_main_from_existing_ROM(...
 % Especially several number of modes
 %
 
-global choice_n_subsample;
-global stochastic_integration;
-global estim_rmv_fv;
-
 % % Number of periods reconstructed
 % nb_period_test = 9;% for DNS 300
 % % nb_period_test = 5;%for DNS 3900
 
 if nargin == 0
     init;
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     
     %% Number of modes for the the ROM
     vect_nb_modes = [ 16 8 6 4 2]
@@ -108,7 +107,10 @@ if nargin == 0
     % During the noise covariance estimation,
     % remove the finite-variation part of the chronos
     estim_rmv_fv = true;
-
+else    
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
 end
 
 % v_threshold=[1 10]/1000;

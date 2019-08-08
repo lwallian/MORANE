@@ -7,12 +7,12 @@ function super_main_from_existing_ROM_Simulation(...
 
 close all
 
-global choice_n_subsample;
-global stochastic_integration;
-global estim_rmv_fv;
 
 if nargin == 0
     init;
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     
     %% Number of modes for the the ROM
 %     vect_nb_modes = [2 4 6 8]
@@ -96,6 +96,10 @@ if nargin == 0
     if strcmp(choice_n_subsample, 'corr_time')
         v_threshold = NaN;
     end
+else
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
 end
 nb_modes_max = max(vect_nb_modes);
 
