@@ -41,6 +41,8 @@ else
         d_bt_fv = permute( d_bt_fv, [3 2 1]);  
         % Exchange back time and realization dimension      
         d_bt = d_bt - d_bt_fv;
+        % Remove temporal mean
+        d_bt = bsxfun(@plus, d_bt, - mean(d_bt,1) );
     end
     
     %% compute the RHS of equation

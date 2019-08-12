@@ -1,5 +1,5 @@
 function main_from_existing_ROM_Simulation(type_data,nb_modes,...
-    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct)
+    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -85,7 +85,11 @@ end
 if nargin < 9 
     test_fct = 'b';
 end
+if nargin < 10 
+    svd_pchol = false;
+end
 param_ref2.decor_by_subsampl.test_fct = test_fct;
+param_ref2.svd_pchol=svd_pchol;
 
 % % On which function the Shanon ctriterion is used
 % decor_by_subsampl.test_fct = 'b';
@@ -262,7 +266,12 @@ param.folder_results=param_ref2.folder_results;
 
 struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 
-
+if ~isfield(struct_bt_MCMC,'qtl')
+    % BETA : confidence interval
+    struct_bt_MCMC.qtl = fx_quantile(bt_MCMC, 0.025, 3);
+    struct_bt_MCMC.diff = fx_quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
+    save(file_res_2nd_res,'struct_bt_MCMC','-append');
+end
 
 %% Eddy viscosity solutions
 
@@ -278,17 +287,28 @@ if plot_EV_noise
     %         'bt_forecast_deter',...
     %         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
     %     if modal_dt ~= 1
+    bt_forecast_MEV = ...
+        bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:,:);
+    bt_forecast_EV = ...
+        bt_forecast_EV(1:param.decor_by_subsampl.n_subsampl_decor:end,:,:);
+    
+%     bt_forecast_EV= reshape( bt_forecast_EV, ...
+%         [param.N_test+1 param.nb_modes param.N_particules]);
+%     bt_forecast_MEV= reshape( bt_forecast_MEV, ...
+%         [param.N_test+1 param.nb_modes param.N_particules]);
     bt_forecast_EV_noise = bt_forecast_EV; clear bt_forecast_EV
     bt_forecast_MEV_noise = bt_forecast_MEV; clear bt_forecast_MEV
-    bt_forecast_MEV_noise = bt_forecast_EV;
+    bt_forecast_MEV_noise = bt_forecast_EV_noise;
     %     end
     clear bt_forecast_EV_noise
-    bt_forecast_MEV_noise = ...
-        bt_forecast_MEV_noise(1:param.decor_by_subsampl.n_subsampl_decor:end,:,:);
     
     struct_bt_MEV_noise.tot.mean = mean(bt_forecast_MEV_noise, 3);
     struct_bt_MEV_noise.tot.var = var(bt_forecast_MEV_noise, 0, 3);
     struct_bt_MEV_noise.tot.one_realiz = bt_forecast_MEV_noise(:, :, 1);
+    % BETA : confidence interval
+    struct_bt_MEV_noise.qtl = fx_quantile(bt_forecast_MEV_noise, 0.025, 3);
+    struct_bt_MEV_noise.diff = fx_quantile(bt_forecast_MEV_noise, 0.975, 3) ...
+        - struct_bt_MEV_noise.qtl;
 else
     struct_bt_MEV_noise = nan;
     bt_forecast_MEV_noise = nan;
@@ -310,6 +330,8 @@ if plot_EV
     clear bt_forecast_EV
     bt_forecast_MEV = ...
         bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+else
+    bt_forecast_MEV = nan;
 end
 
 

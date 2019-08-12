@@ -236,16 +236,16 @@ else
         t_local=t_local+1;
     end
     clear U
-%     % Save
-%     % Name of the current PIV file
-%     param.name_file_U_temp_PIV{big_T} = ...
-%         [ name_file_U_temp_PIV '_PIV'];
-%     % Save current PIV file
-% %     U = reshape(U_PIV, [M_PIV, N_local,d_PIV]); clear U_PIV
-%     U = U_PIV; clear U_PIV
-%     save(param.name_file_U_temp_PIV{big_T},'U',...
-%                 'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-%                 '-v7.3');
+    % Save
+    % Name of the current PIV file
+    param.name_file_U_temp_PIV{big_T} = ...
+        [ name_file_U_temp_PIV '_PIV'];
+    % Save current PIV file
+%     U = reshape(U_PIV, [M_PIV, N_local,d_PIV]); clear U_PIV
+    U = U_PIV; clear U_PIV
+    save(param.name_file_U_temp_PIV{big_T},'U',...
+                'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
+                '-v7.3');
     
     %% Variance tensor computation
     %% Initialization

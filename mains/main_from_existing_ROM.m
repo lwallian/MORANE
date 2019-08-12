@@ -1,11 +1,11 @@
 function main_from_existing_ROM(nb_modes,threshold,type_data,...
     nb_period_test,...
-    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct)
+    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
 %
-
+global correlated_model
 global choice_n_subsample;
 global stochastic_integration;
 global estim_rmv_fv;
@@ -19,6 +19,12 @@ clear param bt_forecast_sto bt_forecast_deter bt_tot
 tic
 
 %% Parameters choice
+if nargin < 9
+    test_fct = 'b';
+end
+if nargin < 10
+    svd_pchol = false;
+end
 % param_ref.n_simu = 2;
 % N_particules=2;
 param_ref.n_simu = 1e2;
@@ -140,6 +146,7 @@ cd(current_pwd);
 %     param.folder_results =  [ pwd '/resultats/current_results/'];
 param_ref.folder_results=folder_results;
 param_ref.folder_data =folder_data ;
+param_ref.svd_pchol=svd_pchol;
 
 % if nargin > 0
 %     plot_each_mode=false;
@@ -150,7 +157,7 @@ modal_dt_ref = modal_dt;
 %% Get data
 
 % On which function the Shanon criterion is used
-test_fct='b'; % 'b' is better than db
+% test_fct='b'; % 'b' is better than db
 a_t = '_a_cst_';
 param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
@@ -163,9 +170,6 @@ param_ref.decor_by_subsampl.meth = 'bt_decor';
 
 param_ref.adv_corrected = adv_corrected;
 
-if nargin < 9
-    test_fct = 'b';
-end
 param_ref.decor_by_subsampl.test_fct = test_fct;
 
 param_ref = fct_name_1st_result_new(param_ref);
@@ -178,11 +182,27 @@ else
     if ~ adv_corrected
         file_res=[file_res '_no_correct_drift'];
     end
+    file_res_save = file_res;
     file_res=[ file_res '_integ_' stochastic_integration];
     if estim_rmv_fv
         file_res=[file_res '_estim_rmv_fv'];
     end
     file_res=[ file_res '.mat'];
+    
+    if (~(exist(file_res,'file') == 2)) ...
+            && strcmp(stochastic_integration,'Ito')
+        file_res = file_res_save;
+        if estim_rmv_fv
+            file_res=[file_res '_estim_rmv_fv'];
+            param.estim_rmv_fv = true;
+        end
+        file_res=[file_res '.mat'];
+    else
+        clear file_res_save;
+    end
+    
+    threshold
+    
     % param_ref.decor_by_subsampl.test_fct = 'db';
     % param_ref.adv_corrected = adv_corrected;
     
@@ -253,6 +273,7 @@ ILC_a_cst=ILC;
 param.nb_period_test=nb_period_test;
 param.decor_by_subsampl.test_fct=test_fct;
 
+svd_pchol = param_ref.svd_pchol;
 folder_data = param_ref.folder_data;
 folder_results = param_ref.folder_results;
 % folder_data = '/Users/vressegu/Documents/matlab/POD-NS_Stochastique/current_used/data/';
@@ -264,7 +285,7 @@ big_data=false;
 % plot_bts=false;
 
 % coef_correctif_estim=coef_correctif_estim_ref;
-
+param.svd_pchol = svd_pchol;
 param.folder_data = folder_data;
 param.folder_results = folder_results;
 param.big_data=big_data;
@@ -281,6 +302,17 @@ if modal_dt >0
     % [rate_dt, ILC_a_NC] = fct_cut_frequency_2(bt_tot,ILC_a_NC,param);
 else
     ILC_a_cst.modal_dt = ILC_a_cst.tot;
+end
+
+%% Reduction of the nois ematrix
+
+if param.svd_pchol
+%     var_pchol_cov_noises_ini = trace(pchol_cov_noises*pchol_cov_noises');
+    [U_cov_noises,S_cov_noises,~] = ...
+        svds(pchol_cov_noises,param.nb_modes);
+    pchol_cov_noises = U_cov_noises * S_cov_noises;
+%     var_pchol_cov_noises_red = trace(pchol_cov_noises*pchol_cov_noises');
+%     ratio_var_red_pchol = var_pchol_cov_noises_red/var_pchol_cov_noises_ini
 end
 
 %% Sensibility
@@ -417,16 +449,19 @@ end
 
 % Reconstruction in the stochastic case
 if strcmp(stochastic_integration, 'Ito') && ~correlated_model
-    bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
-    bt_fv=bt_MCMC;
-    bt_m=zeros(1,param.nb_modes,param.N_particules);
+    bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+    bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
+%     bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
+%     bt_fv=bt_MCMC;
+%     bt_m=zeros(1,param.nb_modes,param.N_particules);
     iii_realization = zeros(param.N_particules,1);
     for l = 1:param.N_test
-        [bt_MCMC(l+1,:,:),bt_fv(l+1,:,:),bt_m(l+1,:,:)] = ...
+%         [bt_MCMC(l+1,:,:),bt_fv(l+1,:,:),bt_m(l+1,:,:)] = ...
+        bt_MCMC(l+1,:,:) = ...
             evol_forward_bt_MCMC(...
             ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-            pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
-            bt_fv(l,:,:),bt_m(l,:,:));
+            pchol_cov_noises, param.dt, bt_MCMC(l,:,:));
+%             bt_fv(l,:,:),bt_m(l,:,:));
         %         ILC_a_cst.tot.I,ILC_a_cst.tot.L,ILC_a_cst.tot.C, ...
         %         pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
         %         bt_fv(l,:,:),bt_m(l,:,:));
@@ -440,10 +475,10 @@ if strcmp(stochastic_integration, 'Ito') && ~correlated_model
                 if l < param.N_test
                     bt_MCMC((l+2):param.N_test,:,:) = ...
                         nan( param.N_test-l-1,param.nb_modes,param.N_particules);
-                    bt_fv((l+2):param.N_test,:,:) = ...
-                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
-                    bt_m((l+2):param.N_test,:,:) = ...
-                        nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+%                     bt_fv((l+2):param.N_test,:,:) = ...
+%                         nan( param.N_test-l-1,param.nb_modes,param.N_particules);
+%                     bt_m((l+2):param.N_test,:,:) = ...
+%                         nan( param.N_test-l-1,param.nb_modes,param.N_particules);
                 end
                 break
             end
@@ -451,12 +486,12 @@ if strcmp(stochastic_integration, 'Ito') && ~correlated_model
             warning([ num2str(nb_blown_up) ...
                 ' realizations have blown up and will be replaced.']);
             bt_MCMC_good = bt_MCMC(l+1,:, ~ iii_realization);
-            bt_fv_good = bt_fv(l+1,:, ~ iii_realization);
-            bt_m_good = bt_m(l+1,:, ~ iii_realization);
+%             bt_fv_good = bt_fv(l+1,:, ~ iii_realization);
+%             bt_m_good = bt_m(l+1,:, ~ iii_realization);
             rand_index =  randi( param.N_particules - nb_blown_up, nb_blown_up,1);
             bt_MCMC(l+1,:, iii_realization) = bt_MCMC_good(1,:, rand_index);
-            bt_fv(l+1,:, iii_realization) = bt_fv_good(1,:, rand_index);
-            bt_m(l+1,:, iii_realization) = bt_m_good(1,:, rand_index);
+%             bt_fv(l+1,:, iii_realization) = bt_fv_good(1,:, rand_index);
+%             bt_m(l+1,:, iii_realization) = bt_m_good(1,:, rand_index);
             clear bt_MCMC_good rand_index nb_blown_up iii_realization
         end
     end
@@ -466,8 +501,8 @@ if strcmp(stochastic_integration, 'Ito') && ~correlated_model
     param.dt = param.dt*n_simu;
     param.N_test=param.N_test/n_simu;
     bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
-    bt_fv=bt_fv(1:n_simu:end,:,:);
-    bt_m=bt_m(1:n_simu:end,:,:);
+%     bt_fv=bt_fv(1:n_simu:end,:,:);
+%     bt_m=bt_m(1:n_simu:end,:,:);
     bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
     bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
     
@@ -475,15 +510,17 @@ if strcmp(stochastic_integration, 'Ito') && ~correlated_model
     struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
     % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
-    struct_bt_MCMC.fv.mean = mean(bt_fv,3);
-    struct_bt_MCMC.fv.var = var(bt_fv,0,3);
-    struct_bt_MCMC.fv.one_realiz = bt_fv(:,:,1);
-    struct_bt_MCMC.m.mean = mean(bt_m,3);
-    struct_bt_MCMC.m.var = var(bt_m,0,3);
-    struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
+%     struct_bt_MCMC.fv.mean = mean(bt_fv,3);
+%     struct_bt_MCMC.fv.var = var(bt_fv,0,3);
+%     struct_bt_MCMC.fv.one_realiz = bt_fv(:,:,1);
+%     struct_bt_MCMC.m.mean = mean(bt_m,3);
+%     struct_bt_MCMC.m.var = var(bt_m,0,3);
+%     struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
     
 elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
-    bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
+    bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+    bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
+%     bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
     iii_realization = zeros(param.N_particules,1);
     for l = 1:param.N_test
         [bt_MCMC(l+1,:,:)] = ...
@@ -529,10 +566,15 @@ elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
     % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 elseif correlated_model
+    if param.svd_pchol
+        error('not coded yet');
+    end
     global tau_corr;
-    bt_MCMC = repmat(bt_tronc, [1, 1, param.N_particules]);
-    bt_fv = bt_MCMC;
-    bt_m = zeros(1, param.nb_modes, param.N_particules);
+    bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+    bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
+%     bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
+%     bt_fv = bt_MCMC;
+%     bt_m = zeros(1, param.nb_modes, param.N_particules);
     
     % Initialization of model's stochastic variables
     eta = zeros(param.N_test, param.nb_modes + 1, param.nb_modes, param.N_particules);
@@ -555,8 +597,8 @@ elseif correlated_model
     param.dt = param.dt * n_simu;
     param.N_test = param.N_test / n_simu;
     bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
-    bt_fv = bt_fv(1 : n_simu : end, :, :);
-    bt_m = bt_m(1 : n_simu : end, :, :);
+%     bt_fv = bt_fv(1 : n_simu : end, :, :);
+%     bt_m = bt_m(1 : n_simu : end, :, :);
     eta = eta(1 : n_simu : end, :, :, :);
     Gr = Gr(1 : n_simu : end, :, :, :);
     Mi_ss = Mi_ss(1: n_simu : end, :, :);

@@ -57,6 +57,9 @@ end
 if estim_rmv_fv
     param.name_file_2nd_result=[param.name_file_2nd_result '_estim_rmv_fv'];
 end
+if param.svd_pchol
+    param.name_file_2nd_result=[param.name_file_2nd_result '_svd_pchol'];    
+end
 param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];
 % save(param.name_file_2nd_result,'-v7.3');
 % % save(param.name_file_2nd_result);
