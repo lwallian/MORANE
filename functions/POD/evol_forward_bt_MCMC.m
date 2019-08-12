@@ -29,7 +29,9 @@ clear I L C
 if all(pchol_cov_noises(:)==0)
     d_b_m = 0;
 else
-    noises=pchol_cov_noises*randn((n+1)*n,nb_pcl)*sqrt(dt);
+    dim_noises = size(pchol_cov_noises,2);
+    noises=pchol_cov_noises*randn(dim_noises,nb_pcl)*sqrt(dt);
+%     noises=pchol_cov_noises*randn((n+1)*n,nb_pcl)*sqrt(dt);
     noises=permute(noises,[1 3 4 2]); % (n+1)*n x nb_pcl
     clear pchol_cov_noises; % (n+1)*n x 1 x 1 x nb_pcl
     theta_alpha0_dB_t = noises(1:n,1,1,:); % n(i) x 1 x 1 x nb_pcl
