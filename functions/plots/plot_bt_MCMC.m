@@ -89,6 +89,12 @@ bt_forecast_MEV=bt_forecast_MEV(1:N_test,:);
 bt_forecast_deter=bt_forecast_deter(1:N_test,:);
 bt_pseudoSto=bt_pseudoSto(1:N_test,:);
 struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
+struct_bt_MCMC.qtl=struct_bt_MCMC.qtl(1:N_test,:);
+struct_bt_MCMC.diff=struct_bt_MCMC.diff(1:N_test,:);
+if param.plot_EV_noise
+    struct_bt_MEV_noise.qtl=struct_bt_MEV_noise.qtl(1:N_test,:);
+    struct_bt_MEV_noise.diff=struct_bt_MEV_noise.diff(1:N_test,:);
+end
 N_test=N_test-1;
 
 dt_tot=param.dt;
@@ -128,31 +134,50 @@ for k=1:nb_modes
         'PaperPositionMode','auto');
     %%
     
-%     % Real values
-%     plot(time_ref,bt_tot(:,k)','k.');
-%     hold on;
-%     plot(time,bt_forecast_sto(:,k)','r');
-%     if plot_deter
-%         plot(time,bt_forecast_deter(:,k)','b');
-%     end
-%     hold off;
+    %     % Real values
+    %     plot(time_ref,bt_tot(:,k)','k.');
+    %     hold on;
+    %     plot(time,bt_forecast_sto(:,k)','r');
+    %     if plot_deter
+    %         plot(time,bt_forecast_deter(:,k)','b');
+    %     end
+    %     hold off;
     %%
     
     hold on;
-%     axis([0 10 2*param.lambda(k)*[-1 1]])
-    %%
- delta = 1 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
-%  delta = 1.96 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
+    %     axis([0 10 2*param.lambda(k)*[-1 1]])
+    
+    if param.plot_EV_noise
+        plot(time, (struct_bt_MEV_noise.tot.mean(:,k))','b--');
+        h_MEV = area(time_ref, [struct_bt_MEV_noise.qtl(:,k), ...
+            struct_bt_MEV_noise.diff(:,k)]);
+        set (h_MEV(1), 'FaceColor', 'none');
+%         set (h_MEV(2), 'FaceColor', [0.6 0.9 0.9]);
+%         set (h_MEV(2), 'FaceColor', [0.8 0.95 0.95]);
+        set (h_MEV(2), 'FaceColor', [0.85 0.95 0.95]);
+%         set (h_MEV(2), 'FaceColor', [0.9 0.975 0.975]);
+%         set (h_MEV(2), 'FaceColor', [0.6 0.8 0.8]);
+        set (h_MEV, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
+        % Raise current axis to the top layer, to prevent it
+        % from being hidden by the grayed area
+        set (gca, 'Layer', 'top');
+    end
 
-% % %     h(2) = area (time_ref,  2 * delta);
-% % %     h(1) = area (time_ref,struct_bt_MCMC.tot.mean(:,k) - delta);
-% %     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-% %         struct_bt_MCMC.tot.mean(:,k) + delta]);
-%     h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
-    h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
-        2*delta]); % DEFAULT
-%     set(h(1),'FaceColor',[0,0.25,0.25]);
-%     set(h(2),'FaceColor',[0,0.5,0.5]);
+    h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
+    %%
+%  delta = 1 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
+% %  delta = 1.96 * sqrt (abs (struct_bt_MCMC.tot.var(:,k))); % DEFAULT
+% 
+% % % %     h(2) = area (time_ref,  2 * delta);
+% % % %     h(1) = area (time_ref,struct_bt_MCMC.tot.mean(:,k) - delta);
+% % %     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+% % %         struct_bt_MCMC.tot.mean(:,k) + delta]);
+% %     h = area(time_ref, [struct_bt_MCMC.qtl(:,k), struct_bt_MCMC.diff(:,k)]);
+%     h = area (time_ref, [struct_bt_MCMC.tot.mean(:,k) - delta, ...
+%         2*delta]); % DEFAULT
+% %     set(h(1),'FaceColor',[0,0.25,0.25]);
+% %     set(h(2),'FaceColor',[0,0.5,0.5]);
+
     set (h(1), 'FaceColor', 'none');
     set (h(2), 'FaceColor', [0.8 0.8 0.8]);
     set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
@@ -177,20 +202,15 @@ for k=1:nb_modes
     
     
     plot(time_ref,struct_bt_MCMC.tot.mean(:,k)','g');
-%     plot(time_ref,struct_bt_MCMC.fv.mean(:,k)','c');
-%     plot(time_ref,struct_bt_MCMC.tot.one_realiz(:,k)','y');
-
-    if plot_EV
-        plot(time, (bt_forecast_MEV(:,k))','b--');
-%         plot(time, (bt_forecast_MEV(:,k))','g');
-    end
+    %     plot(time_ref,struct_bt_MCMC.fv.mean(:,k)','c');
+    %     plot(time_ref,struct_bt_MCMC.tot.one_realiz(:,k)','y');
     
     
 %     plot(time, (bt_sans_coef2(:,k))','m');
-    if plot_tuned
-        plot(time, (bt_forecast_sto_scalar(:,k))','c');
-        plot(time, (bt_forecast_sto_beta(:,k))','y');
-    end
+%     if plot_tuned
+%         plot(time, (bt_forecast_sto_scalar(:,k))','c');
+%         plot(time, (bt_forecast_sto_beta(:,k))','y');
+%     end
     if plot_modal_dt
         plot(time, (bt_forecast_sto_a_cst_modal_dt(:,k))','or');
         plot(time, (bt_forecast_sto_a_NC_modal_dt(:,k))','om');
@@ -200,6 +220,29 @@ for k=1:nb_modes
 % %     plot([time(1) time(end)],[1 1],'k');
 % %     plot([time(1) time(end)],[1 1]* ((1-nrj_mean/nrj_tot)),'k');
 % %     plot([time(1) time(end)],[1 1]* (err_fix),'--k');
+
+
+    if param.plot_EV_noise
+        plot(time, (struct_bt_MEV_noise.tot.mean(:,k))',...
+            'color', [0.3 0.8 0.8],'LineWidth', 2);
+%             'color', [0.6 0.9 0.9]);
+%         plot(time, (struct_bt_MEV_noise.tot.mean(:,k))','b--');
+        
+%         h_MEV = area(time_ref, [struct_bt_MEV_noise.qtl(:,k), ...
+%             struct_bt_MEV_noise.diff(:,k)]);
+%         
+%         set (h_MEV(1), 'FaceColor', 'none');
+%         set (h_MEV(2), 'FaceColor', [0.8 0.8 0.8]);
+%         set (h_MEV, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
+%         
+%         % Raise current axis to the top layer, to prevent it
+%         % from being hidden by the grayed area
+%         set (gca, 'Layer', 'top');
+    end
+    if plot_EV
+        plot(time, (bt_forecast_MEV(:,k))','b--');
+        %         plot(time, (bt_forecast_MEV(:,k))','g');
+    end
     
     hold off;
     
