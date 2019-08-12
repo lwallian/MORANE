@@ -102,6 +102,7 @@ decor_by_subsampl.meth='bt_decor';
 % ('truncated' = correlation time estimation of the unresolved chronos through a truncated correlation function)
 % ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
 decor_by_subsampl.choice_n_subsample = 'lms';
+% 'auto_shanon' 'lms', 'truncated', 'htgen'
 % Stochastic integration path: 'Ito' or 'Str'
 global stochastic_integration;
 stochastic_integration = 'Str'
@@ -155,5 +156,6 @@ end
 %% The ROM is simulated on a test basis
 super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,modal_dt,...
-    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
+    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected...
+    ,decor_by_subsampl)
 
