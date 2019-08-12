@@ -82,12 +82,18 @@ if nargin == 0
 end
 
 % On which function the Shanon ctriterion is used
-if nargin < 9 
+if nargin < 8 
     test_fct = 'b';
 end
-if nargin < 10 
+if nargin < 9 
     svd_pchol = false;
 end
+% if nargin < 9 
+%     test_fct = 'b';
+% end
+% if nargin < 10 
+%     svd_pchol = false;
+% end
 param_ref2.decor_by_subsampl.test_fct = test_fct;
 param_ref2.svd_pchol=svd_pchol;
 
