@@ -428,6 +428,25 @@ k=1;
 
 hold on;
 
+if param.plot_EV_noise
+    delta_MEV = sqrt(abs (struct_bt_MEV_noise.tot.var(:,k)));
+    h_MEV = area (time_ref, [sqrt(err_fix), ...
+        delta_MEV]);
+%     h_MEV = area(time_ref, [struct_bt_MEV_noise.qtl(:,k), ...
+%         struct_bt_MEV_noise.diff(:,k)]);
+    set (h_MEV(1), 'FaceColor', 'none');
+    %         set (h_MEV(2), 'FaceColor', [0.6 0.9 0.9]);
+    %         set (h_MEV(2), 'FaceColor', [0.8 0.95 0.95]);
+    set (h_MEV(2), 'FaceColor', [0.85 0.95 0.95]);
+    %         set (h_MEV(2), 'FaceColor', [0.9 0.975 0.975]);
+    %         set (h_MEV(2), 'FaceColor', [0.6 0.8 0.8]);
+    set (h_MEV, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
+    % Raise current axis to the top layer, to prevent it
+    % from being hidden by the grayed area
+    set (gca, 'Layer', 'top');
+    
+end
+
 delta = sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
 % delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
 h = area (time_ref, [sqrt(err_fix), ...
@@ -461,6 +480,12 @@ plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
 plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
 % plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
 plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
+
+if param.plot_EV_noise
+    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g-+', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r-+', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m-+', 'LineWidth', LineWidth);
+end
 
 % if plot_modal_dt
 %     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);
