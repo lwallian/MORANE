@@ -4,12 +4,30 @@ function [param, bt]=POD_and_POD_knowing_phi(param_ref)
 % the residual velocity U neglected by the Galerkin projection
 %
 
+% Instantiation of global config
+global correlated_model;
+% Set warning to error to be able to try catch it
+s = warning('error', 'MATLAB:LOAD:VariableNotFound');
+
 %% Calculation of c
 % c is the two times correlation function of the snapshots
 if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
     param_ref.name_file_pre_c_blurred = [param_ref.folder_data ...
         param_ref.type_data '_pre_c'];
-    load(param_ref.name_file_pre_c_blurred,'c','param');
+    if correlated_model
+        try
+            load(param_ref.name_file_pre_c_blurred, 'c', 'dt_c', 'param');
+        catch
+            warning('Old pre_c file, recalculating the matrices');
+            [c, dt_c, param] = estimateCovarianceMatrices(param_ref);
+            param.name_file_pre_c_blurred = [param.folder_data param.type_data '_pre_c'];
+            save(param.name_file_pre_c_blurred,'c', 'dt_c','param');
+            dt_c = dt_c * prod(param.dX) / param.N_tot;
+        end
+    else
+        load(param_ref.name_file_pre_c_blurred,'c','param');
+    end
+    warning(s); % restore the warning to old state
     param.d = length(param.dX);
     if isfield(param_ref,'N_particules')
         param.N_particules = param_ref.N_particules ;
@@ -34,9 +52,16 @@ if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
     param.save_bi_before_subsampling = param_ref.save_bi_before_subsampling;
     clear param_ref
 else
-    [c,param]=fct_c_POD(param_ref);
-    param.name_file_pre_c_blurred = [param.folder_data param.type_data '_pre_c'];
-    save(param.name_file_pre_c_blurred,'c','param');
+    if correlated_model
+        [c, dt_c, param] = estimateCovarianceMatrices(param_ref);
+        param.name_file_pre_c_blurred = [param.folder_data param.type_data '_pre_c'];
+        save(param.name_file_pre_c_blurred,'c', 'dt_c','param');
+        dt_c = dt_c * prod(param.dX) / param.N_tot;
+    else
+        [c,param]=fct_c_POD(param_ref);
+        param.name_file_pre_c_blurred = [param.folder_data param.type_data '_pre_c'];
+        save(param.name_file_pre_c_blurred,'c','param');
+    end
 end
 
 c=c*prod(param.dX)/param.N_tot;
@@ -162,33 +187,49 @@ toc
 
 tic
 % Choice of the subsampling rate
-
 if param.decor_by_subsampl.bool
-    switch param.decor_by_subsampl.choice_n_subsample
-        case 'auto_shanon'
-            param.decor_by_subsampl.n_subsampl_decor = fct_cut_frequency(bt,lambda,param);
-        case 'lms'
-            param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1);
-            param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
-        case 'htgen'
-            param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(c, bt, param.dt), 1);
-            param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
-        case 'truncated'
-            param.decor_by_subsampl.tau_corr = max(correlationTimeCut(c, bt), 1);
-            param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(c, bt)), 1);
-        otherwise
-            error('Invalid downsampling method.')
+    if ~correlated_model
+        switch param.decor_by_subsampl.choice_n_subsample
+            case 'auto_shanon'
+                param.decor_by_subsampl.n_subsampl_decor = fct_cut_frequency(bt,lambda,param);
+            case 'lms'
+                param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
+            case 'htgen'
+                param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(c, bt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
+            case 'truncated'
+                param.decor_by_subsampl.tau_corr = max(correlationTimeCut(c, bt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(c, bt)), 1);
+            otherwise
+                error('Invalid downsampling method.')
+        end
+    else
+        global tau_ss;
+        switch param.decor_by_subsampl.choice_n_subsample
+            case 'auto_shanon'
+                param.decor_by_subsampl.n_subsampl_decor = fct_cut_frequency(bt, lambda, param);
+                param.decor_by_subsampl.test_fct = 'b';
+                tau_ss = fct_cut_frequency(bt, lambda, param); % undo the theshold inside the function for this case
+                param.decor_by_subsampl.test_fct = 'db';
+            case 'lms'
+                param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(dt_c, bt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(dt_c, bt, param.dt)), 1);
+                tau_ss = max(correlationTimeLMS(c, bt, param.dt), 1);
+            case 'htgen'
+                param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(dt_c, bt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(dt_c, bt, param.dt)), 1);
+                tau_ss = max(simpleCorrelationTime(c, bt, param.dt), 1);
+            case 'truncated'
+                param.decor_by_subsampl.tau_corr = max(correlationTimeCut(dt_c, bt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(dt_c, bt)), 1);
+                tau_ss = max(correlationTimeCut(c, bt), 1);
+            otherwise
+                error('Invalid downsampling method.')
+        end
     end
 end
-clear c;
-
-% To ease the testing phase of the correlated model
-global tau_corr;
-if strcmp(param.decor_by_subsampl.choice_n_subsample, 'auto_shanon')
-    tau_corr = param.decor_by_subsampl.n_subsampl_decor;
-else
-    tau_corr = param.decor_by_subsampl.tau_corr;
-end
+clear c dt_c;
 
 % Subsampling
 % if param.decor_by_subsampl.bool && ...
