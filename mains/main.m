@@ -5,6 +5,7 @@ function main(type_data,nb_modes,igrida,coef_correctif_estim,...
 %
 
 global computed_PIV_variance_tensor
+global compute_fake_PIV
 
 %% Reset
 
@@ -232,16 +233,21 @@ if param.big_data
 end
 
 %% Quadratic variation tensor estimation
-
-% Computation of the variance tensor a
-% or computation of its parameters z_i(x)
-% Since it is big data, they are saved in specific files
+if compute_fake_PIV
+    Fake_PIV_data(param);
+    toc;tic;
+    disp('Fake PIV computation done');
+    keyboard;
+end
 if computed_PIV_variance_tensor
     quadratic_variation_estimation_PIV(param,bt_tot);
     toc;tic;
     disp('PIV variance tensor estimation done');
     keyboard;
 end
+% Computation of the variance tensor a
+% or computation of its parameters z_i(x)
+% Since it is big data, they are saved in specific files
 param = quadratic_variation_estimation(param,bt_tot);
 if param.big_data
     toc;tic;

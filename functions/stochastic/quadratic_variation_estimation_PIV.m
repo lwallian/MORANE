@@ -5,10 +5,50 @@ function [param,z_on_tau]=quadratic_variation_estimation_PIV(param,bt)
 %% Get parameters
 
 switch param.type_data
+    case {'DNS100_inc3d_2D_2018_11_16_blocks',...
+            'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
+            'DNS100_inc3d_2D_2018_11_16_blocks_test_basis'}
+        
+        % Smoothing
+        %         new_distance = 0.041666666666666664;
+        std_space = 0.203125;
+        
+        % Number of velocity component
+        d_PIV = 2;
+        
+        % Slicing
+        %         z_slice = 30;
+        
+        % XP param
+        u_inf_measured = 0.135; % m/s
+        cil_diameter = 12; % 12mm
+        X_cyl = [ -75.60 0.75 ];
+        
+        % The dimensions of PIV and DNS are not the same,
+        % therefore we must find the same number of sampled points
+        % for each dimension
+        % PIV_range ---->  x = (0.74,10.44) y=(-2.84,2.83)
+        % DNS_range ---->  x = (-2.5,15.04) y=(-1.95,1.95)
+        PIV_range = [0.74 10.44 ; -2.84 2.83 ] ;
+        x_DNS = param.dX(1) * (0:(param.MX(1)-1));
+        x_DNS = x_DNS - 5;
+        y_DNS = param.dX(2) * (0:(param.MX(2)-1));
+        y_DNS = y_DNS - mean(y_DNS);
+        DNS_range = [x_DNS([1 end]) ; y_DNS([1 end]) ] ;
+        %         DNS_range = [-2.5 15.04 ; -1.95 1.95 ] ;
+        PIV_range = PIV_range + (-3) * ...
+            [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
+        %         DNS_range = DNS_range + (-3) * ...
+        %             [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
+        
+        filename = [param.folder_data ...
+            '\XP_Irstea\wake_Re100_export_190710_4107\' ...
+            'B0001.dat'];
+        
     case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
             'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
             'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
-           
+        
         % Smoothing
         new_distance = 0.041666666666666664;
         std_space = 0.203125;
@@ -27,15 +67,18 @@ switch param.type_data
         % The dimensions of PIV and DNS are not the same,
         % therefore we must find the same number of sampled points
         % for each dimension
-        % PIV_range ---->  x = (0.74,10.44) y=(-2.84,2.83) 
+        % PIV_range ---->  x = (0.74,10.44) y=(-2.84,2.83)
         % DNS_range ---->  x = (-2.5,15.04) y=(-1.95,1.95)
         PIV_range = [0.74 10.44 ; -2.84 2.83 ] ;
         DNS_range = [-2.5 15.04 ; -1.95 1.95 ] ;
         PIV_range = PIV_range + (-3) * ...
             [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
-%         DNS_range = DNS_range + (-3) * ...
-%             [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
+        %         DNS_range = DNS_range + (-3) * ...
+        %             [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
         
+        filename = [param.folder_data ...
+            '\XP_Irstea\wake_Re300_export_190709_4103\' ...
+            'wake_Re300_export_190709_4103\B0001.dat'];
     otherwise
         error('unknown parameters');
 end
@@ -58,7 +101,7 @@ if (exist(param.name_file_diffusion_mode_PIV,'file')==2) || ...
     end
 else
     clear param_temp
-
+    
     % model for the variance tensor a
     a_time_dependant=param.a_time_dependant;
     if a_time_dependant
@@ -71,39 +114,31 @@ else
     lambda=param.lambda; % Energy of Chronos
     
     
-    %% Application of H_PIV    
+    %% Application of H_PIV
     %% Initialization
     
-    % PIV spatial filter
-    number_of_points_correlated = floor(std_space/(new_distance));
-    dist = abs( new_distance*...
-        (-number_of_points_correlated:number_of_points_correlated) );
-    h = exp(-(dist.^2)/(2*std_space^2));
-    sum_h = sum(h);
-    h = h/sum_h;
-%     hx = permute(h,[2 1]);
-%     hy = h ;
-    hz = permute(h,[1 3 2]);
-%     clear h;
-    z_keep = z_slice + ...
-        (-number_of_points_correlated:number_of_points_correlated);
     
     % DNS grid
     x_DNS = DNS_range(1,1) + param.dX(1) * (0:(param.MX(1)-1));
     y_DNS = DNS_range(2,1) + param.dX(2) * (0:(param.MX(2)-1));
-%     x_DNS = DNS_range(1,1):param.dX(1):DNS_range(1,2);
-%     y_DNS = DNS_range(2,1):param.dX(2):DNS_range(2,2);
-%     y_DNS = y_DNS - mean(y_DNS);
-%     y_DNS = y_DNS - y_DNS(50); 
-    y_DNS(1:2)=[]; % Correct offset
+    %     x_DNS = DNS_range(1,1):param.dX(1):DNS_range(1,2);
+    %     y_DNS = DNS_range(2,1):param.dX(2):DNS_range(2,2);
+    %     y_DNS = y_DNS - mean(y_DNS);
+    %     y_DNS = y_DNS - y_DNS(50);
+    switch param.type_data                   
+        case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+            y_DNS(1:2)=[]; % Correct offset
+    end
     y_DNS = y_DNS - mean(y_DNS); % Correct offset
     [X_DNS,Y_DNS]=ndgrid(x_DNS,y_DNS);
     X_DNS = X_DNS(:);Y_DNS = Y_DNS(:);
     
-    % PIV grid    
-    filename = [param.folder_data ...
-        '\DATA_XP_Irstea\wake_Re300_export_190709_4103\' ...
-        'wake_Re300_export_190709_4103\B0001.dat'];
+    % PIV grid
+%     filename = [param.folder_data ...
+%         '\XP_Irstea\wake_Re300_export_190709_4103\' ...
+%         'wake_Re300_export_190709_4103\B0001.dat'];
     delimiter = ' ';
     startRow = 5;
     formatSpec = '%f%f%f%f%f%*s%*s%[^\n\r]';
@@ -121,11 +156,11 @@ else
         [ 1 -1 ; 1 -1] ;
     DNS_range = DNS_range + std_space * ...
         [ 1 -1 ; 1 -1] ;
-%     PIV_range = PIV_range + number_of_points_correlated * ...
-%         [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
-%     DNS_range = DNS_range + number_of_points_correlated * ...
-%         [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
-        mask = ...
+    %     PIV_range = PIV_range + number_of_points_correlated * ...
+    %         [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
+    %     DNS_range = DNS_range + number_of_points_correlated * ...
+    %         [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
+    mask = ...
         ( x_PIV_without_crop >= max( [ PIV_range(1,1) DNS_range(1,1) ])) ...
         & ( x_PIV_without_crop <= min( [ PIV_range(1,2) DNS_range(1,2) ])) ...
         & ( y_PIV_without_crop >= max( [ PIV_range(2,1) DNS_range(2,1) ])) ...
@@ -133,8 +168,34 @@ else
     x_PIV_after_crop = x_PIV_without_crop(mask);
     y_PIV_after_crop = y_PIV_without_crop(mask);
     MX_PIV = [ length(unique(x_PIV_after_crop)) ...
-               length(unique(y_PIV_after_crop))];
+        length(unique(y_PIV_after_crop))];
     M_PIV = prod(MX_PIV);
+    
+    % PIV spatial filter
+    switch param.type_data
+        case {'DNS100_inc3d_2D_2018_11_16_blocks',...
+                'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
+                'DNS100_inc3d_2D_2018_11_16_blocks_test_basis'}
+            x_unique_PIV = unique(x_PIV_after_crop);
+            y_unique_PIV = unique(y_PIV_after_crop);
+            dX_PIV = [ x_unique_PIV(2)-x_unique_PIV(1) ...
+                       y_unique_PIV(2)-y_unique_PIV(1) ];
+                   new_distance = sqrt(prod(dX_PIV));
+    end
+    number_of_points_correlated = floor(std_space/(new_distance));
+    dist = abs( new_distance*...
+        (-number_of_points_correlated:number_of_points_correlated) );
+    h = exp(-(dist.^2)/(2*std_space^2));
+    sum_h = sum(h);
+    h = h/sum_h;
+    switch param.type_data                   
+        case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+            hz = permute(h,[1 3 2]);
+            z_keep = z_slice + ...
+                (-number_of_points_correlated:number_of_points_correlated);
+    end
     
     t_local=1; % index of the snapshot in a file
     if param.data_in_blocks.bool % if data are saved in several files
@@ -149,23 +210,32 @@ else
     load(name_file_U_temp);
     N_local = size(U,2);
     U = reshape(U, [param.MX, N_local,d]);
-    U = U(:,:,z_keep,:,1:d_PIV);
-    U(:,1:2,:,:,:)=[];
-    MX_modif = [ (param.MX(1:d_PIV) - [0 2]) ...
-        2*number_of_points_correlated+1];
+    switch param.type_data
+        case {'DNS100_inc3d_2D_2018_11_16_blocks',...
+                'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
+                'DNS100_inc3d_2D_2018_11_16_blocks_test_basis'}
+            MX_modif = param.MX;
+        case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+            U = U(:,:,z_keep,:,1:d_PIV);
+            U(:,1:2,:,:,:)=[];
+            MX_modif = [ (param.MX(1:d_PIV) - [0 2]) ...
+                2*number_of_points_correlated+1];
+    end
     U_PIV = nan([M_PIV N_local d_PIV]);
     
-%     z_on_tau=zeros(M,nb_modes_z,d,d);
-%     big_T_max = 1; %BETA PARAMETER
+    %     z_on_tau=zeros(M,nb_modes_z,d,d);
+    %     big_T_max = 1; %BETA PARAMETER
     big_T_max = size(param.name_file_U_temp,2); %BETA PARAMETER
     %% Loop on time for application of H_PIV
     for t=1:N_tot
-        if t_local > size(U,d+1) 
+        if t_local > size(U,d+1)
             clear U
             % Save
             % Name of the current PIV file
             name_file_U_temp_PIV=[param.folder_file_U_temp_PIV 'strat' ...
-                            num2str(big_T) '_U_temp'];
+                num2str(big_T) '_U_temp'];
             param.name_file_U_temp_PIV{big_T} = ...
                 [ name_file_U_temp_PIV '_PIV'];
             % Save current PIV file
@@ -174,7 +244,7 @@ else
             save(param.name_file_U_temp_PIV{big_T},'U',...
                 'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
                 '-v7.3');
-                        
+            
             % initialization of the index of the snapshot in the file
             t_local=1;
             % Incrementation of the file index
@@ -190,18 +260,37 @@ else
             load(name_file_U_temp);
             N_local = size(U,2);
             U = reshape(U, [param.MX, N_local,d]);
-            U = U(:,:,z_keep,:,1:d_PIV);
-            U(:,1:2,:,:,:)=[];
+            switch param.type_data
+                case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+                    U = U(:,:,z_keep,:,1:d_PIV);
+                    U(:,1:2,:,:,:)=[];
+            end
             U_PIV = nan([M_PIV N_local d_PIV]);
         end
         %% Application of H_PIV
         
         % Take the current snpshot
-        U_temp = U(:,:,:,t_local,:);
+        switch param.type_data
+            case {'DNS100_inc3d_2D_2018_11_16_blocks',...
+                    'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
+                    'DNS100_inc3d_2D_2018_11_16_blocks_test_basis'}
+                U_temp = U(:,:,t_local,:);
+            case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+                U_temp = U(:,:,:,t_local,:);
+        end
         
-        % Spatial smoothing along z
-        U_temp = sum( bsxfun(@times, U_temp, hz) ,3) ;
-        U_temp = permute( U_temp ,[ 1 2 4 5 3]); % Mx x My x 1 x d_PIV
+        switch param.type_data
+            case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
+                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
+                % Spatial smoothing along z
+                U_temp = sum( bsxfun(@times, U_temp, hz) ,3) ;
+                U_temp = permute( U_temp ,[ 1 2 4 5 3]); % Mx x My x 1 x d_PIV
+        end
         
         % Spatial smoothing along x
         for k=1:d_PIV
@@ -241,11 +330,11 @@ else
     param.name_file_U_temp_PIV{big_T} = ...
         [ name_file_U_temp_PIV '_PIV'];
     % Save current PIV file
-%     U = reshape(U_PIV, [M_PIV, N_local,d_PIV]); clear U_PIV
+    %     U = reshape(U_PIV, [M_PIV, N_local,d_PIV]); clear U_PIV
     U = U_PIV; clear U_PIV
     save(param.name_file_U_temp_PIV{big_T},'U',...
-                'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-                '-v7.3');
+        'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
+        '-v7.3');
     
     %% Variance tensor computation
     %% Initialization
@@ -281,9 +370,9 @@ else
     % Load
     load(name_file_U_temp);
     
-%     [M_PIV,~,d_PIV] = size(U);
+    %     [M_PIV,~,d_PIV] = size(U);
     z_on_tau=zeros(M_PIV,nb_modes_z,d_PIV,d_PIV);
-%     big_T_max = size(param.name_file_U_temp,2); %BETA PARAMETER
+    %     big_T_max = size(param.name_file_U_temp,2); %BETA PARAMETER
     %% Projection
     %     if big_data
     for t=1:N_tot
@@ -317,24 +406,24 @@ else
     
     z_on_tau=1/N_tot*z_on_tau;
     
-%     % Normalization and time step influence
-%     z_on_tau=dt/N_tot*z_on_tau;
-%     
-%     % To circumvent the effect of the threshold of the downsampling rate
-%     if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
-%         z_on_tau = z_on_tau * param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor;
-%     end
+    %     % Normalization and time step influence
+    %     z_on_tau=dt/N_tot*z_on_tau;
+    %
+    %     % To circumvent the effect of the threshold of the downsampling rate
+    %     if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
+    %         z_on_tau = z_on_tau * param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor;
+    %     end
     
     %% Save
-%     if nargout < 2
-        save(param.name_file_diffusion_mode_PIV,'z_on_tau',...
-                'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-                '-v7.3');
-        %     save(name_file_mode,'z_on_tau','-append');
-%         clear z_on_tau
-%     end
+    %     if nargout < 2
+    save(param.name_file_diffusion_mode_PIV,'z_on_tau',...
+        'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
+        '-v7.3');
+    %     save(name_file_mode,'z_on_tau','-append');
+    %         clear z_on_tau
+    %     end
     
-    %% Inversion of HSigSigH    
+    %% Inversion of HSigSigH
     
     z_on_tau(:,:,1,1) = z_on_tau(:,:,1,1) + (0.06)^2 ;
     z_on_tau(:,:,2,2) = z_on_tau(:,:,2,2) + (0.06)^2 ;
@@ -343,16 +432,16 @@ else
     det_HSigSigH = z_on_tau(:,:,1,1) .* z_on_tau(:,:,2,2) ...
         - z_on_tau(:,:,1,2) .* z_on_tau(:,:,2,1) ;
     inv_HSigSigH(:,:,1,1) = z_on_tau(:,:,2,2);
-    inv_HSigSigH(:,:,2,2) = z_on_tau(:,:,1,1); 
-    inv_HSigSigH(:,:,1,2) = - z_on_tau(:,:,1,2); 
-    inv_HSigSigH(:,:,2,1) = - z_on_tau(:,:,2,1); 
+    inv_HSigSigH(:,:,2,2) = z_on_tau(:,:,1,1);
+    inv_HSigSigH(:,:,1,2) = - z_on_tau(:,:,1,2);
+    inv_HSigSigH(:,:,2,1) = - z_on_tau(:,:,2,1);
     inv_HSigSigH = bsxfun(@times, 1./det_HSigSigH , inv_HSigSigH );
     
     %% Save
-%     if nargout < 2
-        save(param.name_file_HSigSigH_PIV,'inv_HSigSigH',...
-                'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-                '-v7.3');
-        %     save(name_file_mode,'z_on_tau','-append');
-%     end
+    %     if nargout < 2
+    save(param.name_file_HSigSigH_PIV,'inv_HSigSigH',...
+        'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
+        '-v7.3');
+    %     save(name_file_mode,'z_on_tau','-append');
+    %     end
 end
