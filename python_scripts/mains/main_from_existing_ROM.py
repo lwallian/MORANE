@@ -1169,10 +1169,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param_ref = {}
     param_ref['n_simu'] = 100               # Number of simulations steps in time
     param_ref['N_particules'] = n_particles # Number of particles to select  
-    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-    beta_2 = 0.1                            # beta_2 is the parameter that controls the  noise in the initialization of the filter
+#    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+    beta_2 = 1                            # beta_2 is the parameter that controls the  noise in the initialization of the filter
     beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
-    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
+#    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
     N_threshold = 40                        # Effective sample size in the particle filter
     nb_mutation_steps = 30                  # Number of mutation steps in particle filter 
     pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
@@ -1399,7 +1399,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
 #    bt_MCMC[:,:,:] =  bt_MCMC + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
-    bt_MCMC[:,:,:] = beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape) # Initialise the chronos paricles randomly and dependent of the lambda values 
+    bt_MCMC[:,:,:] = beta_2*np.tile(np.sqrt(lambda_values)[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape) # Initialise the chronos paricles randomly and dependent of the lambda values 
     
     bt_fv = bt_MCMC.copy()                                              # Define bt_fv 
     bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))   # Define bt_m
@@ -2177,7 +2177,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.figure(index)
             plt.ylim(-10, 10)
             ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
-            
+            if plot_ref==True:
+                plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
+                
+                
             plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
             line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Particles mean')
     #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
