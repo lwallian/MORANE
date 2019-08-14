@@ -38,13 +38,13 @@ else
     [R1t, R2t, R3t] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss);
     
     % Compute theta_theta
-    theta_theta = bsxfun(@times, 1 ./ (lambda * T), R1);
+    theta_theta = bsxfun(@times, 1 ./ (N_tot), R1);
     
     % Compute Mi_sigma
-    Mi_sigma = R2 ./ T;
+    Mi_sigma = R2 ./ N_tot;
     
     % Compute xi_xi_inf
-    xi_xi_inf = R3 ./ T;
+    xi_xi_inf = R3 ./ N_tot;
     
     clear R1 R2 R3;
     

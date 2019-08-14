@@ -46,7 +46,10 @@ dU = diff(U, 1, 2);
 % compute the sum((dw_ss * del) * dw_ss)
 Mi_sigma = zeros(M, d);
 %compute the sum(b_p * d2bt_i * dX_res)
-del_pi = zeros(M, m, m, d); % (M,m(p),m(i),d)
+del_pi = zeros(M, m + 1, m, d); % (M,m(p),m(i),d)
+% add the constant term to bt
+bt = cat(2, bt, zeros(size(bt,1), 1));
+lambda(m + 1) = T.^3 / 3;
 
 for t = 1 : N_tot % loop on time
     if t_local > size(U, 2) - 2 % A new file needs to be loaded
@@ -71,9 +74,10 @@ for t = 1 : N_tot % loop on time
     for k = 1 : d
         Mi_sigma(:, k) = Mi_sigma(:, k) + dU_del_dU(:, k);
         for i = 1 : m
-            for p = 1 : m
+            for p = 1 : m + 1
                 del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
-                    + dU(:, t_local, k) * d2bt(t_local, i) * bt(t_local, p);
+                    + dU(:, t_local, k) * d2bt(t_local, i) ...
+                    * bt(t_local, p) / lambda(p);
             end
         end
     end
@@ -113,9 +117,9 @@ for j = 1 : m
 end
 
 % Compute theta_theta:
-R1 = zeros(m, m, m + 1, m + 1);
+R1 = zeros(m + 1, m, m + 1, m);
 
-for p = 1 : m
+for p = 1 : m + 1
     for i = 1 : m
         del_p_i = del_pi(:, p, i, :);
         del_p_i = permute(del_p_i, [3, 4, 1, 2]);%(1,d,M)
@@ -173,7 +177,7 @@ for p = 1 : m
             end
             
             % projection on phi_j
-            for j = 1 : m + 1
+            for j = 1 : m
                 phi_j = phi_m_U(:, j, :);
                 phi_j = permute(phi_j, [4, 2, 1, 3]);%(1,1,M,d)
                 phi_j = reshape(phi_j, [1, 1, MX, d]);%(1,1,Mx,My,(Mz),d)
@@ -197,11 +201,11 @@ clear del_pi;
 
 % Compute xi_xi_inf
 R3 = zeros(m, m);
-
+% Surement un erreur dans R3
 for i = 1 : m
     for j = 1 : m
         lambda_theta_theta = 0;
-        for k = 1 : m
+        for k = 1 : m + 1
             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j) * lambda(k);
 %             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j);
         end

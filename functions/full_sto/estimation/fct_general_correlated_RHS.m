@@ -31,7 +31,7 @@ lambda = param.lambda;
 
 % As they are no longer valid, the statistics are going to be estimated
 % through least squares
-beta = R1 ./ lambda;
+beta = R1 .* lambda; % dimensions
 
 % Compute gamma
 % First, we define G_pq
