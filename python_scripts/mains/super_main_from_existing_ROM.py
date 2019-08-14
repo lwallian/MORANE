@@ -36,20 +36,22 @@ def switch_type_data(argument):
 if __name__ == '__main__':
 
 #    vect_nb_modes = [16,8,6,4,2]
-    vect_nb_modes = [6]
-    no_subampl_in_forecast = False
+    vect_nb_modes = [6] # Select the number of solved temporal modes
+    no_subampl_in_forecast = False 
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]
-#     Small dataset for debuging
-#    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
-    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-#    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+#                           DATASET 
+#    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
+#    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'  # Reynolds 100
 #%%   
 #Important parameters    
 #    Threshold used in the estimation of the optimal subsampling time step
 #     if modal-dt = true,
 #          (mimic the use of a) disctinct subsampling time step for the
 #           differentials equations of distincts chronos
+    
+    # Get threshold and modal_dt
     v_threshold,vect_modal_dt = switch_type_data(type_data)
     
     nb_period_test = math.nan

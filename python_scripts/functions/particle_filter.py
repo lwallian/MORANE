@@ -607,7 +607,7 @@ def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,
                     dt_adapted,pho,delta_t,pchol_cov_noises):
     
     
-    I = ILC_a_cst['modal_dt']['I']
+    I = ILC_a_cst['modal_dt']['I']  
     L = ILC_a_cst['modal_dt']['L']
     C = ILC_a_cst['modal_dt']['C']
 
