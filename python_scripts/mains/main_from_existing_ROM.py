@@ -1173,41 +1173,52 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     beta_2 = 0.1                            # beta_2 is the parameter that controls the  noise in the initialization of the filter
     beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
     beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
-    N_threshold = 20                        # Effective sample size in the particle filter
-    nb_mutation_steps = 20                  # Number of mutation steps in particle filter 
-    pho = 0.9998                            # Constant that constrol the balance in the new brownian and the old brownian in particle filter
+    N_threshold = 40                        # Effective sample size in the particle filter
+    nb_mutation_steps = 30                  # Number of mutation steps in particle filter 
+    pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
 #    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
     std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
-    assimilate = 'real_data'                # The data that will be assimilated
+    assimilate = 'fake_real_data'                # The data that will be assimilated
     mask_obs = True                         # Activate spatial mask in the observed data
-    subsampling_PIV_grid_factor = 3         # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+    subsampling_PIV_grid_factor = 1         # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
     only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
     slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
     slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
     data_assimilate_dim = 2                 # In this experiments we assimilate 2D data, and in the case Reynolds=300, the vector flow in the z direction will be ignored.
     u_inf_measured = 0.388                  # The PIV measured velocity (See the .png image in the respective PIV folder with all measured constants). It must be represented in m/s
     cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
-    dt_PIV = 0.080833                       # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
     center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
     center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
-    Re=300                                  # Reynolds constant
+    Re = 300                                # Reynolds constant
     center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
     center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
-    SECONDS_OF_SIMU = 1                   # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331)
-
-    number_of_PIV_files = int(SECONDS_OF_SIMU/dt_PIV) + 1                                                    # Number of PIV files to load
-    vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated. 
+    SECONDS_OF_SIMU = 70                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
     sub_sampling_PIV_data_temporaly = True                                                                   # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
-    factor_of_PIV_time_subsampling = 3                                                                       # The factor that we will take to subsampled PIV data. 
-    vector_of_assimilation_time = vector_of_assimilation_time[::factor_of_PIV_time_subsampling]              # Using the factor to select the moments that we will take to assimilate
+    factor_of_PIV_time_subsampling = 10                                                                       # The factor that we will take to subsampled PIV data. 
     plt_real_time = True                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
     x0_index = 6                                                                                             # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-    nbPoints_x = 10                                                                                          # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-    y0_index = 30                                                                                            # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-    nbPoints_y = 15                                                                                          # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    nbPoints_x = 30                                                                                          # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    y0_index = 10                                                                                            # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+    nbPoints_y = 30                                                                                          # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
     #################################### ----------------------------------------------------------------------- ###################################
-    
-    
+    if assimilate == 'real_data':
+        dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
+        number_of_PIV_files = int(SECONDS_OF_SIMU/dt_PIV) + 1                                                 # Number of PIV files to load
+        vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
+        vector_of_assimilation_time = vector_of_assimilation_time[::factor_of_PIV_time_subsampling]              # Using the factor to select the moments that we will take to assimilate
+    elif assimilate == 'fake_real_data':
+        plot_ref = True                     # Plot bt_tot
+        dt_PIV = 0.25                       # Temporal step between 2 consecutive PIV images.
+        nb_snapshots_each_file = 16         # The amount of snapshots that each file contains
+        time_per_file = (nb_snapshots_each_file)*dt_PIV
+        if SECONDS_OF_SIMU%time_per_file == 0:
+            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+        else:
+            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
+            
+        
+        
+       
     
     #%%  Parameters already chosen
     
@@ -1355,7 +1366,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     n_simu = param_ref['n_simu']
     param['N_tot'] = bt_tot.shape[0]
     param['N_test'] = param['N_tot'] - 1
-    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS case
+    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
+    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
     bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
     
     param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
@@ -1399,7 +1411,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
    
    
 #      LOAD TOPOS
-    print('Loading Topos')
+    print('Loading Topos...')
     path_topos = Path(folder_data).parents[1].joinpath('data').joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes') # Topos path 
     topos_data = hdf5storage.loadmat(str(path_topos))                                                                 # Load topos
     topos = topos_data['phi_m_U']                                                                                     # Select Topos          
@@ -1415,15 +1427,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     distance = param['dX'][0,0]                                                                        # Define the spatial space between 2 samples in DNS grid 
     matrix_H,number = calculate_H_PIV(topos_l,distance,grid,std_space,only_load,dim,slicing,slice_z)   # Apply spatial filter in the topos. The filtr was estimated before and is based in the PIV measures
     
-    print('Calculating PIV mask and applying on the Topos')
+    print('\nCalculating PIV mask and applying on the Topos...')
     matrix_H = np.transpose(matrix_H,(0,1,2,4,3))                                                                                                                                # Rearrange  matrix_H
     matrix_H = np.reshape(matrix_H,(int(matrix_H.shape[0]*matrix_H.shape[1]*matrix_H.shape[2]),matrix_H.shape[3],matrix_H.shape[4]),order='F')                                   # Reshape matrix_H  
-    if assimilate == 'real_data':                                                                                                                                                # Select if real data to transform Hpiv_Topos from space DNS to PIV
+    if assimilate in ['real_data','fake_real_data']:                                                                                                                                                # Select if real data to transform Hpiv_Topos from space DNS to PIV
         topos_new_coordinates,coordinates_x_PIV,coordinates_y_PIV = reduce_and_interpolate_topos_same_as_matlab(matrix_H,param['grid'][0],MX,data_assimilate_dim,slicing,\
                                                                                                              slice_z,u_inf_measured,cil_diameter,center_cil_grid_dns_x_index,\
                                                                                                              center_cil_grid_dns_y_index,center_cil_grid_PIV_x_distance,\
-                                                                                                             center_cil_grid_PIV_y_distance,std_space)
-    
+                                                                                                            center_cil_grid_PIV_y_distance,std_space)
+    else:
+        print('Error: Data to assimilate is not known.')
+        sys.exit()
+        
               
     '''
     The Sigma_inverse matrix was calculated before in the space H_piv, so we need just to load it.
@@ -1704,52 +1719,90 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #   ##########################  
     
 #%%                    LOAD   Data PIV 
-
-    file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(1).zfill(4)+'.dat')   # The path to load PIV data
-    data = open(str(file))                                                                                                     # Open the PIV data  
-    datContent = [i.strip().split() for i in data.readlines()]                                                                 # Reading the data 
-    data = datContent[4:]                                                                                                      # Getting the data PIV
     
-    nb_lines = len(data)                           # lines amount
-    nb_collums = len(data[0][2:4])                 # Commumns amount 
-    matrix = np.zeros(shape=(nb_lines,nb_collums)) # Creating matrix to stock data 
     
-    '''
-    We will select the first data in 0.080833 and after we will load the files taking in account the factor of subsampling and the amount of files. 
-    '''
-    for i,line in enumerate(data):  # Select the data in the first PIV file 
-        for j,number in enumerate(line[2:4]):
-            matrix[i,j] = number
+    if assimilate == 'real_data':
     
-    matrix_data_PIV_all_data = matrix[Sigma_inverse_data['mask'][:,0],:].copy()[np.newaxis,...] # Select the PIV data in the first mask calculated (The mask inside PIV and DNS)    
-    print('Loading PIV data')
-    print(number_of_PIV_files)
-
-    for nb_file in range(1,(number_of_PIV_files+1),factor_of_PIV_time_subsampling)[1:]:                                                    # Loading the other files as defined in the start of this function
-        print(nb_file)
-        file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(nb_file).zfill(4)+'.dat') # Path to file
-        data = open(str(file))                                                                                                         # Open the file       
-        datContent = [i.strip().split() for i in data.readlines()]                                                                     # Read the data                                                                                                                                                                              
-        data = datContent[4:]                                                                                                          # Getting the data PIV 
+        file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(1).zfill(4)+'.dat')   # The path to load PIV data
+        data = open(str(file))                                                                                                     # Open the PIV data  
+        datContent = [i.strip().split() for i in data.readlines()]                                                                 # Reading the data 
+        data = datContent[4:]                                                                                                      # Getting the data PIV
         
+        nb_lines = len(data)                           # lines amount
+        nb_collums = len(data[0][2:4])                 # Commumns amount 
+        matrix = np.zeros(shape=(nb_lines,nb_collums)) # Creating matrix to stock data 
         
-        matrix = np.zeros(shape=(nb_lines,nb_collums)) # Define the matrix to stock the data  
-        for i,line in enumerate(data):                 # Decode the information and save it as a matrix
+        '''
+        We will select the first data in 0.080833 and after we will load the files taking in account the factor of subsampling and the amount of files. 
+        '''
+        for i,line in enumerate(data):  # Select the data in the first PIV file 
             for j,number in enumerate(line[2:4]):
                 matrix[i,j] = number
         
-    
-        matrix_data_PIV_all_data = np.concatenate((matrix_data_PIV_all_data,matrix[Sigma_inverse_data['mask'][:,0],:].copy()[np.newaxis,...]),axis=0)  # Save the matrix inside the matrix of all the PIV data
-    
-    
-    # Normalizing  measured data
-    matrix_data_PIV_all_data = matrix_data_PIV_all_data/u_inf_measured  # Normalizing the PIV data to compare with DNS 
-#    np.save('Data_piv.npy',matrix_data_PIV_all_data)                   # If necessary to save(This will be saved as numpy array in this folder.)
-    
-    '''
-    We need to apply the same observation mask on the observed data. Because the new mask is defined to control where we will observe inside the PIV window
-    '''
-    matrix_data_PIV_all_data = matrix_data_PIV_all_data[:,Mask_final_bool[:matrix_data_PIV_all_data.shape[1]],:].copy()  
+        matrix_data_PIV_all_data = matrix[Sigma_inverse_data['mask'][:,0],:].copy()[np.newaxis,...] # Select the PIV data in the first mask calculated (The mask inside PIV and DNS)    
+        print('Loading PIV data: '+str(number_of_PIV_files)+' files...')
+        
+        if number_of_PIV_files>1:
+            for nb_file in range(1,(number_of_PIV_files+1),factor_of_PIV_time_subsampling)[1:]:                                                    # Loading the other files as defined in the start of this function
+                print(nb_file)
+                file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(nb_file).zfill(4)+'.dat') # Path to file
+                data = open(str(file))                                                                                                         # Open the file       
+                datContent = [i.strip().split() for i in data.readlines()]                                                                     # Read the data                                                                                                                                                                              
+                data = datContent[4:]                                                                                                          # Getting the data PIV 
+                
+                
+                matrix = np.zeros(shape=(nb_lines,nb_collums)) # Define the matrix to stock the data  
+                for i,line in enumerate(data):                 # Decode the information and save it as a matrix
+                    for j,number in enumerate(line[2:4]):
+                        matrix[i,j] = number
+                
+            
+                matrix_data_PIV_all_data = np.concatenate((matrix_data_PIV_all_data,matrix[Sigma_inverse_data['mask'][:,0],:].copy()[np.newaxis,...]),axis=0)  # Save the matrix inside the matrix of all the PIV data
+        
+        
+        # Normalizing  measured data
+        matrix_data_PIV_all_data = matrix_data_PIV_all_data/u_inf_measured  # Normalizing the PIV data to compare with DNS 
+    #    np.save('Data_piv.npy',matrix_data_PIV_all_data)                   # If necessary to save(This will be saved as numpy array in this folder.)
+        
+        '''
+        We need to apply the same observation mask on the observed data. Because the new mask is defined to control where we will observe inside the PIV window
+        '''
+        matrix_data_PIV_all_data = matrix_data_PIV_all_data[:,Mask_final_bool[:matrix_data_PIV_all_data.shape[1]],:].copy()  
+        
+        
+    elif assimilate == 'fake_real_data':
+        '''
+        The case of assimilate fake_real_data is choosen when it should be assimilated the DNS smoothed and with noise. Hence, 
+        a fake PIV(real data).
+        '''
+        index_final = SECONDS_OF_SIMU/dt_PIV
+        i=1
+        file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)+'_fake').joinpath('strat'+str(80+i)+'_U_temp_PIV')   # The path to load PIV data
+        data = hdf5storage.loadmat(str(file)) 
+        vector_of_assimilation_time = np.array(data['interval_time_local'][0,:])
+        vector_flow = data['U'].copy()
+        print('Loading Fake PIV data:'+str(number_of_FAKE_PIV_files)+' files ...')
+        if number_of_FAKE_PIV_files>1:
+            for i in range(1,number_of_FAKE_PIV_files+1,1)[1:]:
+                file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)+'_fake').joinpath('strat'+str(80+i)+'_U_temp_PIV')   # The path to load PIV data
+                data = hdf5storage.loadmat(str(file)) 
+                vector_flow = np.concatenate((vector_flow,data['U']),axis=1)
+                vector_of_assimilation_time = np.concatenate((vector_of_assimilation_time,np.array(data['interval_time_local'][0,:])))
+        
+        vector_flow = np.transpose(vector_flow,(1,0,2))
+        vector_flow = vector_flow[:int(index_final):factor_of_PIV_time_subsampling,:,:]
+        vector_flow = vector_flow[:,Mask_final_bool[:vector_flow.shape[1]],:]
+        matrix_data_PIV_all_data = vector_flow.copy()
+     
+        vector_of_assimilation_time = vector_of_assimilation_time[:int(index_final):factor_of_PIV_time_subsampling]
+        
+        if vector_of_assimilation_time[0] == 0:
+            matrix_data_PIV_all_data[1:,:,:]
+            vector_of_assimilation_time = vector_of_assimilation_time[1:]
+        
+    else:
+        print('Error: Data to assimilate is not known.')
+        sys.exit()
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
@@ -1794,27 +1847,39 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         line11, = ax_1.plot(time[-1], particles_mean_now[0], 'b-',label = 'Particles mean')
         line12  = ax_1.fill_between([0], quantiles_now[0:1,0],quantiles_now[1:2,0], color='gray')
         line13,  = ax_1.plot([0],[-2*1],'r.',label = 'Assimilate True')
-       
+        
+        
+        
         line21, = ax_2.plot(time[-1], particles_mean_now[1], 'b-',label = 'Particles mean')
-        line22 = ax_2.fill_between([0], quantiles_now[0:1,1],quantiles_now[1:2,1], color='gray')
+#        line22 = ax_2.fill_between([0], quantiles_now[0:1,1],quantiles_now[1:2,1], color='gray')
         line23,  = ax_2.plot([0],[-2*1],'r.',label = 'Assimilate True')
-      
+       
+        
+        
         line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Particles mean')
-        line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
+#        line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
         line33,  = ax_3.plot([0],[-2*1],'r.',label = 'Assimilate True')
         
         line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Particles mean')
-        line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
+#        line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
         line43,  = ax_4.plot([0],[-2*1],'r.',label = 'Assimilate True')
     
         line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Particles mean')
-        line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
+#        line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
         line53,  = ax_5.plot([0],[-2*1],'r.',label = 'Assimilate True')
        
         line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Particles mean')
-        line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
+#        line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
         line63,  = ax_6.plot([0],[-2*1],'r.',label = 'Assimilate True')
         
+        
+        if plot_ref==True:
+            line14, =  ax_1.plot(time_bt_tot[-1],bt_tot[0,0],'k--',label = 'True state')
+            line24, =  ax_2.plot(time_bt_tot[-1],bt_tot[0,1],'k--',label = 'True state')
+            line34, =  ax_3.plot(time_bt_tot[-1],bt_tot[0,2],'k--',label = 'True state')
+            line44, =  ax_4.plot(time_bt_tot[-1],bt_tot[0,3],'k--',label = 'True state')
+            line54, =  ax_5.plot(time_bt_tot[-1],bt_tot[0,4],'k--',label = 'True state')
+            line64, =  ax_6.plot(time_bt_tot[-1],bt_tot[0,5],'k--',label = 'True state')
         
         
         ax_1.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(1)+'$'+' amplitude')
@@ -1983,16 +2048,17 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             ax_5.set_xlim([0, time[-1]+10])
             ax_6.set_xlim([0, time[-1]+10])
     
-            
+            lim = np.where((time_bt_tot<=time[-1]))[0][-1]
             
             line11.set_data(time,particles_mean[:,0])
             ax_1.collections.clear()
             ax_1.fill_between(time, quantiles[0,:,0],quantiles[1,:,0], color='gray')
             line13.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
+            
             line21.set_data(time,particles_mean[:,1])
-            ax_2.collections.clear()
-            ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
+#            ax_2.collections.clear()
+#            ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
             line23.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
             line31.set_data(time,particles_mean[:,2])
@@ -2010,6 +2076,16 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             line61.set_data(time,particles_mean[:,5])
 #            ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
             line63.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            
+            
+            if plot_ref==True:
+                line14.set_data(time_bt_tot[:lim],bt_tot[:lim,0])
+                line24.set_data(time_bt_tot[:lim],bt_tot[:lim,1])
+                line34.set_data(time_bt_tot[:lim],bt_tot[:lim,2])
+                line44.set_data(time_bt_tot[:lim],bt_tot[:lim,3])
+                line54.set_data(time_bt_tot[:lim],bt_tot[:lim,4])
+                line64.set_data(time_bt_tot[:lim],bt_tot[:lim,5])
+            
             
             fig.canvas.draw()
             plt.pause(0.005)    
