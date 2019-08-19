@@ -33,9 +33,10 @@ else
     % R3 is proportional to xi_xi_inf
     
     [R1, R2, R3] = fct_comp_correlated_RHS(param, bt, d2bt);
-    % Pour tester
-    sigma_ss = generate_sigma_ss(1, [MX, d], 100, dX);
-    [R1t, R2t, R3t] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss);
+    % To test that the estimation formulas give a reasonable estimation of
+    % the noise terms (uncomment to test)
+%     sigma_ss = 1e8 * generate_sigma_ss(0.1, [MX, d], 100, dX);
+%     [R1t, R2t, R3t] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss);
     
     % Compute theta_theta
     theta_theta = bsxfun(@times, 1 ./ (N_tot), R1);

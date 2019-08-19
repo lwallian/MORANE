@@ -118,8 +118,8 @@ R3 = zeros(m, m);
 zeta = zeros(m, m);
 for i = 1 : m
     for j = 1 : m
-        for p = 1 : m
-            for q = 1 : m
+        for p = 1 : m + 1
+            for q = 1 : m + 1
                 zeta(i, j) = zeta(i, j) + G_pq(p, q) * R1(p, i, q, j);
             end
         end
