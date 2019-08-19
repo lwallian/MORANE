@@ -215,6 +215,7 @@ end
 
 R1 = R1 * dt;
 R2 = R2 * dt;
+R3 = R3 * dt;
 
 end
 

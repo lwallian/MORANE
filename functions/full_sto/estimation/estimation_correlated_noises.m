@@ -41,7 +41,7 @@ else
     theta_theta = bsxfun(@times, 1 ./ (N_tot), R1);
     
     % Compute Mi_sigma
-    Mi_sigma = R2 ./ N_tot;
+    Mi_sigma = -R2 ./ N_tot;
     
     % Compute xi_xi_inf
     xi_xi_inf = R3 ./ N_tot;
