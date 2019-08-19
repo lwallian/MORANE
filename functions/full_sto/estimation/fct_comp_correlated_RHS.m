@@ -201,7 +201,7 @@ clear del_pi;
 
 % Compute xi_xi_inf
 R3 = zeros(m, m);
-% Surement un erreur dans R3
+
 for i = 1 : m
     for j = 1 : m
         lambda_theta_theta = 0;
