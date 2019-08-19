@@ -41,10 +41,10 @@ if param_ref.data_in_blocks.bool % if data are saved in several files
                 [param_ref.type_data num2str(big_Tj)];
             % Set lines indexes of the block
             vi=(big_Ti-1)*len_blocks +1 : (big_Ti)*len_blocks;
-            d_vi = (big_Ti-1)*len_blocks +1 : (big_Ti)*len_blocks - 1;
+            d_vi = (big_Ti-1)*len_blocks - big_Ti +2 : (big_Ti)*len_blocks - big_Ti;
             % Set columns indexes of the block
             vj=(big_Tj-1)*len_blocks +1 : (big_Tj)*len_blocks;
-            d_vj = (big_Tj-1)*len_blocks +1 : (big_Tj)*len_blocks - 1;
+            d_vj = (big_Tj-1)*len_blocks - big_Tj +2 : (big_Tj)*len_blocks - big_Tj;
             if big_Tj >= big_Ti
                 % Compute and assign values in the block
                 [c(vi, vj), dt_c(d_vi, d_vj), param_temp] = estimateCovarianceMatrices(param_ref_temp, bool_init_temp);
