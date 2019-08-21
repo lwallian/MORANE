@@ -577,21 +577,18 @@ elseif correlated_model
     bt_m = zeros(1, param.nb_modes, param.N_particules);
     
     % Initialization of model's stochastic variables
-%     eta = zeros(param.N_test, param.nb_modes + 1, param.nb_modes, param.N_particules);
     eta_0 = permute(eta_0, [3, 1, 2, 4]);
     eta = repmat(eta_0, [1, 1, 1, param.N_particules]);
-%     Gr = zeros(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
     Gr = randn(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
-%     Mi_ss = zeros(param.N_test, param.nb_modes, param.N_particules);
     Mi_ss_0 = permute(Mi_ss_0, [3, 1, 2, 4]);
     Mi_ss = repmat(Mi_ss_0, [1, 1, 1, param.N_particules]);
     
     for l = 1 : param.N_test
         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
-            evol_forward_correlated_MCMC(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+            evol_forward_correlated_centered(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
             pchol_cov_noises, tau_ss * param.dt, param.dt, bt_MCMC(l, :, :), ...
-            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
+            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
     

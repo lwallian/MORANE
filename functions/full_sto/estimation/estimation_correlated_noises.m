@@ -66,6 +66,7 @@ else
     D(D < 0) = 0;
     result = V * diag(D) * V';
     
+    
     pseudo_chol = V * diag(sqrt(D));
     
     % %% Remove temporary files
