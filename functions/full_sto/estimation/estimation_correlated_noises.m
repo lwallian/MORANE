@@ -1,4 +1,4 @@
-function [result, pseudo_chol, Mi_sigma] = estimation_correlated_noises(param, bt)
+function [result, pseudo_chol, Mi_sigma, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt)
 % This function estimates the covariance of the additive and multiplicative
 % noises, assuming that the Chronos are orthogonal
 
@@ -7,7 +7,7 @@ function [result, pseudo_chol, Mi_sigma] = estimation_correlated_noises(param, b
 param = fct_name_file_correlated_noise_cov(param);
 
 if exist(param.name_file_noise_cov,'file')==2
-    load(param.name_file_noise_cov,'pseudo_chol', 'Mi_sigma');
+    load(param.name_file_noise_cov,'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0');
     result = nan;
 else
     M = param.M;
@@ -32,7 +32,7 @@ else
     % R2 is proportional to Mi_sigma
     % R3 is proportional to xi_xi_inf
     
-    [R1, R2, R3] = fct_comp_correlated_RHS(param, bt, d2bt);
+    [R1, R2, R3, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt, d2bt);
     % To test that the estimation formulas give a reasonable estimation of
     % the noise terms (uncomment to test)
 %     sigma_ss = 1e8 * generate_sigma_ss(0.1, [MX, d], 100, dX);
@@ -70,7 +70,7 @@ else
     
     % %% Remove temporary files
     % rmdir(param.folder_file_U_temp,'s')
-    save(param.name_file_noise_cov, 'pseudo_chol', 'Mi_sigma','-v7.3');
+    save(param.name_file_noise_cov, 'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0','-v7.3');
     
 end
 
