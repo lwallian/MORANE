@@ -143,71 +143,100 @@ param_ref2.nb_modes = nb_modes;
 param_ref2.adv_corrected = adv_corrected;
 param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
 
+
+if (~ strcmp(choice_n_subsample,'auto_shanon'))
+    modal_dt = true;
+end
 param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
 file_res_2nd_res = param_ref2.name_file_2nd_result;
+file_res_2nd_res
+erase(file_res_2nd_res,'_modal_dt')
 if ~ (exist(file_res_2nd_res,'file') == 2)
-    
-    switch choice_n_subsample
-        case 'auto_shanon'
-            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-                a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
-                num2str(threshold) ...
-                'fct_test_' test_fct ];
-        case 'lms'
-            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-                a_t '_decor_by_subsampl_bt_decor_choice_lms_' ...
-                'fct_test_' test_fct];
-        case 'truncated'
-            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-                a_t '_decor_by_subsampl_bt_decor_choice_truncated_' ...
-                'fct_test_' test_fct];
-        case 'htgen'
-            file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-                a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
-                'fct_test_' test_fct];
-        otherwise
-            error('unknown case');
-    end
-    
-    file_res_2nd_res=[file_res_2nd_res '_fullsto'];
-    if modal_dt == 1
-        file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
-    elseif modal_dt == 2
-        file_res_2nd_res=[file_res_2nd_res '_real_dt'];
-    end
-    if ~ adv_corrected
-        file_res_2nd_res=[file_res_2nd_res '_no_correct_drift'];
-    end
-    if no_subampl_in_forecast
-        file_res_2nd_res=[file_res_2nd_res '_no_subampl_in_forecast'];
-    end
-    if reconstruction
-        file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
-    end
-    if correlated_model
-        file_res_2nd_res = [file_res_2nd_res '_correlated_'];
-    end
-    file_res_2nd_res_save = file_res_2nd_res;
-    file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
-    if estim_rmv_fv
-        file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
-        param.estim_rmv_fv = true;
-    end
-    file_res_2nd_res=[file_res_2nd_res '.mat'];
-    if (~(exist(file_res_2nd_res,'file') == 2)) ...
-            && strcmp(stochastic_integration,'Ito')
-        file_res_2nd_res = file_res_2nd_res_save;
+    if (~ strcmp(choice_n_subsample,'auto_shanon')) && ...
+            (exist(erase(file_res_2nd_res,'_modal_dt'),'file') == 2)
+        file_res_2nd_res = erase(file_res_2nd_res,'_modal_dt');
+    else        
+        switch choice_n_subsample
+            case 'auto_shanon'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
+                    num2str(threshold) ...
+                    'fct_test_' test_fct ];
+            case 'lms'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_lms_' ...
+                    'fct_test_' test_fct];
+            case 'truncated'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_truncated_' ...
+                    'fct_test_' test_fct];
+            case 'htgen'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
+                    'fct_test_' test_fct];
+            otherwise
+                error('unknown case');
+        end
+        
+        file_res_2nd_res=[file_res_2nd_res '_fullsto'];
+        if modal_dt == 1
+            file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
+        elseif modal_dt == 2
+            file_res_2nd_res=[file_res_2nd_res '_real_dt'];
+        end
+        if ~ adv_corrected
+            file_res_2nd_res=[file_res_2nd_res '_no_correct_drift'];
+        end
+        if no_subampl_in_forecast
+            file_res_2nd_res=[file_res_2nd_res '_no_subampl_in_forecast'];
+        end
+        if reconstruction
+            file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
+        end
+        if correlated_model
+            file_res_2nd_res = [file_res_2nd_res '_correlated_'];
+        end
+        file_res_2nd_res_save = file_res_2nd_res;
+        file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
         if estim_rmv_fv
             file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
             param.estim_rmv_fv = true;
         end
+        if svd_pchol
+            file_res_2nd_res=[file_res_2nd_res '_svd_pchol'];
+        end
+        
+        % Annoying cases
         file_res_2nd_res=[file_res_2nd_res '.mat'];
-    else
-        clear file_res_2nd_res_save;
+        if (~(exist(file_res_2nd_res,'file') == 2)) ...
+                && strcmp(stochastic_integration,'Ito')
+            file_res_2nd_res = file_res_2nd_res_save;
+            if estim_rmv_fv
+                file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
+                param.estim_rmv_fv = true;
+            end
+            if svd_pchol
+                file_res_2nd_res=[file_res_2nd_res '_svd_pchol'];
+            end
+            file_res_2nd_res=[file_res_2nd_res '.mat'];
+        else
+            clear file_res_2nd_res_save;
+        end
+        if (~(exist(file_res_2nd_res,'file') == 2)) && ...
+                strcmp(choice_n_subsample,'auto_shanon')
+            file_res_2nd_res = erase(file_res_2nd_res,'_modal_dt');
+            if (~(exist(file_res_2nd_res,'file') == 2)) ...
+                    && strcmp(stochastic_integration,'Ito')
+                file_res_2nd_res = erase(file_res_2nd_res,'_integ_Ito');
+            end            
+        end
+            
     end
 end
-
 load(file_res_2nd_res)
+if (~ strcmp(choice_n_subsample,'auto_shanon'))
+    modal_dt = false;
+end
 
 if reconstruction
     param.reconstruction=true;

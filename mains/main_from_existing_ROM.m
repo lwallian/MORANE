@@ -25,6 +25,9 @@ end
 if nargin < 10
     svd_pchol = false;
 end
+if ~ strcmp(choice_n_subsample,'auto_shanon')
+    modal_dt = 0;
+end
 % param_ref.n_simu = 2;
 % N_particules=2;
 param_ref.n_simu = 1e2;
@@ -304,7 +307,7 @@ else
     ILC_a_cst.modal_dt = ILC_a_cst.tot;
 end
 
-%% Reduction of the nois ematrix
+%% Reduction of the noise matrix
 
 if param.svd_pchol
 %     var_pchol_cov_noises_ini = trace(pchol_cov_noises*pchol_cov_noises');
