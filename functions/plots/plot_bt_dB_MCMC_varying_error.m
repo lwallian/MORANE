@@ -495,10 +495,10 @@ end
 %     plot(time,sqrt(bt_forecast_sto_a_NC_modal_dt(:,k))','om', 'LineWidth', LineWidth);
 % end
 
-var_save = horzcat(sqrt(bt_0),sqrt(err_fix),sqrt(bt_forecast_deter(:,k)),sqrt(bt_forecast_MEV(:,k)),...
-    sqrt(struct_bt_MCMC.tot.mean(:,k)),sqrt(bt_MCMC_RMSE(:,k)),sqrt(bt_MCMC_min_error(:,k)))
-
-save('D:\donnees\Stages_Red_LUM\PODFS-RedLUM\test\savematlab','var_save')
+% var_save = horzcat(sqrt(bt_0),sqrt(err_fix),sqrt(bt_forecast_deter(:,k)),sqrt(bt_forecast_MEV(:,k)),...
+%     sqrt(struct_bt_MCMC.tot.mean(:,k)),sqrt(bt_MCMC_RMSE(:,k)),sqrt(bt_MCMC_min_error(:,k)))
+% 
+% save('D:\donnees\Stages_Red_LUM\PODFS-RedLUM\test\savematlab','var_save')
 
 
 
