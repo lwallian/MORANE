@@ -126,6 +126,18 @@ for i = 1:m
     clear Lap_del_i;
     clear adv_i;
     
+    % Projection on free divergence space to remove the unknown
+    % pressure term
+    if param.eq_proj_div_free == 2
+        sum_i = reshape(sum_i,[prod(MX) 1 d]);
+        if strcmp(param.type_data, 'turb2D_blocks_truncated')
+            sum_i = sum_i - proj_div_propre(sum_i,MX,dX, true);
+        else
+            sum_i = sum_i - proj_div_propre(sum_i,MX,dX, false);
+        end
+        sum_i = reshape(sum_i,[1 1 MX d]);
+    end
+    
     % projection on phi_j
     for j = 1:m % it should count from not the term 0
         phi_j = phi(:,j,:);
@@ -172,6 +184,18 @@ for p = 1:m
         sum_pi= Lap_del_pi - adv_pi;
         clear Lap_del_pi;
         clear adv_pi;
+        
+        % Projection on free divergence space to remove the unknown
+        % pressure term
+        if param.eq_proj_div_free == 2
+            sum_pi = reshape(sum_pi,[prod(MX) 1 d]);
+            if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                sum_pi = sum_pi - proj_div_propre(sum_pi,MX,dX, true);
+            else
+                sum_pi = sum_pi - proj_div_propre(sum_pi,MX,dX, false);
+            end
+            sum_pi = reshape(sum_pi,[1 1 MX d]);
+        end
         
         % projection on phi_j
         for j = 1:m % it should count from not the term 0
@@ -223,6 +247,18 @@ for p = 1:m
             clear dphi_q;
             adv_piq = sum(adv_piq,3);
             adv_piq = permute(adv_piq,[1 2 4:ndims(adv_piq) 3]);%(1 1 Mx My (Mz) d)
+            
+            % Projection on free divergence space to remove the unknown
+            % pressure term
+            if param.eq_proj_div_free == 2
+                adv_piq = reshape(adv_piq,[prod(MX) 1 d]);
+                if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                    adv_piq = adv_piq - proj_div_propre(adv_piq,MX,dX, true);
+                else
+                    adv_piq = adv_piq - proj_div_propre(adv_piq,MX,dX, false);
+                end
+                adv_piq = reshape(adv_piq,[1 1 MX d]);
+            end
             
             % projection on phi_j
             for j = 1:m % it should count from not the term 0

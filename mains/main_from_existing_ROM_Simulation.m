@@ -1,5 +1,6 @@
 function main_from_existing_ROM_Simulation(type_data,nb_modes,...
-    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol)
+    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,...
+    modal_dt,test_fct,svd_pchol,eq_proj_div_free)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results

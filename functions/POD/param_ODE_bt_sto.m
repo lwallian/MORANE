@@ -113,13 +113,15 @@ if param.big_data
             
             % Projection on free divergence space to remove the unknown
             % pressure term
-            c_integrand = reshape(c_integrand,[prod(MX) 1 d]);
-            if strcmp(param.type_data, 'turb2D_blocks_truncated')
-                c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
-            else
-                c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+            if param.eq_proj_div_free > 0
+                c_integrand = reshape(c_integrand,[prod(MX) 1 d]);
+                if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                    c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
+                else
+                    c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+                end
+                c_integrand = reshape(c_integrand,[1 1 MX d]);
             end
-            c_integrand = reshape(c_integrand,[1 1 MX d]);
             
             for k = 1:m
                 % Reload phi
@@ -231,15 +233,17 @@ else %% Small data used
     
     % Projection on free divergence space to remove the unknown
     % pressure term
-    c_integrand = reshape(c_integrand,[(m+1)*nb_modes_z prod(MX) d]);% (m+1)*nb_modes_z x M x d
-    c_integrand = multitrans(c_integrand);% M x (m+1)*nb_modes_z x d
-    if strcmp(param.type_data, 'turb2D_blocks_truncated')
-        c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
-    else
-        c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+    if param.eq_proj_div_free > 0
+        c_integrand = reshape(c_integrand,[(m+1)*nb_modes_z prod(MX) d]);% (m+1)*nb_modes_z x M x d
+        c_integrand = multitrans(c_integrand);% M x (m+1)*nb_modes_z x d
+        if strcmp(param.type_data, 'turb2D_blocks_truncated')
+            c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
+        else
+            c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, false);
+        end
+        c_integrand = multitrans(c_integrand);% (m+1)*nb_modes_z x M x d
+        c_integrand = reshape(c_integrand,[m+1 nb_modes_z MX d]);
     end
-    c_integrand = multitrans(c_integrand);% (m+1)*nb_modes_z x M x d
-    c_integrand = reshape(c_integrand,[m+1 nb_modes_z MX d]);
     
     % % phi m x d! x Mx x My (x Mz)
     phi_m_U = permute(phi_m_U, [ ndims(phi_m_U)+1 1 3:2+d 2]); % 1 x m(k) x Mx x My (x Mz) x d

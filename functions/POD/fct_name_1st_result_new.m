@@ -35,6 +35,9 @@ if estim_rmv_fv
     param.name_file_1st_result=[param.name_file_1st_result '_estim_rmv_fv'];
     param.estim_rmv_fv = true;
 end
+if param.eq_proj_div_free == 2
+    param.name_file_1st_result = [param.name_file_1st_result '_DFSPN'];    
+end
 param.name_file_1st_result=[param.name_file_1st_result '.mat'];
 % save(param.name_file_1st_result);
 % clear coef_correctif_estim

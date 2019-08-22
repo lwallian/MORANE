@@ -96,7 +96,9 @@ else
             end
             
             xi_1 = reshape(xi_1, [ M 1 d]); % M x 1 x d
-            proj_xi_1 = xi_1 - proj_div_propre(xi_1, MX, dX); % M x 1 x d
+            if param.eq_proj_div_free > 0
+                proj_xi_1 = xi_1 - proj_div_propre(xi_1, MX, dX); % M x 1 x d
+            end
             
             f1_ji = sum(phi_m_U(:,i,:) .* proj_xi_1,3); % M x 1
             f1_ji = 0.5*reshape(f1_ji, [ 1 1 MX]); % 1 x 1 x Mx x My x Mz
@@ -159,7 +161,9 @@ for i=1:m
         end
         
         xi_2 = reshape(xi_2, [ M 1 d]); % M x 1 x d
-        proj_xi_2 = xi_2 - proj_div_propre(xi_2, MX, dX); % M x 1 x d
+        if param.eq_proj_div_free > 0
+            proj_xi_2 = xi_2 - proj_div_propre(xi_2, MX, dX); % M x 1 x d
+        end
         
         f2_ji = sum(phi_m_U(:,i,:) .* proj_xi_2,3); % M x 1
         f2_ji = 0.5*reshape(f2_ji, [ 1 1 MX]); % 1 x 1 x Mx x My (x Mz)

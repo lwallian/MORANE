@@ -129,6 +129,11 @@ if correlated_model && strcmp(choice_n_subsample, 'auto_shanon')
     decor_by_subsampl.test_fct = 'db';
 end
 
+% Projection on the free-divergence-function space
+% 0 : no projection / 1 : projection of deterministic terms
+%  / 2 :projection of noise terms
+eq_proj_div_free = 2
+
 % Compute the variance tensor in the PIV space
 % (if yes do not run the main code until the end)
 global computed_PIV_variance_tensor
@@ -165,7 +170,7 @@ for q = 1:length(v_threshold)
     for k=vect_nb_modes
         k
         main(type_data,k,igrida,coef_correctif_estim,...
-            save_all_bi,decor_by_subsampl_temp,a_t,adv_corrected);
+            save_all_bi,decor_by_subsampl_temp,a_t,adv_corrected,eq_proj_div_free);
     end
 end
 
@@ -173,5 +178,5 @@ end
 super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected...
-    ,decor_by_subsampl)
+    ,decor_by_subsampl,eq_proj_div_free)
 

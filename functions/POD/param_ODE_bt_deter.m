@@ -93,7 +93,7 @@ if param.big_data
             
             % Projection on free divergence space to remove the unknown
             % pressure term
-            if param.eq_proj_div_free
+            if param.eq_proj_div_free > 0
                 c_integrand = reshape(c_integrand,[prod(MX) 1 d]);
                 if strcmp(param.type_data, 'turb2D_blocks_truncated')
                     c_integrand = c_integrand - proj_div_propre(c_integrand,MX,dX, true);
@@ -145,7 +145,7 @@ else %% Small data used
     
     % Projection on free divergence space to remove the unknown
     % pressure term
-    if param.eq_proj_div_free
+    if param.eq_proj_div_free > 0
         c_integrand = reshape(c_integrand,[ (m+1)^2 prod(MX) d]);% (m+1)^2 x M x d
         c_integrand = multitrans(c_integrand);% M x (m+1)^2 x d
         if strcmp(param.type_data, 'turb2D_blocks_truncated')

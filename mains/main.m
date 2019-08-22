@@ -1,6 +1,6 @@
 function main(type_data,nb_modes,igrida,coef_correctif_estim,...
     save_all_bi,decor_by_subsampl,a_time_dependant, ...
-    adv_corrected)
+    adv_corrected,eq_proj_div_free)
 % Launch a complete simulation with a fixed set of parameters
 %
 
@@ -180,7 +180,8 @@ param.adv_corrected = adv_corrected;
 
 % param.eq_proj_div_free=true if the PDE is
 % projected on the free divergence space
-param.eq_proj_div_free = true;
+param.eq_proj_div_free = eq_proj_div_free;
+% param.eq_proj_div_free = true;
 
 % if param.save_all_bi = true, the N Chronos will be computed and saved
 % with N = the number of time steps

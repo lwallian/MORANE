@@ -1,6 +1,7 @@
 function super_main_from_existing_ROM_Simulation(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
-    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,test_fct,vect_svd_pchol)
+    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
+    test_fct,vect_svd_pchol,eq_proj_div_free)
 % Launch a set of simulations with a several set of parameters
 % Especially several number of modes
 %
@@ -31,6 +32,11 @@ if nargin == 0
     estim_rmv_fv = false;
     test_fct ='b';
     vect_svd_pchol = true
+    
+    % Projection on the free-divergence-function space
+    % 0 : no projection / 1 : projection of deterministic terms
+    %  / 2 :projection of noise terms
+    eq_proj_div_free = 1;
     
     %% Type of data
     % Other datasets (do not use)
@@ -115,7 +121,8 @@ for modal_dt=vect_modal_dt
                 for k=vect_nb_modes
                     main_from_existing_ROM_Simulation(type_data,k,...
                         v_threshold(q),...
-                        no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol)
+                        no_subampl_in_forecast,reconstruction,...
+                        adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
                     
                     switch type_data
                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
@@ -175,6 +182,9 @@ for modal_dt=vect_modal_dt
                 end
                 if svd_pchol
                     str=[str '_svd_pchol'];
+                end
+                if eq_proj_div_free == 2
+                    str=[str '_DFSPN'];                    
                 end
                 str =[ str '.png'];
                 str
