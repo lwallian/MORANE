@@ -31,14 +31,18 @@ lambda = param.lambda;
 
 % As they are no longer valid, the statistics are going to be estimated
 % through least squares
-beta = R1 ./ lambda;
+beta = zeros(size(R1));
+for p = 1 : m
+    beta(p, :, :, :) = lambda(p) .* R1(p, :, :, :);
+end
 
 % Compute gamma
 % First, we define G_pq
-G_pq = bt(1 : end - 1, :)' * bt(1 : end - 1, :); % check that it's the outer product given the dimensions, should be nxn
+bt_x = cat(2, bt, ones(N_tot, 1));
+G_pq = bt_x' * bt_x ./ N_tot;
 
 % We define psi_p
-psi = zeros(M, m, d); % vector in space and we reshape later on
+psi = zeros(M, m + 1, d); % vector in space and we reshape later on
 
 % Estimate the psi modes for projections later on, calculated from the
 % residual of the velocity field
@@ -66,16 +70,16 @@ for t = 1 : N_tot % loop on time
         load(name_file_U_temp, 'U');
     end
     for k = 1 : d
-        for p = 1 : m
-            psi(:, p, k) = psi(:, p, k) + bt(t_local, p) .* U(:, t_local, k);
+        for p = 1 : m + 1
+            psi(:, p, k) = psi(:, p, k) + bt_x(t_local, p) .* U(:, t_local, k);
         end
     end
     t_local = t_local + 1;
 end
-psi = psi ./ T;
+psi = psi ./ N_tot;
 
 % Estimate gamma with sigma_ss and projecting over psi
-gamma = zeros(m, m, m + 1, m + 1);
+gamma = zeros(m + 1, m, m + 1, m);
 load(param.name_file_mode, 'phi_m_U')
 
 for t = 1 : T
@@ -83,10 +87,10 @@ for t = 1 : T
     xi = sigma_ss .* B_dot;
     R = operator_R(xi, psi, param);
     Q = operator_Q(xi, phi_m_U, param);
-    for p = 1 : m
+    for p = 1 : m + 1
         for i = 1 : m
             for q = 1 : m + 1
-                for j = 1 : m + 1
+                for j = 1 : m
                     gamma(p, i, q, j) = gamma(p, i, q, j) + R(p, i) * Q(q, j);
                 end
             end
@@ -98,10 +102,10 @@ gamma = gamma * dt;
 
 % Use Least Squares to estimate the theta_theta in the general case
 % G_pinv = pinv(G_pq);
-R1 = zeros(m, m, m + 1, m + 1);
+R1 = zeros(m + 1, m, m + 1, m);
 for i = 1 : m
     for q = 1 : m + 1
-        for j = 1 : m + 1
+        for j = 1 : m
             kappa = beta(:, i, q, j) - gamma(:, i, q, j);
             R1(:, i, q, j) = linsolve(G_pq, kappa); % more efficient than solving with pinv
 %             R1(:, i, q, j) = G_pinv * kappa;
@@ -114,8 +118,8 @@ R3 = zeros(m, m);
 zeta = zeros(m, m);
 for i = 1 : m
     for j = 1 : m
-        for p = 1 : m
-            for q = 1 : m
+        for p = 1 : m + 1
+            for q = 1 : m + 1
                 zeta(i, j) = zeta(i, j) + G_pq(p, q) * R1(p, i, q, j);
             end
         end
@@ -126,6 +130,8 @@ for i = 1 : m
         R3(i, j) = d2bt(:, i)' * d2bt(:, j) - zeta(i, j);
     end
 end
+
+R3 = R3 * dt;
 
 end
 

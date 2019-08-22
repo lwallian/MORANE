@@ -324,7 +324,7 @@ end
 
 global correlated_model;
 if correlated_model
-    [Cov_noises, pchol_cov_noises, Mi_sigma] = estimation_correlated_noises(param, bt_tot);
+    [Cov_noises, pchol_cov_noises, Mi_sigma, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt_tot);
 else
     [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot,ILC.tot);
 end
@@ -460,20 +460,26 @@ if ~param.igrida && reconstruct_chronos
         struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
         struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
     elseif correlated_model
-        bt_MCMC = repmat(bt_tronc, [1, 1, param.N_particules]);
+        global tau_ss;
+        bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+        bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
+        bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
         bt_fv = bt_MCMC;
         bt_m = zeros(1, param.nb_modes, param.N_particules);
         
         % Initialization of model's stochastic variables
-        eta = zeros(1, param.nb_modes + 1, param.nb_modes, param.N_particles);
-        Gr = zeros(1, param.nb_modes, param.nb_modes, param.N_particles);
-        Mi_ss = zeros(1, param.nb_modes, param.N_particles);
+        %     eta = zeros(param.N_test, param.nb_modes + 1, param.nb_modes, param.N_particules);
+        eta = eta_0;
+        %     Gr = zeros(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+        Gr = randn(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+        %     Mi_ss = zeros(param.N_test, param.nb_modes, param.N_particules);
+        Mi_ss = Mi_ss_0;
         
         for l = 1 : param.N_test
             [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
                 eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
-                evol_forward_correlated_MCMC(I_sto, L_sto, C_sto, ...
-                pchol_cov_noises, param.decor_by_subsampl.tau_corr, param.dt, bt_MCMC(l, :, :), ...
+                evol_forward_correlated_MCMC(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+                pchol_cov_noises, tau_ss * param.dt, param.dt, bt_MCMC(l, :, :), ...
                 eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), Mi_sigma, bt_fv(l, :, :), bt_m(l, :, :));
         end
         clear bt_tronc

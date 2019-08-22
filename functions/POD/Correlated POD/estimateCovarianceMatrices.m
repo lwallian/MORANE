@@ -1,6 +1,6 @@
-function [c, param]=fct_c_POD(param_ref,bool_init)
+function [c, dt_c, param]=estimateCovarianceMatrices(param_ref,bool_init)
 % Compute c the matrix (two times correlation function) defined by 
-% the snapshots method (Sirovich)
+% the snapshots method (Sirovich) of the velocity field and its derivative
 %
 
 if param_ref.data_in_blocks.bool % if data are saved in several files
@@ -22,6 +22,7 @@ if param_ref.data_in_blocks.bool % if data are saved in several files
     
     % Initialization of c
     c = nan(N_tot);
+    dt_c = nan(N_tot - nb_blocks);
     % TO DO : parallelize thes two loops 
     for big_Ti = 1 : nb_blocks % loop on files
         % To know if you are at the beginning of the loop
@@ -40,13 +41,16 @@ if param_ref.data_in_blocks.bool % if data are saved in several files
                 [param_ref.type_data num2str(big_Tj)];
             % Set lines indexes of the block
             vi=(big_Ti-1)*len_blocks +1 : (big_Ti)*len_blocks;
+            d_vi = (big_Ti-1)*len_blocks - big_Ti +2 : (big_Ti)*len_blocks - big_Ti;
             % Set columns indexes of the block
             vj=(big_Tj-1)*len_blocks +1 : (big_Tj)*len_blocks;
+            d_vj = (big_Tj-1)*len_blocks - big_Tj +2 : (big_Tj)*len_blocks - big_Tj;
             if big_Tj >= big_Ti
                 % Compute and assign values in the block
-                [c(vi, vj), param_temp] = fct_c_POD(param_ref_temp, bool_init_temp);
+                [c(vi, vj), dt_c(d_vi, d_vj), param_temp] = estimateCovarianceMatrices(param_ref_temp, bool_init_temp);
             else
                 c(vi, vj) = c(vj, vi)';
+                dt_c(d_vi, d_vj) = dt_c(d_vj, d_vi)';
             end
             
             % Replace param by param_temp (computed above) after the first
@@ -136,10 +140,16 @@ else
     [param.M , param.N_tot, param.d] = size(U1);
     d = param.d;
     
+    % As the downsampling will be done using the derivative of the field,
+    % it is estimated through differences
+    dU1 = diff(U1, 1, 2);
+%     dU1 = cat(2, dU1, zeros(param.M, 1, param.d)); % Pad with 0 the last time step
+    
     if strcmp(param.type_data, param.data_in_blocks.type_data2)
         % if left file = right file
         % An autocorrelation is computed
         U = U1;
+        dU = dU1;
     else
         % if left file ~= right file
         % An crosscorrelation is computed
@@ -151,6 +161,7 @@ else
         if ~bool_init(1) ...  % all files have been pre-treated
                 || (exist([name_file_U_centered2, '.mat'], 'file') == 2)
             load(name_file_U_centered2);
+            dU = diff(U, 1, 2);
 %             load(name_file_U_temp2);
         else % the right file has not already been pre-treated
             param2 = param_ref;
@@ -159,6 +170,7 @@ else
             % and remove time average value from U1
             % TO DO : enable using pre-treated snapshots
             U = pre_treatement_of_U(param2);
+            dU = diff(U, 1, 2);
             clear param2
         end
     end
@@ -171,23 +183,28 @@ else
     
     % Initialization
     c = zeros(param.N_tot);
+    dt_c = zeros(param.N_tot - 1);
     
     % Calculation of the correlation matrix
     if big_data
         for i = 1 : param.N_tot % loop on time
             for k = 1: d % loop on the dimension
                 U1_temp = U1(:, i, k);
+                if i < param.N_tot
+                    dU1_temp = dU1(:, i, k);
+                end
                 for j = 1 : param.N_tot
                     c(i, j) = c(i, j) + U1_temp' * U(:, j, k);
+                    if i < param.N_tot && j < param.N_tot
+                        dt_c(i, j) = dt_c(i, j) + dU1_temp' * dU(:, j, k);
+                    end
                 end
-%                 parfor j=1:param.N_tot
-%                     c(i,j)=c(i,j)+U1_temp'*U(:,j,k);
-%                 end
             end
         end
     else
         for k = 1 : d
             c = c + U1(:, :, k)' * U(:, :, k);
+            dt_c = dt_c + dU1(:, :, k)' * dU(:, :, k);
         end
     end    
     

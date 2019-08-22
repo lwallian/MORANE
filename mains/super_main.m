@@ -124,6 +124,10 @@ estim_rmv_fv = false
 if ~strcmp(choice_n_subsample, 'auto_shanon')
     v_threshold = NaN;
 end
+if correlated_model && strcmp(choice_n_subsample, 'auto_shanon')
+    warning('Wrong choice of test function for correlated model. Switching to db')
+    decor_by_subsampl.test_fct = 'db';
+end
 
 % Compute the variance tensor in the PIV space
 % (if yes do not run the main code until the end)
