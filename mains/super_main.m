@@ -137,6 +137,12 @@ global compute_fake_PIV
 compute_fake_PIV = false
 % DEFAULT : compute_fake_PIV = false
 
+% Compute PIV modes
+% (if yes do not run the main code until the end)
+global compute_PIV_modes
+compute_PIV_modes = false
+% DEFAULT : compute_PIV_modes = false
+
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis
 decor_by_subsampl.n_subsampl_decor=nan;

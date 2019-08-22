@@ -1,4 +1,4 @@
-function Fake_PIV_data(param)
+function PIV_modes(param)
 % Variance tensor estimation
 %
 
@@ -93,10 +93,12 @@ switch param.type_data
         error('unknown parameters');
 end
 
-% param = fct_name_file_diffusion_mode_PIV(param);
-param.folder_file_U_fake_PIV = ...
-    [ param.folder_file_U_temp(1:end-1) '_fake_PIV/'];
-mkdir(param.folder_file_U_fake_PIV);
+%% Load
+load(param.name_file_mode,'phi_m_U')
+
+param.name_file_mode_PIV = [ param.name_file_mode(1:end-4) '_PIV.mat'];
+param.name_file_mode_PIV = replace(param.name_file_mode_PIV,'data','data_PIV')
+% mkdir(param.name_file_mode_PIV);
 
 param_temp = param;
 param_temp.a_time_dependant = true;
@@ -110,18 +112,18 @@ param_temp.a_time_dependant = true;
 %         save(param.name_file_diffusion_mode_PIV,'z_on_tau');
 %     end
 % else
-clear param_temp
-
-% model for the variance tensor a
-a_time_dependant=param.a_time_dependant;
-if a_time_dependant
-    type_filter_a=param.type_filter_a;
-end
-M=param.M;
-N_tot=param.N_tot;
+% clear param_temp
+% 
+% % model for the variance tensor a
+% a_time_dependant=param.a_time_dependant;
+% if a_time_dependant
+%     type_filter_a=param.type_filter_a;
+% end
+% M=param.M;
+% N_tot=param.N_tot;
 d=param.d;
-dt=param.dt;
-lambda=param.lambda; % Energy of Chronos
+% dt=param.dt;
+% lambda=param.lambda; % Energy of Chronos
 
 
 %% Application of H_PIV
@@ -211,124 +213,8 @@ switch param.type_data
             (-number_of_points_correlated:number_of_points_correlated);
 end
 
-%% PIV error amplitude estimation
-% filename_std_error = [param.folder_data ...
-%     '\XP_Irstea_wake_Re300_uncertainties-2000\temporal_mean.dat'];
-% if (exist(filename_std_error,'file')==2)
-%     load(filename_std_error,'std_error_after_crop');
-% else
-%     std_error_after_crop = zeros([M_PIV,1]);
-%     for idx_file = 1:nb_files_error
-%         idx_file
-%         filename = [param.folder_data ...
-%             '\XP_Irstea_wake_Re300_uncertainties-2000\' ...
-%             'wake_Re300_uncertainties-2000\B0' ...
-%             num2str(idx_file,'%04.f') '.dat'];
-%         %     'wake_Re300_uncertainties-2000\B00001.dat'];
-%         delimiter = ' ';
-%         startRow = 5;
-%         formatSpec = '%*q%*q%*q%*q%f%*s%*s%*s%*s%*s%[^\n\r]';
-%         % formatSpec = '%f%f%f%f%f%*s%*s%[^\n\r]';
-%         fileID = fopen(filename,'r');
-%         dataArray = textscan(fileID, formatSpec, 'Delimiter', ...
-%             delimiter, 'TextType', 'string', 'EmptyValue', NaN, ...
-%             'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
-%         fclose(fileID);
-%         std_error = dataArray{1}/u_inf_measured;
-%         
-%         std_error_after_crop = std_error_after_crop + std_error(mask);
-%         clear std_error
-%     end
-%     std_error_after_crop = std_error_after_crop / nb_files_error ;
-%     std_error_after_crop = reshape(std_error_after_crop, MX_PIV);
-%     
-%     save(filename_std_error,'std_error_after_crop',...
-%         'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-%         '-v7.3');
-% end
-% 
-% 
-% 
-% % filename = [param.folder_data ...
-% %     '\XP_Irstea_wake_Re300_uncertainties-2000\' ...
-% %     'wake_Re300_uncertainties-2000\B01575.dat'];
-% % delimiter = ' ';
-% % startRow = 5;
-% % formatSpec = '%*q%*q%*q%*q%f%*s%*s%*s%*s%*s%[^\n\r]';
-% % % formatSpec = '%f%f%f%f%f%*s%*s%[^\n\r]';
-% % fileID = fopen(filename,'r');
-% % dataArray = textscan(fileID, formatSpec, 'Delimiter', ...
-% %     delimiter, 'TextType', 'string', 'EmptyValue', NaN, ...
-% %     'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
-% % fclose(fileID);
-% % std_error2 = dataArray{1}/u_inf_measured;
-% % 
-% % std_error_after_crop2 = std_error2(mask);
-% % std_error_after_crop2 = reshape(std_error_after_crop2, MX_PIV);
-% % 
-% % mean(std_error_after_crop(:))
-% % std(std_error_after_crop(:))/mean(std_error_after_crop(:))
-% % mean(std_error_after_crop2(:))
-% % 
-% % difft = mean(abs(std_error_after_crop(:)-std_error_after_crop2(:))) ...
-% %     / mean(abs(std_error_after_crop(:)))
+phi_m_U = reshape(phi_m_U, [param.MX, param.nb_modes+1,d]);
 
-% mean(std_error_after_crop(:))
-% figure;imagesc(unique(x_PIV_after_crop),unique(y_PIV_after_crop),...
-%     std_error_after_crop');
-% axis xy; axis equal;colorbar;
-% keyboard;
-
-std_error_after_crop = error_estim * ones([M_PIV 1]);
-% std_error_after_crop = error_estim * ones(MX_PIV);
-
-%%
-len_blocks=param.data_in_blocks.len_blocks;
-param_temp = read_data_blocks(...
-    [ param.type_data(1:(end-10)) '_test_basis' ],...
-    param.folder_data);
-N_tot= param_temp.data_in_blocks.nb_blocks ...
-    * param_temp.data_in_blocks.len_blocks;
-clear param_temp
-% N_tot= floor(N_tot/n_subsampl);
-
-% Initialization
-t_local=1; % index of the snapshot in a file
-t_subsample=1;
-big_T = param.data_in_blocks.nb_blocks; % index of the file
-
-% t_local=1; % index of the snapshot in a file
-% if param.data_in_blocks.bool % if data are saved in several files
-%     big_T = 1; % index of the file
-%     name_file_U_temp=param.name_file_U_temp{big_T}; % Name of the next file
-% else
-%     name_file_U_temp=param.name_file_U_temp; % Name of the next file
-% end
-
-param.name_file_U_fake_PIV = {};
-
-% initialization of the index of the snapshot in the file
-t_local=1;
-time = 0;
-% interval_time = dt*(0:(len_blocks-1));
-% Incrementation of the file index
-big_T = big_T+1;
-% Name of the new file
-param.type_data=[param.data_in_blocks.type_whole_data num2str(big_T)];
-% Load new file
-[U,param_temp]=read_data(param.type_data,param.folder_data, ...
-    param.data_in_blocks.type_whole_data,param.modified_Re);
-dt = param_temp.dt;clear param_temp
-time = time+dt;
-
-% Load
-% load(name_file_U_temp);
-N_local = size(U,2);
-U = reshape(U, [param.MX, N_local,d]);
-% U = U(:,:,z_keep,:,1:d_PIV);
-% U(:,1:2,:,:,:)=[];
-% MX_modif = [ (param.MX(1:d_PIV) - [0 2]) ...
-%     2*number_of_points_correlated+1];
 switch param.data_in_blocks.type_whole_data
     case {'DNS100_inc3d_2D_2018_11_16_blocks',...
             'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
@@ -337,92 +223,26 @@ switch param.data_in_blocks.type_whole_data
     case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
             'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
             'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
-        U = U(:,:,z_keep,:,1:d_PIV);
-        U(:,1:2,:,:,:)=[];
+        phi_m_U = phi_m_U(:,:,z_keep,:,1:d_PIV);
+        phi_m_U(:,1:2,:,:,:)=[];
         MX_modif = [ (param.MX(1:d_PIV) - [0 2]) ...
             2*number_of_points_correlated+1];
 end
-U_PIV = nan([M_PIV N_local d_PIV]);
-interval_time_local = time + dt*(0:(N_local-1));
+phi_m_U_PIV = nan([M_PIV param.nb_modes+1 d_PIV]);
 
-%     z_on_tau=zeros(M,nb_modes_z,d,d);
-%     big_T_max = 1; %BETA PARAMETER
-big_T_max = size(param.name_file_U_temp,2); %BETA PARAMETER
 %% Loop on time for application of H_PIV
-
-for t=1:N_tot % loop for all time
-    % for t=1:n_subsampl*N_tot % loop for all time
-    if (t_local == len_blocks + 1) % A new file needs to be loaded
-        
-        % for t=1:N_tot
-        %     if t_local > size(U,d+1)
-        clear U
-        
-        % Add noise
-        U_PIV = U_PIV + ...
-            bsxfun(@times, std_error_after_crop , randn([M_PIV N_local d_PIV]));
-
-        % Save
-        % Name of the current PIV file
-        name_file_U_fake_PIV=[param.folder_file_U_fake_PIV 'strat' ...
-            num2str(big_T) '_U_temp'];
-        param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks} = ...
-            [ name_file_U_fake_PIV '_PIV'];
-        % Save current PIV file
-        %             U = reshape(U_PIV, [M_PIV, N_local,d_PIV]); clear U_PIV
-        U = U_PIV; clear U_PIV
-        save(param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks},...
-            'U',...
-            'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-            'interval_time_local','dt',...
-            '-v7.3');
-        
-        % initialization of the index of the snapshot in the file
-        t_local=1;
-        % Incrementation of the file index
-        big_T = big_T+1;
-        % Name of the new file
-        param.type_data=[param.data_in_blocks.type_whole_data num2str(big_T)];
-        % Load new file
-        U=read_data(param.type_data,param.folder_data, ...
-            param.data_in_blocks.type_whole_data,param.modified_Re);
-%         if big_T > big_T_max %BETA IF CLAUSE
-%             break
-%         end
-        
-        % Load
-        % Name of the new file
-%         name_file_U_temp=param.name_file_U_temp{big_T};
-%         % Load new file
-%         load(name_file_U_temp);
-        N_local = size(U,2);
-        U = reshape(U, [param.MX, N_local,d]);
-        switch param.data_in_blocks.type_whole_data
-            case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
-                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
-                    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
-                U = U(:,:,z_keep,:,1:d_PIV);
-                U(:,1:2,:,:,:)=[];
-        end
-%         U = U(:,:,z_keep,:,1:d_PIV);
-%         U(:,1:2,:,:,:)=[];
-        U_PIV = nan([M_PIV N_local d_PIV]);
-        interval_time_local = time + dt*(0:(N_local-1));
-    end
-    time = time+dt;
+for idx_modes=1:param.nb_modes+1 % loop for all time
     %% Application of H_PIV
-    
     % Take the current snpshot
-    %     U_temp = U(:,:,:,t_local,:);
     switch param.data_in_blocks.type_whole_data
         case {'DNS100_inc3d_2D_2018_11_16_blocks',...
                 'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
                 'DNS100_inc3d_2D_2018_11_16_blocks_test_basis'}
-            U_temp = U(:,:,t_local,:);
+            phi_m_U_temp = phi_m_U(:,:,idx_modes,:);
         case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
                 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
                 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
-            U_temp = U(:,:,:,t_local,:);
+            phi_m_U_temp = phi_m_U(:,:,:,idx_modes,:);
     end
     
     switch param.data_in_blocks.type_whole_data
@@ -430,62 +250,45 @@ for t=1:N_tot % loop for all time
                 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
                 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_test_basis'}
             % Spatial smoothing along z
-            U_temp = sum( bsxfun(@times, U_temp, hz) ,3) ;
-            U_temp = permute( U_temp ,[ 1 2 4 5 3]); % Mx x My x 1 x d_PIV
+            phi_m_U_temp = sum( bsxfun(@times, phi_m_U_temp, hz) ,3) ;
+            phi_m_U_temp = permute( phi_m_U_temp ,[ 1 2 4 5 3]); % Mx x My x 1 x d_PIV
     end
 %     % Spatial smoothing along z
-%     U_temp = sum( bsxfun(@times, U_temp, hz) ,3) ;
-%     U_temp = permute( U_temp ,[ 1 2 4 5 3]); % Mx x My x 1 x d_PIV
+%     phi_m_U_temp = sum( bsxfun(@times, phi_m_U_temp, hz) ,3) ;
+%     phi_m_U_temp = permute( phi_m_U_temp ,[ 1 2 4 5 3]); % Mx x My x 1 x d_PIV
     
     % Spatial smoothing along x
     for k=1:d_PIV
         for j = 1:MX_modif(2)
-            U_temp(:,j,1,k) = conv(U_temp(:,j,1,k)', h,'same')' ;
+            phi_m_U_temp(:,j,1,k) = conv(phi_m_U_temp(:,j,1,k)', h,'same')' ;
         end
     end
     
     % Spatial smoothing along y
     for k=1:d_PIV
         for j = 1:MX_modif(1)
-            U_temp(j,:,1,k) = conv(U_temp(j,:,1,k), h,'same') ;
+            phi_m_U_temp(j,:,1,k) = conv(phi_m_U_temp(j,:,1,k), h,'same') ;
         end
     end
     
-    %       conv(u,v,'same')
-    %       conv(u,v,'valid')
-    
     % Interpolation
-    U_PIV_temp = nan([M_PIV 1 d_PIV]);
+    phi_m_U_PIV_temp = nan([M_PIV 1 d_PIV]);
     for k=1:d_PIV
-        U_PIV_temp(:,1,k) = ...
-            interp2(x_DNS, y_DNS, U_temp(:,:,1,k)', ...
+        phi_m_U_PIV_temp(:,1,k) = ...
+            interp2(x_DNS, y_DNS, phi_m_U_temp(:,:,1,k)', ...
             x_PIV_after_crop, y_PIV_after_crop, ...
             'linear');
     end
-    clear U_temp
+    clear phi_m_U_temp
     
     % Concatenate PIV snapshots
-    U_PIV(:,t_local,:) = U_PIV_temp; clear U_PIV_temp
-    
-    t_local=t_local+1;
+    phi_m_U_PIV(:,idx_modes,:) = phi_m_U_PIV_temp; clear phi_m_U_PIV_temp
 end
-clear U
-
-% Add noise
-U_PIV = U_PIV + ...
-    bsxfun(@times, std_error_after_crop , randn([M_PIV N_local d_PIV]));
+clear phi_m_U
 
 % Save
-% Name of the current PIV file
-name_file_U_fake_PIV=[param.folder_file_U_fake_PIV 'strat' ...
-            num2str(big_T) '_U_temp'];
-param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks} = ...
-    [ name_file_U_fake_PIV '_PIV'];
-% Save current PIV file
-%     U = reshape(U_PIV, [M_PIV, N_local,d_PIV]); clear U_PIV
-U = U_PIV; clear U_PIV
-save(param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks},...
-    'U',...
+phi_m_U = phi_m_U_PIV; clear phi_m_U_PIV
+save(param.name_file_mode_PIV,...
+    'phi_m_U',...
     'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-    'interval_time_local','dt',...
     '-v7.3');

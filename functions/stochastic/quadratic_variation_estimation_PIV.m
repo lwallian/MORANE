@@ -41,9 +41,12 @@ switch param.type_data
         %         DNS_range = DNS_range + (-3) * ...
         %             [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
         
-        filename = [param.folder_data ...
-            '\XP_Irstea\wake_Re100_export_190710_4107\' ...
+%         filename = [param.folder_data '\XP_Irstea' ...
+%             '\wake_Re100_export_190710_4107\' ...
+        filename = [param.folder_data(1:end-1) '_PIV\'  ...
+            '\wake_Re100\' ...
             'B0001.dat'];
+        warning('The grid of Re 300 PIV measurement is used');
         
     case {'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks',...
             'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated',...
@@ -76,9 +79,11 @@ switch param.type_data
         %         DNS_range = DNS_range + (-3) * ...
         %             [ param.dX(1) -param.dX(1) ; param.dX(2) -param.dX(2)] ;
         
-        filename = [param.folder_data ...
-            '\XP_Irstea\wake_Re300_export_190709_4103\' ...
-            'wake_Re300_export_190709_4103\B0001.dat'];
+%         filename = [param.folder_data ...
+%             '\XP_Irstea\wake_Re300_export_190709_4103\' ...
+%             'wake_Re300_export_190709_4103\B0001.dat'];
+        filename = [param.folder_data(1:end-1) '_PIV\' ...
+            'wake_Re300\B0001.dat'];
     otherwise
         error('unknown parameters');
 end
@@ -99,6 +104,8 @@ if (exist(param.name_file_diffusion_mode_PIV,'file')==2) || ...
         z_on_tau(:,1:param.nb_modes,:,:) = [];
         save(param.name_file_diffusion_mode_PIV,'z_on_tau');
     end
+    load(param.name_file_diffusion_mode_PIV,'z_on_tau',...
+        'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV');
 else
     clear param_temp
     
@@ -422,26 +429,26 @@ else
     %     save(name_file_mode,'z_on_tau','-append');
     %         clear z_on_tau
     %     end
-    
-    %% Inversion of HSigSigH
-    
-    z_on_tau(:,:,1,1) = z_on_tau(:,:,1,1) + (0.06)^2 ;
-    z_on_tau(:,:,2,2) = z_on_tau(:,:,2,2) + (0.06)^2 ;
-    
-    inv_HSigSigH = nan(size(z_on_tau));
-    det_HSigSigH = z_on_tau(:,:,1,1) .* z_on_tau(:,:,2,2) ...
-        - z_on_tau(:,:,1,2) .* z_on_tau(:,:,2,1) ;
-    inv_HSigSigH(:,:,1,1) = z_on_tau(:,:,2,2);
-    inv_HSigSigH(:,:,2,2) = z_on_tau(:,:,1,1);
-    inv_HSigSigH(:,:,1,2) = - z_on_tau(:,:,1,2);
-    inv_HSigSigH(:,:,2,1) = - z_on_tau(:,:,2,1);
-    inv_HSigSigH = bsxfun(@times, 1./det_HSigSigH , inv_HSigSigH );
-    
-    %% Save
-    %     if nargout < 2
-    save(param.name_file_HSigSigH_PIV,'inv_HSigSigH',...
-        'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
-        '-v7.3');
-    %     save(name_file_mode,'z_on_tau','-append');
-    %     end
 end
+%% Inversion of HSigSigH
+
+z_on_tau(:,:,1,1) = z_on_tau(:,:,1,1) + (0.06)^2 ;
+z_on_tau(:,:,2,2) = z_on_tau(:,:,2,2) + (0.06)^2 ;
+
+inv_HSigSigH = nan(size(z_on_tau));
+det_HSigSigH = z_on_tau(:,:,1,1) .* z_on_tau(:,:,2,2) ...
+    - z_on_tau(:,:,1,2) .* z_on_tau(:,:,2,1) ;
+inv_HSigSigH(:,:,1,1) = z_on_tau(:,:,2,2);
+inv_HSigSigH(:,:,2,2) = z_on_tau(:,:,1,1);
+inv_HSigSigH(:,:,1,2) = - z_on_tau(:,:,1,2);
+inv_HSigSigH(:,:,2,1) = - z_on_tau(:,:,2,1);
+inv_HSigSigH = bsxfun(@times, 1./det_HSigSigH , inv_HSigSigH );
+
+%% Save
+%     if nargout < 2
+save(param.name_file_HSigSigH_PIV,'inv_HSigSigH',...
+    'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
+    '-v7.3');
+%     save(name_file_mode,'z_on_tau','-append');
+%     end
+% end
