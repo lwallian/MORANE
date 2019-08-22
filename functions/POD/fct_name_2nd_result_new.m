@@ -60,6 +60,9 @@ end
 if param.svd_pchol
     param.name_file_2nd_result=[param.name_file_2nd_result '_svd_pchol'];    
 end
+if param.eq_proj_div_free == 2
+    param.name_file_2nd_result = [param.name_file_2nd_result '_DFSPN'];    
+end
 param.name_file_2nd_result=[param.name_file_2nd_result '.mat'];
 % save(param.name_file_2nd_result,'-v7.3');
 % % save(param.name_file_2nd_result);

@@ -17,6 +17,9 @@ if isfield(param,'N_estim')
         [ param.name_file_noise_cov ...
         '_p_estim_' num2str(param.period_estim)];
 end
+if param.eq_proj_div_free == 2
+    param.name_file_noise_cov = [param.name_file_noise_cov '_DFSPN'];    
+end
 param.name_file_noise_cov = ...
     [param.name_file_noise_cov '.mat'];
 

@@ -25,6 +25,9 @@ end
 if estim_rmv_fv
     param.name_file_noise_cov = [param.name_file_noise_cov '_estim_rmv_fv'];
 end
+if param.eq_proj_div_free == 2
+    param.name_file_noise_cov = [param.name_file_noise_cov '_DFSPN'];    
+end
 param.name_file_noise_cov = ...
     [param.name_file_noise_cov '.mat'];
 

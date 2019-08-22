@@ -93,12 +93,14 @@ clear U;
 % Do the divergence free projection before projecting onto each topos
 Mi_sigma = reshape(Mi_sigma, [M, 1, d]);
 C2_mat = reshape(C2_mat, [M, 1, d]);
-if strcmp(param.type_data, 'turb2D_blocks_truncated')
-    Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, true);
-    C2_mat = C2_mat - proj_div_propre(C2_mat, MX, dX, true);
-else
-    Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, false);
-    C2_mat = C2_mat - proj_div_propre(C2_mat, MX, dX, false);
+if param.eq_proj_div_free == 2
+    if strcmp(param.type_data, 'turb2D_blocks_truncated')
+        Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, true);
+        C2_mat = C2_mat - proj_div_propre(C2_mat, MX, dX, true);
+    else
+        Mi_sigma = Mi_sigma - proj_div_propre(Mi_sigma, MX, dX, false);
+        C2_mat = C2_mat - proj_div_propre(C2_mat, MX, dX, false);
+    end
 end
 
 % Load the topos
@@ -167,10 +169,12 @@ for p = 1 : m + 1
             integ = adv_sl + adv_ls;
             integ = permute(integ, [3 : ndims(integ) - 1, 1, 2, ndims(integ)]); % [Mx, My, (Mz), 1, 1, d]
             integ = reshape(integ, [M, 1, d]);
-            if strcmp(param.type_data, 'turb2D_blocks_truncated')
-                integ = integ - proj_div_propre(integ, MX, dX, true);
-            else
-                integ = integ - proj_div_propre(integ, MX, dX, false);
+            if param.eq_proj_div_free == 2
+                if strcmp(param.type_data, 'turb2D_blocks_truncated')
+                    integ = integ - proj_div_propre(integ, MX, dX, true);
+                else
+                    integ = integ - proj_div_propre(integ, MX, dX, false);
+                end
             end
             integ = reshape(integ, [MX, 1, d]);
             integ = permute(integ, [ndims(integ) - 1, 1 : ndims(integ) - 2, ndims(integ)]);
@@ -272,10 +276,12 @@ for q = 1 : m + 1
     integ = adv_sl + adv_ls;
     integ = permute(integ, [3 : ndims(integ) - 1, 1, 2, ndims(integ)]); % [Mx, My, (Mz), 1, 1, d]
     integ = reshape(integ, [M, 1, d]);
-    if strcmp(param.type_data, 'turb2D_blocks_truncated')
-        integ = integ - proj_div_propre(integ, MX, dX, true);
-    else
-        integ = integ - proj_div_propre(integ, MX, dX, false);
+    if param.eq_proj_div_free == 2
+        if strcmp(param.type_data, 'turb2D_blocks_truncated')
+            integ = integ - proj_div_propre(integ, MX, dX, true);
+        else
+            integ = integ - proj_div_propre(integ, MX, dX, false);
+        end
     end
     integ = reshape(integ, [MX, 1, d]);
     integ = permute(integ, [ndims(integ) - 1, 1 : ndims(integ) - 2, ndims(integ)]);

@@ -1,7 +1,7 @@
 function super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
-    decor_by_subsampl)
+    decor_by_subsampl,eq_proj_div_free)
 % Launch a set of simulations with a several set of parameters
 % Especially several number of modes
 %
@@ -111,6 +111,11 @@ if nargin == 0
     % remove the finite-variation part of the chronos
     estim_rmv_fv = true;
     
+    % Projection on the free-divergence-function space
+    % 0 : no projection / 1 : projection of deterministic terms
+    %  / 2 :projection of noise terms
+    eq_proj_div_free = 1;
+    
     correlated_model = false
 else    
     global choice_n_subsample;
@@ -149,7 +154,8 @@ for modal_dt=vect_modal_dt
                     main_from_existing_ROM(k,threshold,type_data,...
                         nb_period_test,...
                         no_subampl_in_forecast,reconstruction,...
-                        adv_corrected,modal_dt,decor_by_subsampl.test_fct,svd_pchol)
+                        adv_corrected,modal_dt,decor_by_subsampl.test_fct,...
+                        svd_pchol,eq_proj_div_free)
                     %         main_full_sto_vect_modal_dt_2nd_res(k,v_threshold(q))
                 end
                 %% Save plot
@@ -194,5 +200,5 @@ end
 super_main_from_existing_ROM_Simulation(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
-    decor_by_subsampl.test_fct,vect_svd_pchol)
+    decor_by_subsampl.test_fct,vect_svd_pchol,eq_proj_div_free)
 
