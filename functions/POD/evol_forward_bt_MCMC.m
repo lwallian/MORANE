@@ -26,11 +26,27 @@ L = permute(sum(L,1),[2 3 1 4]); % m x 1 x 1 x nb_pcl
 d_b_fv = - bsxfun(@plus, I, L + C )*dt ; % m x 1 x 1
 clear I L C
 
+
+
 noises=pchol_cov_noises*randn((n+1)*n,nb_pcl)*sqrt(dt);
 noises=permute(noises,[1 3 4 2]); % (n+1)*n x nb_pcl
 clear pchol_cov_noises; % (n+1)*n x 1 x 1 x nb_pcl
 theta_alpha0_dB_t = noises(1:n,1,1,:); % n(i) x 1 x 1 x nb_pcl
 alpha_dB_t =reshape(noises(n+1:end,1,1,:),[n n 1 nb_pcl]); % n(j) x n(i) x 1 x nb_pcl
+
+
+%%%%%%%%%%%%%%%%%%
+
+% s = size(alpha_dB_t,4)
+% alpha_dB_t(:,:,1,:) = zeros(8,8,s)
+% alpha_dB_t(:,:,1,1) = ones(8,8)*2.2
+% 
+% theta_alpha0_dB_t(:,:,1,:) = zeros(8,1,1,s)
+% theta_alpha0_dB_t(:,:,1,1) = ones(8,1)*0.05
+
+%%%%%%%%%%%%%%%%%%
+
+
 clear noises
 
 alpha_dB_t = bsxfun(@times,bt,alpha_dB_t); % m(j) x m(i) x 1 x nb_pcl
@@ -44,3 +60,36 @@ if nargin >6
 end
 bt_evol = bt + d_b_fv + d_b_m ;
 bt_evol = permute( bt_evol , [2 1 4 3]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

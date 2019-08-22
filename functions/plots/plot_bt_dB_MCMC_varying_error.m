@@ -399,9 +399,9 @@ elseif ( strcmp(param.type_data, 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') 
     % %         subplot(2,2,0.51+log2(param.nb_modes));
     % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
     %     end
-else
-    subplot(2,2,(param.nb_modes)/2);
-end
+% else
+%     subplot(2,2,(param.nb_modes)/2);
+ end
 k=1;
 
 % Real values
@@ -410,10 +410,13 @@ hold on;
 
 delta = sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
 % delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
+
 h = area (time_ref, [sqrt(err_fix), ...
-    delta]);
+     delta]);
+
 %     set(h(1),'FaceColor',[0,0.25,0.25]);
 %     set(h(2),'FaceColor',[0,0.5,0.5]);
+
 set (h(1), 'FaceColor', 'none');
 set (h(2), 'FaceColor', [0.8 0.8 0.8]);
 set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
@@ -446,6 +449,13 @@ plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
 %     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);
 %     plot(time,sqrt(bt_forecast_sto_a_NC_modal_dt(:,k))','om', 'LineWidth', LineWidth);
 % end
+
+var_save = horzcat(sqrt(bt_0),sqrt(err_fix),sqrt(bt_forecast_deter(:,k)),sqrt(bt_forecast_MEV(:,k)),...
+    sqrt(struct_bt_MCMC.tot.mean(:,k)),sqrt(bt_MCMC_RMSE(:,k)),sqrt(bt_MCMC_min_error(:,k)))
+
+save('D:\donnees\Stages_Red_LUM\PODFS-RedLUM\test\savematlab','var_save')
+
+
 
 hold off;
 

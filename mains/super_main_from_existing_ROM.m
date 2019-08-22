@@ -14,8 +14,8 @@ if nargin == 0
     init;
     
     %% Number of modes for the the ROM
-    vect_nb_modes = [ 16 8 6 4 2]
-    % vect_nb_modes = 2.^(4:-1:1)
+%     vect_nb_modes = [ 16 8 6 4 2]
+    vect_nb_modes = [4]
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
     vect_adv_corrected = [ false]
@@ -45,7 +45,7 @@ if nargin == 0
     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
-    % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
+%     type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
     % % type_data = 'incompact3d_wake_episode3_cut_truncated';
     
     %% Important parameters
@@ -56,7 +56,7 @@ if nargin == 0
         %   differentials equations of distincts chronos
         case {'incompact3D_noisy2D_40dt_subsampl_truncated'}
             v_threshold=[1e-5]
-            vect_modal_dt=false
+            vect_modal_dt=[false]
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-6 % BEST
@@ -84,17 +84,17 @@ if nargin == 0
     end
 end
 
-% v_threshold=[1 10]/1000;
-% v_threshold=1e-3;
-if strcmp(type_data,'incompact3d_wake_episode3_cut_truncated')
-    % Number of periods reconstructed
-    nb_period_test = 9;% for DNS 300
-elseif strcmp(type_data,'LES_3D_tot_sub_sample_blurred')
-    % Number of periods reconstructed
-    nb_period_test = 5;%for DNS 3900
-else
+% % v_threshold=[1 10]/1000;
+% % v_threshold=1e-3;
+% if strcmp(type_data,'incompact3d_wake_episode3_cut_truncated')
+%     % Number of periods reconstructed
+%     nb_period_test = 9;% for DNS 300
+% elseif strcmp(type_data,'LES_3D_tot_sub_sample_blurred')
+%     % Number of periods reconstructed
+%     nb_period_test = 5;%for DNS 3900
+% else
     nb_period_test = nan;
-end
+% end
 
 nb_modes_max = max(vect_nb_modes);
 
