@@ -26,8 +26,8 @@ if nargin == 0
     % To choose between the shannon and correlation time downsampling
     % methods
 %     choice_n_subsample = 'auto_shannon';
-    choice_n_subsample = 'auto_shanon';
-    stochastic_integration = 'Str';
+    choice_n_subsample = 'auto_shanon'; % 'auto_shanon' 'htgen' 'lms'
+    stochastic_integration = 'Str'; % 'Str'  'Ito'
     estim_rmv_fv = false;
     test_fct ='b';
     vect_svd_pchol = true
@@ -146,10 +146,12 @@ for modal_dt=vect_modal_dt
                 
                 switch choice_n_subsample
                     case 'auto_shanon'
-                        str = ['print -dpng ' dir '/threshold_' threshold ...
+                        str = ['print -dpng ' dir '/' choice_n_subsample ...
+                            'threshold_' threshold ...
                             '_fullsto'];
                     otherwise
-                        str = ['print -dpng ' dir '/auto_corr_time_fullsto'];
+                        str = ['print -dpng ' dir '/' choice_n_subsample ...
+                            'auto_corr_time_fullsto'];
                 end
 %                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
 %                     num2str(nb_modes_max) 'auto_corr_time_fullsto'];
