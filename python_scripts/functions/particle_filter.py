@@ -604,7 +604,7 @@ def calculate_acceptance_prob_champ_all_particles_and_sample(particles_candidate
 
 
 def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,particles_past,nb_mutation_steps,dt_original,\
-                    dt_adapted,pho,delta_t,pchol_cov_noises):
+                    dt_adapted,pho,delta_t,pchol_cov_noises,time_):
     
     
     I = ILC_a_cst['modal_dt']['I']  
@@ -707,10 +707,10 @@ def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,
     phi = 1
     phi_guime = 0
     
-    while (r<10):
+    while (r<10): # Tempering loop
         
         
-        if (phi_guime>0.95):
+        if (phi_guime>0.95): # End of the tempering (phi close to 0)
             index_print = np.where((weigths>0.05))
 #            print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
 #            print('phi guime: '+ str(phi_guime))
@@ -732,7 +732,7 @@ def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,
                 phi_guime = 0.99
                 
             
-            
+            print('                    -- Time : '+str(time_)+' sec --                  ')
             print('                    -- Tempering number '+str(r+1)+' --                ')
             print('phi guime: '+ str(phi_guime))
             
@@ -788,14 +788,15 @@ def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,
         particles_past = particles_past[:,indexes]
         
         
-        
-        
-        for mutation in range(nb_mutation_steps):
+        print('\n')
+        print('                         ... Mutation ...                           ')
+        print('\n')
+        for mutation in range(nb_mutation_steps): # Mutation loop
             particles_candidates,noises_candidate = propagate_all_particles(particles_past, noises, dt_original, I,L,C,delta_t,pho,pchol_cov_noises,dt_adapted )
 ##            calculate accept prob all and sample
             particles_chronos,noises= calculate_acceptance_prob_champ_all_particles_and_sample(particles_candidates,particles_chronos,obs_K,Hpiv_K,\
                                                                                                 noises,noises_candidate)
-            print('Mutation: '+str(mutation+1)+'/'+str(nb_mutation_steps))
+#            print('Mutation: '+str(mutation+1)+'/'+str(nb_mutation_steps))
         
         ############################################################################################
         #################################---UPDATE---###############################################
