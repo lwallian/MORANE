@@ -4,6 +4,53 @@ Created on Mon Mar 25 17:17:08 2019
 
 @author: matheus.ladvig
 """
+
+    
+######################################----PARAMETERS TO CHOOSE----############################################
+# Parameters choice
+param_ref = {}
+param_ref['n_simu'] = 100               # Number of simulations steps in time
+#param_ref['N_particules'] = n_particles # Number of particles to select  
+#    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+beta_2 = 1        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
+beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+#    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
+init_centred_on_ref = False              # If True, the initial condition is centered on the reference initial condiion
+N_threshold = 40                        # Effective sample size in the particle filter
+nb_mutation_steps = 30                  # Number of mutation steps in particle filter 
+pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
+
+#    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
+std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
+assimilate = 'real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
+slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
+slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
+data_assimilate_dim = 2                 # In this experiments we assimilate 2D data, and in the case Reynolds=300, the vector flow in the z direction will be ignored.
+u_inf_measured = 0.388                  # The PIV measured velocity (See the .png image in the respective PIV folder with all measured constants). It must be represented in m/s
+cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
+center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
+center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
+Re = 300                                # Reynolds constant
+center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
+center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
+
+SECONDS_OF_SIMU = 70 #70 #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+sub_sampling_PIV_data_temporaly = True  # True                                                           # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
+factor_of_PIV_time_subsampling_gl = 10                                                                       # The factor that we will take to subsampled PIV data. 
+
+plt_real_time = False                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+
+mask_obs = False      # True            # Activate spatial mask in the observed data
+subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+
+plot_debug = False
+plot_ref_gl = False
+
 #import matplotlib.pyplot as plt
 import math
 import os
@@ -22,8 +69,9 @@ from fct_name_2nd_result import fct_name_2nd_result
 from particle_filter import particle_filter
 import matplotlib.pyplot as plt
 from scipy import interpolate
-
-
+#from scipy import sparse as svds
+import scipy.sparse as sps
+from PIL import Image
 
 #def calculate_sigma_inv(L):
 #    
@@ -47,354 +95,355 @@ from scipy import interpolate
 #    constant = -1/(2*variance_time*velocity**2)
 #    return np.exp(constant*value**2)
 
-def calculate_H_PIV(topos,new_distance,grid,std_space,only_load,dim,slicing,slice_z):
-#    topos ---> 
-    '''
-    This function applies the spatial filter in the topos.
-         - It is necessary to smooth the DNS data and the spatial filter is constructed based
-             on estimations on data.
-    '''
-    
-    
-    n_modes = topos.shape[1] - 1                                                                       # Number of Chronos solved modes
-    path_data = Path(__file__).parents[1].joinpath('data_PIV').joinpath('H_piv_'+str(n_modes)+'.npy')  # Path
-    
-    
-    if only_load==True:             # If the matrix is already calculated, we need only to load it
-        matrix = np.load(path_data) # Load 
-        return matrix
-    
-    # If the flow is going in the direction of x
-    number_of_points_correlated = int(std_space/(new_distance))                                          # Number of spatial correlated points
-    dist = np.abs(new_distance*np.arange(-number_of_points_correlated,number_of_points_correlated+1,1))  # Distances between points   
-    h = np.exp(-(dist**2)/(2*std_space**2))                                                              # Constructs the filter
-    sum_h = np.sum(h)                                                                                    # Calculates all coefficients
-    h = h/sum_h                                                                                          # Normalizes the filter 
-    
-
-    
-#    h = np.array([0,0,0,0,1,0,0,0,0])
-    
-    
-#    topos = np.transpose(topos,(0,2,1))
-#    if dim ==2:
-#        matrix_ux = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
-#        matrix_uy = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
-#    elif dim==3:
-#        matrix_ux = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
-#        matrix_uy = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
-#        matrix_uz = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
-    
-    topos = np.reshape(topos,(grid[0],grid[1],grid[2],dim,topos.shape[1]),order='F')  # Reshape the topos
-    
-    size_x = grid[0]   # Size of x grid
-    size_y = grid[1]   # Size of y grid
-    size_z = grid[2]   # Size of z grid
-    
-    
-#    i=0
-#    for d in range(dim):
-#        for z in range(size_z):
+#def calculate_H_PIV(topos,new_distance,grid,std_space,only_load,dim,slicing,slice_z):
+##    topos ---> 
+#    '''
+#    This function applies the spatial filter in the topos.
+#         - It is necessary to smooth the DNS data and the spatial filter is constructed based
+#             on estimations on data.
+#    '''
+#    
+#    
+#    n_modes = topos.shape[1] - 1                                                                       # Number of Chronos solved modes
+#    path_data = Path(__file__).parents[1].joinpath('data_PIV').joinpath('H_piv_'+str(n_modes)+'.npy')  # Path
+#    
+#    
+#    if only_load==True:             # If the matrix is already calculated, we need only to load it
+#        matrix = np.load(path_data) # Load 
+#        return matrix
+#    
+#    # If the flow is going in the direction of x
+#    number_of_points_correlated = int(std_space/(new_distance))                                          # Number of spatial correlated points
+#    dist = np.abs(new_distance*np.arange(-number_of_points_correlated,number_of_points_correlated+1,1))  # Distances between points   
+#    h = np.exp(-(dist**2)/(2*std_space**2))                                                              # Constructs the filter
+#    sum_h = np.sum(h)                                                                                    # Calculates all coefficients
+#    h = h/sum_h                                                                                          # Normalizes the filter 
+#    
+#
+#    
+##    h = np.array([0,0,0,0,1,0,0,0,0])
+#    
+#    
+##    topos = np.transpose(topos,(0,2,1))
+##    if dim ==2:
+##        matrix_ux = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
+##        matrix_uy = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
+##    elif dim==3:
+##        matrix_ux = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
+##        matrix_uy = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
+##        matrix_uz = np.zeros(shape=(int(topos.shape[0]/dim),topos.shape[1]))
+#    
+#    topos = np.reshape(topos,(grid[0],grid[1],grid[2],dim,topos.shape[1]),order='F')  # Reshape the topos
+#    
+#    size_x = grid[0]   # Size of x grid
+#    size_y = grid[1]   # Size of y grid
+#    size_z = grid[2]   # Size of z grid
+#    
+#    
+##    i=0
+##    for d in range(dim):
+##        for z in range(size_z):
+###            print(i)
+##            for y in range(size_y):
+##                
+##                a = topos[1:number_of_points_correlated+1,y,z,d,:]
+##                b = np.flip(a,axis=0)
+##                
+##                c = topos[-number_of_points_correlated-1:-1,y,z,d,:]
+##                dc = np.flip(c,axis=0)
+##                
+##                signal = np.concatenate((b,topos[:,y,z,d,:]),axis=0)
+##                signal = np.concatenate((signal, dc),axis=0)
+##                
+##                for j in range(topos.shape[-1]):
+##                    matrix[i*size_x:(i+1)*size_x,j] = np.convolve(signal[...,j],h,'valid')
+##                    
+##                i+=1  
+#                    
+#    topos_calcul = np.copy(topos,order='F')  # Define topos_calcul to proceed with the calcul
+#    
+#    
+#    
+#    
+#    
+#    for d in range(dim):                                                       # Define dimension 
+#        for z in range(size_z):                                                # Define the z slice 
+#            for y in range(size_y):                                            # Define the line
+#                a = topos_calcul[1:number_of_points_correlated+1,y,z,d,:]      # Get the border condition 
+#                b = np.flip(a,axis=0)                                          # Mirrors the condition and it will be the border condition posteriorly
+#                
+#                c = topos_calcul[-number_of_points_correlated-1:-1,y,z,d,:]    # Get the border condition at the end
+#                dc = np.flip(c,axis=0)                                         # Mirrors the condition and it will be the border condition posteriorly
+#                
+#                signal = np.concatenate((b,topos_calcul[:,y,z,d,:],dc),axis=0) # Concatentes the data with the border condition
+##                signal = np.concatenate((signal, dc),axis=0)
+#                
+#                for j in range(topos_calcul.shape[-1]):                        # for all the modes, take the ocnvolution of the signal with the filter 
+#                    convolution = np.convolve(signal[...,j],h,'valid')         # Convolution and takes only the valid part, ignoring the results with the border condition
+#                    topos_calcul[:,y,z,d,j] = convolution                      # Stocks it
+#                    
+#
+#                
+#    
+#
+#    for d in range(dim):                                                       # Define dimension 
+#        for z in range(size_z):                                                # Define the z slice  
+#            for x in range(size_x):                                            # Define the line 
+#                
+#                a = topos_calcul[x,1:number_of_points_correlated+1,z,d,:]      # Get the border condition 
+#                b = np.flip(a,axis=0)                                          # Mirrors the condition and it will be the border condition posteriorly
+#                
+#                c = topos_calcul[x,-number_of_points_correlated-1:-1,z,d,:]    # Get the border condition at the end
+#                dc = np.flip(c,axis=0)                                         # Mirrors the condition and it will be the border condition posteriorly
+#                
+#                signal = np.concatenate((b,topos_calcul[x,:,z,d,:],dc),axis=0) # Concatentes the data with the border condition 
+##                signal = np.concatenate((signal, dc),axis=0)
+#                
+#                for j in range(topos_calcul.shape[-1]):                            # for all the modes, take the ocnvolution of the signal with the filter 
+#                    topos_calcul[x,:,z,d,j] = np.convolve(signal[...,j],h,'valid') # Convolution and takes only the valid part, ignoring the results with the border condition
+#                    
+#
+#    
+#    for d in range(dim):                                                       # Define dimension
+#        for y in range(size_y):                                                # Define the y slice 
+#            for x in range(size_x):                                            # Define the line 
+#                
+#                a = topos_calcul[x,y,1:number_of_points_correlated+1,d,:]      # Get the border condition
+#                b = np.flip(a,axis=0)                                          # Mirrors the condition and it will be the border condition posteriorly
+#                
+#                c = topos_calcul[x,y,-number_of_points_correlated-1:-1,d,:]    # Get the border condition at the end
+#                dc = np.flip(c,axis=0)                                         # Mirrors the condition and it will be the border condition posteriorly
+#                
+#                signal = np.concatenate((b,topos_calcul[x,y,:,d,:],dc),axis=0) # Concatentes the data with the border condition 
+##                signal = np.concatenate((signal, dc),axis=0)
+#                
+#                for j in range(topos_calcul.shape[-1]):                             # for all the modes, take the ocnvolution of the signal with the filter 
+#                    topos_calcul[x,y,:,d,j] = np.convolve(signal[...,j],h,'valid')  # Convolution and takes only the valid part, ignoring the results with the border condition
+#    
+#    
+#    
+#    
+##    i=0
+##    for z in range(size_z):
+##        for y in range(size_y):
+##            
+##            a = topos[1:number_of_points_correlated+1,y,z,0,:]
+##            b = np.flip(a,axis=0)
+##            
+##            c = topos[-number_of_points_correlated-1:-1,y,z,0,:]
+##            dc = np.flip(c,axis=0)
+##            
+##            signal = np.concatenate((b,topos[:,y,z,0,:]),axis=0)
+##            signal = np.concatenate((signal, dc),axis=0)
+##            
+##            for j in range(topos.shape[-1]):
+##                matrix_ux[i*size_x:(i+1)*size_x,j] = np.convolve(signal[...,j],h,'valid')
+##                
+##            i+=1
+##            
+##    i=0
+##    for z in range(size_z):
+##        for x in range(size_x):
+##            
+##            a = topos[x,1:number_of_points_correlated+1,z,1,:]
+##            b = np.flip(a,axis=0)
+##            
+##            c = topos[x,-number_of_points_correlated-1:-1,z,1,:]
+##            dc = np.flip(c,axis=0)
+##            
+##            signal = np.concatenate((b,topos[x,:,z,1,:]),axis=0)
+##            signal = np.concatenate((signal, dc),axis=0)
+##            
+##            for j in range(topos.shape[-1]):
+##                matrix_uy[i*size_y:(i+1)*size_y,j] = np.convolve(signal[...,j],h,'valid')
+##                
+##            i+=1
+##    if dim==3:      
+##        i=0
+##        for y in range(size_y):
+##            for x in range(size_x):
+##                
+##                a = topos[x,y,1:number_of_points_correlated+1,2,:]
+##                b = np.flip(a,axis=0)
+##                
+##                c = topos[x,y,-number_of_points_correlated-1:-1,2,:]
+##                dc = np.flip(c,axis=0)
+##                
+##                signal = np.concatenate((b,topos[x,y,:,2,:]),axis=0)
+##                signal = np.concatenate((signal, dc),axis=0)
+##                
+##                for j in range(topos.shape[-1]):
+##                    matrix_uz[i*size_z:(i+1)*size_z,j] = np.convolve(signal[...,j],h,'valid')
+##                    
+##                i+=1
+#
+#
+#
+#     
+#
+##    matrix_ux_res = matrix_ux.reshape((size_x,size_y,size_z,n_modes+1),order='F')[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
+###    if slicing == True:
+###        matrix_ux_res = matrix_ux_res[:,:,int(slice_z-number_of_points_correlated),:]
+##    matrix_ux_res_vector = matrix_ux_res.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##
+##
+##    matrix_uy_res = matrix_uy.reshape((size_y,size_x,size_z,n_modes+1),order='F')
+##    matrix_uy_res_transp = np.transpose(matrix_uy_res,(1,0,2,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
+###    if slicing == True:
+###        matrix_uy_res_transp = matrix_uy_res_transp[:,:,int(slice_z-number_of_points_correlated),:]
+##    matrix_uy_res_transp_vector = matrix_uy_res_transp.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+#    
+##    if dim == 3:
+##        matrix_ux_res = matrix_ux.reshape((size_x,size_y,size_z,n_modes+1),order='F')[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
+##    #    if slicing == True:
+##    #        matrix_ux_res = matrix_ux_res[:,:,int(slice_z-number_of_points_correlated),:]
+##        matrix_ux_res_vector = matrix_ux_res.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##    
+##    
+##        matrix_uy_res = matrix_uy.reshape((size_y,size_x,size_z,n_modes+1),order='F')
+##        matrix_uy_res_transp = np.transpose(matrix_uy_res,(1,0,2,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
+##    #    if slicing == True:
+##    #        matrix_uy_res_transp = matrix_uy_res_transp[:,:,int(slice_z-number_of_points_correlated),:]
+##        matrix_uy_res_transp_vector = matrix_uy_res_transp.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##
+##        matrix_uz_res = matrix_uz.reshape((size_z,size_x,size_y,n_modes+1),order='F')
+##        matrix_uz_res_transp = np.transpose(matrix_uz_res,(1,2,0,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
+###        if slicing == True:
+###            matrix_uz_res_transp = matrix_uz_res_transp[:,:,int(slice_z-number_of_points_correlated),:]
+##        matrix_uz_res_transp_vector = matrix_uz_res_transp.reshape((int((size_y-2*number_of_points_correlated)*float(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##        matrix = np.concatenate((matrix_ux_res_vector,matrix_uy_res_transp_vector,matrix_uz_res_transp_vector))
+##
+##    elif dim==2:
+##        
+##        matrix_ux_res = matrix_ux.reshape((size_x,size_y,size_z,n_modes+1),order='F')[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,...]
+##        matrix_ux_res_vector = matrix_ux_res.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##        
+##        matrix_uy_res = matrix_uy.reshape((size_y,size_x,size_z,n_modes+1),order='F')
+##        matrix_uy_res_transp = np.transpose(matrix_uy_res,(1,0,2,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,...]
+##        matrix_uy_res_transp_vector = matrix_uy_res_transp.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##        
+##        
+##        matrix = np.concatenate((matrix_ux_res_vector,matrix_uy_res_transp_vector))
+#
+#    
+#
+#
+#
+#
+#
+#                   
+##                matrix[i*size_x:(i+1)*size_x,0] = np.convolve(signal[...,0],h/sum_h,'valid')
+##                matrix[i*size_x:(i+1)*size_x,1] = np.convolve(signal[...,1],h/sum_h,'valid')
+##                matrix[i*size_x:(i+1)*size_x,2] = np.convolve(signal[...,2],h/sum_h,'valid')
+##                matrix[i*size_x:(i+1)*size_x,3] = np.convolve(signal[...,3],h/sum_h,'valid')
+##                matrix[i*size_x:(i+1)*size_x,4] = np.convolve(signal[...,4],h/sum_h,'valid')
+##                matrix[i*size_x:(i+1)*size_x,5] = np.convolve(signal[...,5],h/sum_h,'valid')
+##                matrix[i*size_x:(i+1)*size_x,6] = np.convolve(signal[...,6],h/sum_h,'valid')
+##                i+=1
+#                
+#                
+##                for x in range(size_x):
+##                    
+##                    
+##                    
+##                    
+##                    
+##                    if x==0:
+##                        matrix[i,0] = h[0]*topos[x,y,z,d,0] + 2*h[1]*topos[x+1,y,z,d,0]
+##                        matrix[i,1] = h[0]*topos[x,y,z,d,1] + 2*h[1]*topos[x+1,y,z,d,1]
+##                        matrix[i,2] = h[0]*topos[x,y,z,d,2] + 2*h[1]*topos[x+1,y,z,d,2]
+##                        matrix[i,3] = h[0]*topos[x,y,z,d,3] + 2*h[1]*topos[x+1,y,z,d,3]
+##                        matrix[i,4] = h[0]*topos[x,y,z,d,4] + 2*h[1]*topos[x+1,y,z,d,4]
+##                        matrix[i,5] = h[0]*topos[x,y,z,d,5] + 2*h[1]*topos[x+1,y,z,d,5]
+##                        matrix[i,6] = h[0]*topos[x,y,z,d,6] + 2*h[1]*topos[x+1,y,z,d,6]
+##                        
+##                        
+##                    elif x==(size_x-1):
+##                        
+##                        matrix[i,0] = 2*h[1]*topos[x-1,y,z,d,0] + h[0]*topos[x,y,z,d,0]
+##                        matrix[i,1] = 2*h[1]*topos[x-1,y,z,d,1] + h[0]*topos[x,y,z,d,1]
+##                        matrix[i,2] = 2*h[1]*topos[x-1,y,z,d,2] + h[0]*topos[x,y,z,d,2] 
+##                        matrix[i,3] = 2*h[1]*topos[x-1,y,z,d,3] + h[0]*topos[x,y,z,d,3] 
+##                        matrix[i,4] = 2*h[1]*topos[x-1,y,z,d,4] + h[0]*topos[x,y,z,d,4] 
+##                        matrix[i,5] = 2*h[1]*topos[x-1,y,z,d,5] + h[0]*topos[x,y,z,d,5] 
+##                        matrix[i,6] = 2*h[1]*topos[x-1,y,z,d,6] + h[0]*topos[x,y,z,d,6] 
+##                    
+##                    else:
+##                        matrix[i,0] = h[1]*topos[x-1,y,z,d,0] + h[0]*topos[x,y,z,d,0] + h[1]*topos[x+1,y,z,d,0]
+##                        matrix[i,1] = h[1]*topos[x-1,y,z,d,1] + h[0]*topos[x,y,z,d,1] + h[1]*topos[x+1,y,z,d,1]
+##                        matrix[i,2] = h[1]*topos[x-1,y,z,d,2] + h[0]*topos[x,y,z,d,2] + h[1]*topos[x+1,y,z,d,2]
+##                        matrix[i,3] = h[1]*topos[x-1,y,z,d,3] + h[0]*topos[x,y,z,d,3] + h[1]*topos[x+1,y,z,d,3]
+##                        matrix[i,4] = h[1]*topos[x-1,y,z,d,4] + h[0]*topos[x,y,z,d,4] + h[1]*topos[x+1,y,z,d,4]
+##                        matrix[i,5] = h[1]*topos[x-1,y,z,d,5] + h[0]*topos[x,y,z,d,5] + h[1]*topos[x+1,y,z,d,5]
+##                        matrix[i,6] = h[1]*topos[x-1,y,z,d,6] + h[0]*topos[x,y,z,d,6] + h[1]*topos[x+1,y,z,d,6]
+#                    
+#                    
+#                    
+##                    i+=1
+#    
+#    
+#    
+#    
+#    
+##    topos = np.reshape(topos,(topos.shape[0]*topos.shape[1],topos.shape[2]),order='F')
+##    
+##    matrix = 50*np.zeros(shape=(topos.shape[0],7))
+##    
+##
+##    
+##    h = [0.6,0.2]
+##    
+##    
+##    len_z = grid[0,2]
+##    len_y = grid[0,1]
+##    len_x = grid[0,0]
+##    
+##    i = 0
+##    for d in range(dim):
+##        for z in range(len_z):
 ##            print(i)
-#            for y in range(size_y):
-#                
-#                a = topos[1:number_of_points_correlated+1,y,z,d,:]
-#                b = np.flip(a,axis=0)
-#                
-#                c = topos[-number_of_points_correlated-1:-1,y,z,d,:]
-#                dc = np.flip(c,axis=0)
-#                
-#                signal = np.concatenate((b,topos[:,y,z,d,:]),axis=0)
-#                signal = np.concatenate((signal, dc),axis=0)
-#                
-#                for j in range(topos.shape[-1]):
-#                    matrix[i*size_x:(i+1)*size_x,j] = np.convolve(signal[...,j],h,'valid')
+##            for y in range(len_y):
+##                for x in range(len_x):
+##                    
+##                    index = int((d)*(len_z)*(len_y)*(len_x) + z*(len_y)*(len_x) + y*(len_x) + x)
+##                    if x==0:
+##                        matrix[i,0] = h[0]*topos[index,0] + h[1]*topos[int(index+1),0]
+##                        matrix[i,1] = h[0]*topos[index,1] + h[1]*topos[int(index+1),1]
+##                        matrix[i,2] = h[0]*topos[index,2] + h[1]*topos[int(index+1),2]
+##                        matrix[i,3] = h[0]*topos[index,3] + h[1]*topos[int(index+1),3]
+##                        matrix[i,4] = h[0]*topos[index,4] + h[1]*topos[int(index+1),4]
+##                        matrix[i,5] = h[0]*topos[index,5] + h[1]*topos[int(index+1),5]
+##                        matrix[i,6] = h[0]*topos[index,6] + h[1]*topos[int(index+1),6]
+##                        
+##                    elif x == (len_x-1):
+##                        
+##                        matrix[i,0] = h[1]*topos[int(index-1),0] + h[0]*topos[index,0]
+##                        matrix[i,1] = h[1]*topos[int(index-1),1] + h[0]*topos[index,1]
+##                        matrix[i,2] = h[1]*topos[int(index-1),2] + h[0]*topos[index,2]
+##                        matrix[i,3] = h[1]*topos[int(index-1),3] + h[0]*topos[index,3]
+##                        matrix[i,4] = h[1]*topos[int(index-1),4] + h[0]*topos[index,4]
+##                        matrix[i,5] = h[1]*topos[int(index-1),5] + h[0]*topos[index,5]
+##                        matrix[i,6] = h[1]*topos[int(index-1),6] + h[0]*topos[index,6]
+##            
+##                    else:
+##                        
+##                        matrix[i,0] = h[1]*topos[int(index-1),0] + h[0]*topos[index,0] + h[1]*topos[index+1,0]
+##                        matrix[i,1] = h[1]*topos[int(index-1),1] + h[0]*topos[index,1] + h[1]*topos[index+1,1]
+##                        matrix[i,2] = h[1]*topos[int(index-1),2] + h[0]*topos[index,2] + h[1]*topos[index+1,2]
+##                        matrix[i,3] = h[1]*topos[int(index-1),3] + h[0]*topos[index,3] + h[1]*topos[index+1,3]
+##                        matrix[i,4] = h[1]*topos[int(index-1),4] + h[0]*topos[index,4] + h[1]*topos[index+1,4]
+##                        matrix[i,5] = h[1]*topos[int(index-1),5] + h[0]*topos[index,5] + h[1]*topos[index+1,5]
+##                        matrix[i,6] = h[1]*topos[int(index-1),6] + h[0]*topos[index,6] + h[1]*topos[index+1,6]
+##        
+##                    
+##                    i+=1
 #                    
-#                i+=1  
-                    
-    topos_calcul = np.copy(topos,order='F')  # Define topos_calcul to proceed with the calcul
-    
-    
-    
-    
-    
-    for d in range(dim):                                                       # Define dimension 
-        for z in range(size_z):                                                # Define the z slice 
-            for y in range(size_y):                                            # Define the line
-                a = topos_calcul[1:number_of_points_correlated+1,y,z,d,:]      # Get the border condition 
-                b = np.flip(a,axis=0)                                          # Mirrors the condition and it will be the border condition posteriorly
-                
-                c = topos_calcul[-number_of_points_correlated-1:-1,y,z,d,:]    # Get the border condition at the end
-                dc = np.flip(c,axis=0)                                         # Mirrors the condition and it will be the border condition posteriorly
-                
-                signal = np.concatenate((b,topos_calcul[:,y,z,d,:],dc),axis=0) # Concatentes the data with the border condition
-#                signal = np.concatenate((signal, dc),axis=0)
-                
-                for j in range(topos_calcul.shape[-1]):                        # for all the modes, take the ocnvolution of the signal with the filter 
-                    convolution = np.convolve(signal[...,j],h,'valid')         # Convolution and takes only the valid part, ignoring the results with the border condition
-                    topos_calcul[:,y,z,d,j] = convolution                      # Stocks it
-                    
-
-                
-    
-
-    for d in range(dim):                                                       # Define dimension 
-        for z in range(size_z):                                                # Define the z slice  
-            for x in range(size_x):                                            # Define the line 
-                
-                a = topos_calcul[x,1:number_of_points_correlated+1,z,d,:]      # Get the border condition 
-                b = np.flip(a,axis=0)                                          # Mirrors the condition and it will be the border condition posteriorly
-                
-                c = topos_calcul[x,-number_of_points_correlated-1:-1,z,d,:]    # Get the border condition at the end
-                dc = np.flip(c,axis=0)                                         # Mirrors the condition and it will be the border condition posteriorly
-                
-                signal = np.concatenate((b,topos_calcul[x,:,z,d,:],dc),axis=0) # Concatentes the data with the border condition 
-#                signal = np.concatenate((signal, dc),axis=0)
-                
-                for j in range(topos_calcul.shape[-1]):                            # for all the modes, take the ocnvolution of the signal with the filter 
-                    topos_calcul[x,:,z,d,j] = np.convolve(signal[...,j],h,'valid') # Convolution and takes only the valid part, ignoring the results with the border condition
-                    
-
-    
-    for d in range(dim):                                                       # Define dimension
-        for y in range(size_y):                                                # Define the y slice 
-            for x in range(size_x):                                            # Define the line 
-                
-                a = topos_calcul[x,y,1:number_of_points_correlated+1,d,:]      # Get the border condition
-                b = np.flip(a,axis=0)                                          # Mirrors the condition and it will be the border condition posteriorly
-                
-                c = topos_calcul[x,y,-number_of_points_correlated-1:-1,d,:]    # Get the border condition at the end
-                dc = np.flip(c,axis=0)                                         # Mirrors the condition and it will be the border condition posteriorly
-                
-                signal = np.concatenate((b,topos_calcul[x,y,:,d,:],dc),axis=0) # Concatentes the data with the border condition 
-#                signal = np.concatenate((signal, dc),axis=0)
-                
-                for j in range(topos_calcul.shape[-1]):                             # for all the modes, take the ocnvolution of the signal with the filter 
-                    topos_calcul[x,y,:,d,j] = np.convolve(signal[...,j],h,'valid')  # Convolution and takes only the valid part, ignoring the results with the border condition
-    
-    
-    
-    
-#    i=0
-#    for z in range(size_z):
-#        for y in range(size_y):
-#            
-#            a = topos[1:number_of_points_correlated+1,y,z,0,:]
-#            b = np.flip(a,axis=0)
-#            
-#            c = topos[-number_of_points_correlated-1:-1,y,z,0,:]
-#            dc = np.flip(c,axis=0)
-#            
-#            signal = np.concatenate((b,topos[:,y,z,0,:]),axis=0)
-#            signal = np.concatenate((signal, dc),axis=0)
-#            
-#            for j in range(topos.shape[-1]):
-#                matrix_ux[i*size_x:(i+1)*size_x,j] = np.convolve(signal[...,j],h,'valid')
-#                
-#            i+=1
-#            
-#    i=0
-#    for z in range(size_z):
-#        for x in range(size_x):
-#            
-#            a = topos[x,1:number_of_points_correlated+1,z,1,:]
-#            b = np.flip(a,axis=0)
-#            
-#            c = topos[x,-number_of_points_correlated-1:-1,z,1,:]
-#            dc = np.flip(c,axis=0)
-#            
-#            signal = np.concatenate((b,topos[x,:,z,1,:]),axis=0)
-#            signal = np.concatenate((signal, dc),axis=0)
-#            
-#            for j in range(topos.shape[-1]):
-#                matrix_uy[i*size_y:(i+1)*size_y,j] = np.convolve(signal[...,j],h,'valid')
-#                
-#            i+=1
-#    if dim==3:      
-#        i=0
-#        for y in range(size_y):
-#            for x in range(size_x):
-#                
-#                a = topos[x,y,1:number_of_points_correlated+1,2,:]
-#                b = np.flip(a,axis=0)
-#                
-#                c = topos[x,y,-number_of_points_correlated-1:-1,2,:]
-#                dc = np.flip(c,axis=0)
-#                
-#                signal = np.concatenate((b,topos[x,y,:,2,:]),axis=0)
-#                signal = np.concatenate((signal, dc),axis=0)
-#                
-#                for j in range(topos.shape[-1]):
-#                    matrix_uz[i*size_z:(i+1)*size_z,j] = np.convolve(signal[...,j],h,'valid')
 #                    
-#                i+=1
-
-
-
-     
-
-#    matrix_ux_res = matrix_ux.reshape((size_x,size_y,size_z,n_modes+1),order='F')[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
-##    if slicing == True:
-##        matrix_ux_res = matrix_ux_res[:,:,int(slice_z-number_of_points_correlated),:]
-#    matrix_ux_res_vector = matrix_ux_res.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
-#
-#
-#    matrix_uy_res = matrix_uy.reshape((size_y,size_x,size_z,n_modes+1),order='F')
-#    matrix_uy_res_transp = np.transpose(matrix_uy_res,(1,0,2,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
-##    if slicing == True:
-##        matrix_uy_res_transp = matrix_uy_res_transp[:,:,int(slice_z-number_of_points_correlated),:]
-#    matrix_uy_res_transp_vector = matrix_uy_res_transp.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
-    
-#    if dim == 3:
-#        matrix_ux_res = matrix_ux.reshape((size_x,size_y,size_z,n_modes+1),order='F')[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
-#    #    if slicing == True:
-#    #        matrix_ux_res = matrix_ux_res[:,:,int(slice_z-number_of_points_correlated),:]
-#        matrix_ux_res_vector = matrix_ux_res.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
+##    np.save(path_data,matrix)               
 #    
-#    
-#        matrix_uy_res = matrix_uy.reshape((size_y,size_x,size_z,n_modes+1),order='F')
-#        matrix_uy_res_transp = np.transpose(matrix_uy_res,(1,0,2,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
-#    #    if slicing == True:
-#    #        matrix_uy_res_transp = matrix_uy_res_transp[:,:,int(slice_z-number_of_points_correlated),:]
-#        matrix_uy_res_transp_vector = matrix_uy_res_transp.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
-#
-#        matrix_uz_res = matrix_uz.reshape((size_z,size_x,size_y,n_modes+1),order='F')
-#        matrix_uz_res_transp = np.transpose(matrix_uz_res,(1,2,0,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,:]
-##        if slicing == True:
-##            matrix_uz_res_transp = matrix_uz_res_transp[:,:,int(slice_z-number_of_points_correlated),:]
-#        matrix_uz_res_transp_vector = matrix_uz_res_transp.reshape((int((size_y-2*number_of_points_correlated)*float(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
-#        matrix = np.concatenate((matrix_ux_res_vector,matrix_uy_res_transp_vector,matrix_uz_res_transp_vector))
-#
-#    elif dim==2:
-#        
-#        matrix_ux_res = matrix_ux.reshape((size_x,size_y,size_z,n_modes+1),order='F')[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,...]
-#        matrix_ux_res_vector = matrix_ux_res.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
-#        
-#        matrix_uy_res = matrix_uy.reshape((size_y,size_x,size_z,n_modes+1),order='F')
-#        matrix_uy_res_transp = np.transpose(matrix_uy_res,(1,0,2,3))[number_of_points_correlated:-number_of_points_correlated,number_of_points_correlated:-number_of_points_correlated,...]
-#        matrix_uy_res_transp_vector = matrix_uy_res_transp.reshape((int(float(size_y-2*number_of_points_correlated)*(size_x-2*number_of_points_correlated)),n_modes+1),order='F')
-#        
-#        
-#        matrix = np.concatenate((matrix_ux_res_vector,matrix_uy_res_transp_vector))
-
-    
+#    return topos_calcul,number_of_points_correlated
 
 
-
-
-
-                   
-#                matrix[i*size_x:(i+1)*size_x,0] = np.convolve(signal[...,0],h/sum_h,'valid')
-#                matrix[i*size_x:(i+1)*size_x,1] = np.convolve(signal[...,1],h/sum_h,'valid')
-#                matrix[i*size_x:(i+1)*size_x,2] = np.convolve(signal[...,2],h/sum_h,'valid')
-#                matrix[i*size_x:(i+1)*size_x,3] = np.convolve(signal[...,3],h/sum_h,'valid')
-#                matrix[i*size_x:(i+1)*size_x,4] = np.convolve(signal[...,4],h/sum_h,'valid')
-#                matrix[i*size_x:(i+1)*size_x,5] = np.convolve(signal[...,5],h/sum_h,'valid')
-#                matrix[i*size_x:(i+1)*size_x,6] = np.convolve(signal[...,6],h/sum_h,'valid')
-#                i+=1
-                
-                
-#                for x in range(size_x):
-#                    
-#                    
-#                    
-#                    
-#                    
-#                    if x==0:
-#                        matrix[i,0] = h[0]*topos[x,y,z,d,0] + 2*h[1]*topos[x+1,y,z,d,0]
-#                        matrix[i,1] = h[0]*topos[x,y,z,d,1] + 2*h[1]*topos[x+1,y,z,d,1]
-#                        matrix[i,2] = h[0]*topos[x,y,z,d,2] + 2*h[1]*topos[x+1,y,z,d,2]
-#                        matrix[i,3] = h[0]*topos[x,y,z,d,3] + 2*h[1]*topos[x+1,y,z,d,3]
-#                        matrix[i,4] = h[0]*topos[x,y,z,d,4] + 2*h[1]*topos[x+1,y,z,d,4]
-#                        matrix[i,5] = h[0]*topos[x,y,z,d,5] + 2*h[1]*topos[x+1,y,z,d,5]
-#                        matrix[i,6] = h[0]*topos[x,y,z,d,6] + 2*h[1]*topos[x+1,y,z,d,6]
-#                        
-#                        
-#                    elif x==(size_x-1):
-#                        
-#                        matrix[i,0] = 2*h[1]*topos[x-1,y,z,d,0] + h[0]*topos[x,y,z,d,0]
-#                        matrix[i,1] = 2*h[1]*topos[x-1,y,z,d,1] + h[0]*topos[x,y,z,d,1]
-#                        matrix[i,2] = 2*h[1]*topos[x-1,y,z,d,2] + h[0]*topos[x,y,z,d,2] 
-#                        matrix[i,3] = 2*h[1]*topos[x-1,y,z,d,3] + h[0]*topos[x,y,z,d,3] 
-#                        matrix[i,4] = 2*h[1]*topos[x-1,y,z,d,4] + h[0]*topos[x,y,z,d,4] 
-#                        matrix[i,5] = 2*h[1]*topos[x-1,y,z,d,5] + h[0]*topos[x,y,z,d,5] 
-#                        matrix[i,6] = 2*h[1]*topos[x-1,y,z,d,6] + h[0]*topos[x,y,z,d,6] 
-#                    
-#                    else:
-#                        matrix[i,0] = h[1]*topos[x-1,y,z,d,0] + h[0]*topos[x,y,z,d,0] + h[1]*topos[x+1,y,z,d,0]
-#                        matrix[i,1] = h[1]*topos[x-1,y,z,d,1] + h[0]*topos[x,y,z,d,1] + h[1]*topos[x+1,y,z,d,1]
-#                        matrix[i,2] = h[1]*topos[x-1,y,z,d,2] + h[0]*topos[x,y,z,d,2] + h[1]*topos[x+1,y,z,d,2]
-#                        matrix[i,3] = h[1]*topos[x-1,y,z,d,3] + h[0]*topos[x,y,z,d,3] + h[1]*topos[x+1,y,z,d,3]
-#                        matrix[i,4] = h[1]*topos[x-1,y,z,d,4] + h[0]*topos[x,y,z,d,4] + h[1]*topos[x+1,y,z,d,4]
-#                        matrix[i,5] = h[1]*topos[x-1,y,z,d,5] + h[0]*topos[x,y,z,d,5] + h[1]*topos[x+1,y,z,d,5]
-#                        matrix[i,6] = h[1]*topos[x-1,y,z,d,6] + h[0]*topos[x,y,z,d,6] + h[1]*topos[x+1,y,z,d,6]
-                    
-                    
-                    
-#                    i+=1
-    
-    
-    
-    
-    
-#    topos = np.reshape(topos,(topos.shape[0]*topos.shape[1],topos.shape[2]),order='F')
-#    
-#    matrix = 50*np.zeros(shape=(topos.shape[0],7))
-#    
-#
-#    
-#    h = [0.6,0.2]
-#    
-#    
-#    len_z = grid[0,2]
-#    len_y = grid[0,1]
-#    len_x = grid[0,0]
-#    
-#    i = 0
-#    for d in range(dim):
-#        for z in range(len_z):
-#            print(i)
-#            for y in range(len_y):
-#                for x in range(len_x):
-#                    
-#                    index = int((d)*(len_z)*(len_y)*(len_x) + z*(len_y)*(len_x) + y*(len_x) + x)
-#                    if x==0:
-#                        matrix[i,0] = h[0]*topos[index,0] + h[1]*topos[int(index+1),0]
-#                        matrix[i,1] = h[0]*topos[index,1] + h[1]*topos[int(index+1),1]
-#                        matrix[i,2] = h[0]*topos[index,2] + h[1]*topos[int(index+1),2]
-#                        matrix[i,3] = h[0]*topos[index,3] + h[1]*topos[int(index+1),3]
-#                        matrix[i,4] = h[0]*topos[index,4] + h[1]*topos[int(index+1),4]
-#                        matrix[i,5] = h[0]*topos[index,5] + h[1]*topos[int(index+1),5]
-#                        matrix[i,6] = h[0]*topos[index,6] + h[1]*topos[int(index+1),6]
-#                        
-#                    elif x == (len_x-1):
-#                        
-#                        matrix[i,0] = h[1]*topos[int(index-1),0] + h[0]*topos[index,0]
-#                        matrix[i,1] = h[1]*topos[int(index-1),1] + h[0]*topos[index,1]
-#                        matrix[i,2] = h[1]*topos[int(index-1),2] + h[0]*topos[index,2]
-#                        matrix[i,3] = h[1]*topos[int(index-1),3] + h[0]*topos[index,3]
-#                        matrix[i,4] = h[1]*topos[int(index-1),4] + h[0]*topos[index,4]
-#                        matrix[i,5] = h[1]*topos[int(index-1),5] + h[0]*topos[index,5]
-#                        matrix[i,6] = h[1]*topos[int(index-1),6] + h[0]*topos[index,6]
-#            
-#                    else:
-#                        
-#                        matrix[i,0] = h[1]*topos[int(index-1),0] + h[0]*topos[index,0] + h[1]*topos[index+1,0]
-#                        matrix[i,1] = h[1]*topos[int(index-1),1] + h[0]*topos[index,1] + h[1]*topos[index+1,1]
-#                        matrix[i,2] = h[1]*topos[int(index-1),2] + h[0]*topos[index,2] + h[1]*topos[index+1,2]
-#                        matrix[i,3] = h[1]*topos[int(index-1),3] + h[0]*topos[index,3] + h[1]*topos[index+1,3]
-#                        matrix[i,4] = h[1]*topos[int(index-1),4] + h[0]*topos[index,4] + h[1]*topos[index+1,4]
-#                        matrix[i,5] = h[1]*topos[int(index-1),5] + h[0]*topos[index,5] + h[1]*topos[index+1,5]
-#                        matrix[i,6] = h[1]*topos[int(index-1),6] + h[0]*topos[index,6] + h[1]*topos[index+1,6]
-#        
-#                    
-#                    i+=1
-                    
-                    
-#    np.save(path_data,matrix)               
-    
-    return topos_calcul,number_of_points_correlated
-    
 #def calculate_residue_and_return_reconstructed_flow(topos_l,champ,bt_tot):
 #    champ_a =  champ
 #    bt_tot = bt_tot[:int((champ.shape[3]-1)/3)+1,:]
@@ -944,180 +993,180 @@ def calculate_H_PIV(topos,new_distance,grid,std_space,only_load,dim,slicing,slic
 #    return topos_new_coordinates,new_distance
 
 
-def reduce_and_interpolate_topos_same_as_matlab(topos_dns,grid_dns,MX,dim,slicing,slice_z,u_inf_measured,cil_diameter,center_cil_grid_dns_x_index,\
-                                                                         center_cil_grid_dns_y_index,center_cil_grid_PIV_x_distance,\
-                                                                         center_cil_grid_PIV_y_distance,distance_of_correlation):
-    
-    
-    '''
-    This function finds the grid that is common to DNS and PIV. The function applies a linear interpolation too, 
-    because the spatial sampling frequency is different in each case. 
-   
-    '''
-    
-    topos_dns = np.reshape(topos_dns,newshape =(MX[0],MX[1],MX[2],topos_dns.shape[-2],dim),order='F') # Reshape topos 
-    
-    if slicing == True:                             # Apply slice in the data                
-        topos_dns = topos_dns[:,:,slice_z,...]
-        
-    
-    '''
-    First, we must load one part of the PIV configuration to analise the PIV grid to posterior processing of data PIV and DNS. The data must be measured in
-    the same points.
-    '''
-    file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re300_export_190709_0100').joinpath('B0001.dat') # Get the data 
-    data = open(str(file))
-    datContent = [i.strip().split() for i in data.readlines()]
-    data = datContent[4:]
-    
-    nb_lines = len(data)
-    nb_collums = len(data[0])
-    
-    matrix = np.zeros(shape=(nb_lines,nb_collums))
-    
-    for i,line in enumerate(data):
-        for j,number in enumerate(line):
-            matrix[i,j] = number
-    
-    
-    
-    ###################### Select the PIV grid ############################## 
-        
-            
-    '''
-                --PIV Matrix configuration--
-           |x(mm)|y(mm)|vx(m/s)|vy(m/s)|isValid|
-    
-
-    '''
-
-    
-    valid = matrix[:,4] # Find where the estimation was well done --> isValid==1
-    matrix_valid_grid = matrix[np.where((valid==1))[0],:] # Select only the points that were well estimated
-    coordinates_x_PIV = np.unique(matrix_valid_grid[:,0]) # Select the grid coordinates in x 
-    coordinates_y_PIV = np.unique(matrix_valid_grid[:,1]) # Select the grid coordinates in y
-    
-    
-    '''
-    - The center of the cilinder will be in the coordinates --> [center_cil_grid_PIV_x_distance,center_cil_grid_PIV_y_distance]
-    - The coordinates must be normalized to be compared with DNS, in this case the new measures are done in (1/D) , D = cilynder diameter in PIV experiments
-   
-     Example:
-         ((xo ; yo) = (-75.60 ; 0.75) )
-    
-    
-    '''
-    
-    
-    coordinates_x_PIV = (coordinates_x_PIV - center_cil_grid_PIV_x_distance)/cil_diameter
-    coordinates_y_PIV = (coordinates_y_PIV - center_cil_grid_PIV_y_distance)/cil_diameter
-    
-    '''
-    - We estimated the correlation distance in the observation matrix of PIV, this value is stocked in the variable ''distance_of_correlation'', therefore 
-    we need to find the quantity of points in PIV that suffers with border effects from the observer.
-    
-    number_of_points = distance_of_correlation/spatial_sampling_period_PIV
-    
-    
-    '''
-    spatial_sampling_period_PIV = coordinates_x_PIV[1] - coordinates_x_PIV[0]
-    number_of_points_PIV = int(distance_of_correlation/spatial_sampling_period_PIV)
-    
-    coordinates_x_PIV = coordinates_x_PIV[number_of_points_PIV:-(number_of_points_PIV)]
-    coordinates_y_PIV = coordinates_y_PIV[number_of_points_PIV:-(number_of_points_PIV)] 
-    
-    ###################### Select the DNS grid ##############################
-    '''
-    We must select the DNS grid. After we need to centralize it in the same point; In our case, we had chosen the center of the cilinder as common point. 
-    Therefore, we must centralize. The information of the center of the cilynder transformed in index of the grid is stocked in  ''center_cil_grid_dns_x_index''
-    and ''center_cil_grid_dns_y_index''.
-    '''
-    
-    coordinates_x_DNS = grid_dns[0] - grid_dns[0][center_cil_grid_dns_x_index]
-    coordinates_y_DNS = grid_dns[1] - grid_dns[1][center_cil_grid_dns_y_index]
-    
-    
-    spatial_sampling_period_DNS = coordinates_x_DNS[1] - coordinates_x_DNS[0]
-    number_of_points_DNS = int(distance_of_correlation/spatial_sampling_period_DNS)
-    
-    coordinates_x_DNS = coordinates_x_DNS[number_of_points_DNS:-number_of_points_DNS]
-    coordinates_y_DNS = coordinates_y_DNS[number_of_points_DNS:-number_of_points_DNS]
-    
-    '''
-    As we have noticed, the DNS grid is not centered in the cilynder, in other wrds we have more points sampled in one side than another. Hence, 
-    it's necessary to cut extra points and assimilate the same amount of points in both sides. 
-    
-    The coordinates_y_DNS[0] and coordinates_y_DNS[1] are extra, so we'll cut it. 
-    '''
-    coordinates_y_DNS = coordinates_y_DNS[2:]
-    
-    
-    
-    #################### Select DNS grid comparing to PIV grid #####################
-    '''
-    First: The DNS grid is bigger in X, so we need to decrease the size of it to one point grater than PIV grid. 
-    In Y, PIV is bigger, so we need to decrease the grid to one point smaller than DNS grid. 
-    
-    
-    The greater and smaller need to be respected in order to do interpolation from DNS to PIV and not extrapolation from one grid to another. 
-    
-    
-    '''
-    
-    index_min_x_DNS = np.where((coordinates_x_DNS>coordinates_x_PIV[0]))[0][0]-1
-    index_max_x_DNS = np.where((coordinates_x_DNS>coordinates_x_PIV[-1]))[0][0]
-    coordinates_x_DNS = coordinates_x_DNS[index_min_x_DNS:index_max_x_DNS+1]
-    
-       
-    index_min_y_PIV = np.where((coordinates_y_PIV>coordinates_y_DNS[0]))[0][0]
-    index_max_y_PIV = np.where((coordinates_y_PIV>coordinates_y_DNS[-1]))[0][0]-1
-    
-    coordinates_y_PIV = coordinates_y_PIV[index_min_y_PIV:index_max_y_PIV+1]
-    
-    
-    ########## Now it's necessary to transform the (Hpiv x topos) that is in PIV sampling frequency to DNS sampling frequency
-    
-    '''
-    In practice, this operation of transform data from one sampling frequency to another is considered one of the Hpiv tasks, 
-    the observation matrix that transform data in PIV to DNS. In this case we will transform data sampled in DNS grid to PIV grid,
-    because in assimilation step we would need to interpolate data from PIV to DNS every time we assimilate data. 
-    '''
-    
-    original_DNS_x_grid = grid_dns[0] - grid_dns[0][center_cil_grid_dns_x_index]
-    original_DNS_y_grid = grid_dns[1] - grid_dns[1][center_cil_grid_dns_y_index]
-    
-    
-    position_x_DNS_begin = np.where((original_DNS_x_grid==coordinates_x_DNS[0]))[0][0]
-    position_x_DNS_end   = np.where((original_DNS_x_grid==coordinates_x_DNS[-1]))[0][0]
-    
-    position_y_DNS_begin = np.where((original_DNS_y_grid==coordinates_y_DNS[0]))[0][0]
-    position_y_DNS_end = np.where((original_DNS_y_grid==coordinates_y_DNS[-1]))[0][0]
-    
-    
-    # Getting the information in the smaller DNS grid
-    
-    topos_dns = topos_dns[position_x_DNS_begin:position_x_DNS_end+1,position_y_DNS_begin:position_y_DNS_end+1,:,:]
-    
-    
-    '''
-    Beginning the interpolation
-    '''
-    nombre_de_modes = topos_dns.shape[2]
-    topos_new_coordinates = np.zeros(shape=(len(coordinates_x_PIV),len(coordinates_y_PIV),nombre_de_modes,dim))
-    
-    for phi in range(topos_dns.shape[2]):
-        for dimen in range(dim):
-            data = topos_dns[:,:,phi,dimen].T
-            f = interpolate.interp2d(coordinates_x_DNS, coordinates_y_DNS, data, kind='linear')
-            data_new = f(coordinates_x_PIV, coordinates_y_PIV)
-            topos_new_coordinates[:,:,phi,dimen] = data_new.T
-    
-    
-    
-  
-    
-    
-    return topos_new_coordinates,coordinates_x_PIV,coordinates_y_PIV
+#def reduce_and_interpolate_topos_same_as_matlab(topos_dns,grid_dns,MX,dim,slicing,slice_z,u_inf_measured,cil_diameter,center_cil_grid_dns_x_index,\
+#                                                                         center_cil_grid_dns_y_index,center_cil_grid_PIV_x_distance,\
+#                                                                         center_cil_grid_PIV_y_distance,distance_of_correlation):
+#    
+#    
+#    '''
+#    This function finds the grid that is common to DNS and PIV. The function applies a linear interpolation too, 
+#    because the spatial sampling frequency is different in each case. 
+#   
+#    '''
+#    
+#    topos_dns = np.reshape(topos_dns,newshape =(MX[0],MX[1],MX[2],topos_dns.shape[-2],dim),order='F') # Reshape topos 
+#    
+#    if slicing == True:                             # Apply slice in the data                
+#        topos_dns = topos_dns[:,:,slice_z,...]
+#        
+#    
+#    '''
+#    First, we must load one part of the PIV configuration to analise the PIV grid to posterior processing of data PIV and DNS. The data must be measured in
+#    the same points.
+#    '''
+#    file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re300_export_190709_0100').joinpath('B0001.dat') # Get the data 
+#    data = open(str(file))
+#    datContent = [i.strip().split() for i in data.readlines()]
+#    data = datContent[4:]
+#    
+#    nb_lines = len(data)
+#    nb_collums = len(data[0])
+#    
+#    matrix = np.zeros(shape=(nb_lines,nb_collums))
+#    
+#    for i,line in enumerate(data):
+#        for j,number in enumerate(line):
+#            matrix[i,j] = number
+#    
+#    
+#    
+#    ###################### Select the PIV grid ############################## 
+#        
+#            
+#    '''
+#                --PIV Matrix configuration--
+#           |x(mm)|y(mm)|vx(m/s)|vy(m/s)|isValid|
+#    
+#
+#    '''
+#
+#    
+#    valid = matrix[:,4] # Find where the estimation was well done --> isValid==1
+#    matrix_valid_grid = matrix[np.where((valid==1))[0],:] # Select only the points that were well estimated
+#    coordinates_x_PIV = np.unique(matrix_valid_grid[:,0]) # Select the grid coordinates in x 
+#    coordinates_y_PIV = np.unique(matrix_valid_grid[:,1]) # Select the grid coordinates in y
+#    
+#    
+#    '''
+#    - The center of the cilinder will be in the coordinates --> [center_cil_grid_PIV_x_distance,center_cil_grid_PIV_y_distance]
+#    - The coordinates must be normalized to be compared with DNS, in this case the new measures are done in (1/D) , D = cilynder diameter in PIV experiments
+#   
+#     Example:
+#         ((xo ; yo) = (-75.60 ; 0.75) )
+#    
+#    
+#    '''
+#    
+#    
+#    coordinates_x_PIV = (coordinates_x_PIV - center_cil_grid_PIV_x_distance)/cil_diameter
+#    coordinates_y_PIV = (coordinates_y_PIV - center_cil_grid_PIV_y_distance)/cil_diameter
+#    
+#    '''
+#    - We estimated the correlation distance in the observation matrix of PIV, this value is stocked in the variable ''distance_of_correlation'', therefore 
+#    we need to find the quantity of points in PIV that suffers with border effects from the observer.
+#    
+#    number_of_points = distance_of_correlation/spatial_sampling_period_PIV
+#    
+#    
+#    '''
+#    spatial_sampling_period_PIV = coordinates_x_PIV[1] - coordinates_x_PIV[0]
+#    number_of_points_PIV = int(distance_of_correlation/spatial_sampling_period_PIV)
+#    
+#    coordinates_x_PIV = coordinates_x_PIV[number_of_points_PIV:-(number_of_points_PIV)]
+#    coordinates_y_PIV = coordinates_y_PIV[number_of_points_PIV:-(number_of_points_PIV)] 
+#    
+#    ###################### Select the DNS grid ##############################
+#    '''
+#    We must select the DNS grid. After we need to centralize it in the same point; In our case, we had chosen the center of the cilinder as common point. 
+#    Therefore, we must centralize. The information of the center of the cilynder transformed in index of the grid is stocked in  ''center_cil_grid_dns_x_index''
+#    and ''center_cil_grid_dns_y_index''.
+#    '''
+#    
+#    coordinates_x_DNS = grid_dns[0] - grid_dns[0][center_cil_grid_dns_x_index]
+#    coordinates_y_DNS = grid_dns[1] - grid_dns[1][center_cil_grid_dns_y_index]
+#    
+#    
+#    spatial_sampling_period_DNS = coordinates_x_DNS[1] - coordinates_x_DNS[0]
+#    number_of_points_DNS = int(distance_of_correlation/spatial_sampling_period_DNS)
+#    
+#    coordinates_x_DNS = coordinates_x_DNS[number_of_points_DNS:-number_of_points_DNS]
+#    coordinates_y_DNS = coordinates_y_DNS[number_of_points_DNS:-number_of_points_DNS]
+#    
+#    '''
+#    As we have noticed, the DNS grid is not centered in the cilynder, in other wrds we have more points sampled in one side than another. Hence, 
+#    it's necessary to cut extra points and assimilate the same amount of points in both sides. 
+#    
+#    The coordinates_y_DNS[0] and coordinates_y_DNS[1] are extra, so we'll cut it. 
+#    '''
+#    coordinates_y_DNS = coordinates_y_DNS[2:]
+#    
+#    
+#    
+#    #################### Select DNS grid comparing to PIV grid #####################
+#    '''
+#    First: The DNS grid is bigger in X, so we need to decrease the size of it to one point grater than PIV grid. 
+#    In Y, PIV is bigger, so we need to decrease the grid to one point smaller than DNS grid. 
+#    
+#    
+#    The greater and smaller need to be respected in order to do interpolation from DNS to PIV and not extrapolation from one grid to another. 
+#    
+#    
+#    '''
+#    
+#    index_min_x_DNS = np.where((coordinates_x_DNS>coordinates_x_PIV[0]))[0][0]-1
+#    index_max_x_DNS = np.where((coordinates_x_DNS>coordinates_x_PIV[-1]))[0][0]
+#    coordinates_x_DNS = coordinates_x_DNS[index_min_x_DNS:index_max_x_DNS+1]
+#    
+#       
+#    index_min_y_PIV = np.where((coordinates_y_PIV>coordinates_y_DNS[0]))[0][0]
+#    index_max_y_PIV = np.where((coordinates_y_PIV>coordinates_y_DNS[-1]))[0][0]-1
+#    
+#    coordinates_y_PIV = coordinates_y_PIV[index_min_y_PIV:index_max_y_PIV+1]
+#    
+#    
+#    ########## Now it's necessary to transform the (Hpiv x topos) that is in PIV sampling frequency to DNS sampling frequency
+#    
+#    '''
+#    In practice, this operation of transform data from one sampling frequency to another is considered one of the Hpiv tasks, 
+#    the observation matrix that transform data in PIV to DNS. In this case we will transform data sampled in DNS grid to PIV grid,
+#    because in assimilation step we would need to interpolate data from PIV to DNS every time we assimilate data. 
+#    '''
+#    
+#    original_DNS_x_grid = grid_dns[0] - grid_dns[0][center_cil_grid_dns_x_index]
+#    original_DNS_y_grid = grid_dns[1] - grid_dns[1][center_cil_grid_dns_y_index]
+#    
+#    
+#    position_x_DNS_begin = np.where((original_DNS_x_grid==coordinates_x_DNS[0]))[0][0]
+#    position_x_DNS_end   = np.where((original_DNS_x_grid==coordinates_x_DNS[-1]))[0][0]
+#    
+#    position_y_DNS_begin = np.where((original_DNS_y_grid==coordinates_y_DNS[0]))[0][0]
+#    position_y_DNS_end = np.where((original_DNS_y_grid==coordinates_y_DNS[-1]))[0][0]
+#    
+#    
+#    # Getting the information in the smaller DNS grid
+#    
+#    topos_dns = topos_dns[position_x_DNS_begin:position_x_DNS_end+1,position_y_DNS_begin:position_y_DNS_end+1,:,:]
+#    
+#    
+#    '''
+#    Beginning the interpolation
+#    '''
+#    nombre_de_modes = topos_dns.shape[2]
+#    topos_new_coordinates = np.zeros(shape=(len(coordinates_x_PIV),len(coordinates_y_PIV),nombre_de_modes,dim))
+#    
+#    for phi in range(topos_dns.shape[2]):
+#        for dimen in range(dim):
+#            data = topos_dns[:,:,phi,dimen].T
+#            f = interpolate.interp2d(coordinates_x_DNS, coordinates_y_DNS, data, kind='linear')
+#            data_new = f(coordinates_x_PIV, coordinates_y_PIV)
+#            topos_new_coordinates[:,:,phi,dimen] = data_new.T
+#    
+#    
+#    
+#  
+#    
+#    
+#    return topos_new_coordinates,coordinates_x_PIV,coordinates_y_PIV
     
 
 
@@ -1161,46 +1210,65 @@ def calculate_rotational(topos_Fx,topos_Fy,delta_space,nb_x,nb_y):
     
 #%%                                          Begin the main_from_existing_ROM that constrols all the simulation
     
-def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,n_particles):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
+def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,n_particles,test_fct,svd_pchol,choice_n_subsample):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
     
     ######################################----PARAMETERS TO CHOOSE----############################################
-    # Parameters choice
-    param_ref = {}
-    param_ref['n_simu'] = 100               # Number of simulations steps in time
+#    # Parameters choice
+#    param_ref = {}
+#    param_ref['n_simu'] = 100               # Number of simulations steps in time
     param_ref['N_particules'] = n_particles # Number of particles to select  
-#    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-    beta_2 = 1                            # beta_2 is the parameter that controls the  noise in the initialization of the filter
-    beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
-#    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
-    N_threshold = 40                        # Effective sample size in the particle filter
-    nb_mutation_steps = 30                  # Number of mutation steps in particle filter 
-    pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
-#    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
-    std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
-    assimilate = 'fake_real_data'                # The data that will be assimilated
-    mask_obs = True                         # Activate spatial mask in the observed data
-    subsampling_PIV_grid_factor = 1         # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
-    only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
-    slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
-    slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
-    data_assimilate_dim = 2                 # In this experiments we assimilate 2D data, and in the case Reynolds=300, the vector flow in the z direction will be ignored.
-    u_inf_measured = 0.388                  # The PIV measured velocity (See the .png image in the respective PIV folder with all measured constants). It must be represented in m/s
-    cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
-    center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
-    center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
-    Re = 300                                # Reynolds constant
-    center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
-    center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
-    SECONDS_OF_SIMU = 70                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
-    sub_sampling_PIV_data_temporaly = True                                                                   # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
-    factor_of_PIV_time_subsampling = 10                                                                       # The factor that we will take to subsampled PIV data. 
-    plt_real_time = False                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
-    x0_index = 10                                                                                             # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-    nbPoints_x = 70                                                                                          # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-    y0_index = 10                                                                                            # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-    nbPoints_y = 30                                                                                          # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+##    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
+#    beta_2 = 1                            # beta_2 is the parameter that controls the  noise in the initialization of the filter
+#    beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+##    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
+#    N_threshold = 40                        # Effective sample size in the particle filter
+#    nb_mutation_steps = 30                  # Number of mutation steps in particle filter 
+#    pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
+##    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
+#    std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
+#    assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+#    mask_obs = True                         # Activate spatial mask in the observed data
+#    subsampling_PIV_grid_factor = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#    only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
+#    slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
+#    slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
+#    data_assimilate_dim = 2                 # In this experiments we assimilate 2D data, and in the case Reynolds=300, the vector flow in the z direction will be ignored.
+#    u_inf_measured = 0.388                  # The PIV measured velocity (See the .png image in the respective PIV folder with all measured constants). It must be represented in m/s
+#    cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
+#    center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
+#    center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
+#    Re = 300                                # Reynolds constant
+#    center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
+#    center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
+#    SECONDS_OF_SIMU = 0.5 #70 #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+#    sub_sampling_PIV_data_temporaly = True                                                                   # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
+#    factor_of_PIV_time_subsampling = 10                                                                       # The factor that we will take to subsampled PIV data. 
+#    plt_real_time = False                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+#    x0_index = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#    nbPoints_x = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#    y0_index = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#    nbPoints_y = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
     #################################### ----------------------------------------------------------------------- ###################################
+    if not sub_sampling_PIV_data_temporaly:
+        factor_of_PIV_time_subsampling = 1
+    else:
+        factor_of_PIV_time_subsampling = factor_of_PIV_time_subsampling_gl
+        
+    if not mask_obs:   # If we must select a smaller grid inside the observed grid. 
+        x0_index = 1
+        y0_index = 1
+        nbPoints_x = float('nan')
+        nbPoints_y = float('nan')
+        subsampling_PIV_grid_factor = 1
+    else:
+        x0_index = x0_index_gl
+        y0_index = y0_index_gl
+        nbPoints_x = nbPoints_x_gl
+        nbPoints_y = nbPoints_y_gl
+        subsampling_PIV_grid_factor = subsampling_PIV_grid_factor_gl
+    
+    
     if assimilate == 'real_data':
         dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
         number_of_PIV_files = int(SECONDS_OF_SIMU/dt_PIV) + 1                                                 # Number of PIV files to load
@@ -1215,6 +1283,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
         else:
             number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
+    else:
+        plot_ref = plot_ref_gl 
             
         
         
@@ -1245,47 +1315,92 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     #%% Get data
     
     # On which function the Shanon ctriterion is used
-    test_fct = 'b'  # 'b' is better than db
+#    test_fct = 'b'  # 'b' is better than db
     a_t = '_a_cst_' 
     
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
     
     file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
-            'fct_test_' + test_fct
-    
-    
-    
-              
-    var_exits =  'var' in locals() or 'var' in globals()
-    period_estim = 'period_estim' in locals() or 'period_estim' in globals()
-    
-    if var_exits == True and period_estim == True:
-        file = file + '_p_estim_' + str(period_estim);
-    
-    file = file + '_fullsto'
-    
+            a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample + \
+            '_threshold_' + str(threshold) + \
+            'fct_test_' + test_fct    
+#    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+#            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
+#            'fct_test_' + test_fct    
+#    var_exits =  'var' in locals() or 'var' in globals()
+#    period_estim = 'period_estim' in locals() or 'period_estim' in globals()
+#    if var_exits == True and period_estim == True:
+#        file = file + '_p_estim_' + str(period_estim);
+    file = file + '_fullsto' # File where the ROM coefficients are save
+#    file_save = file
     if not adv_corrected:
         file = file + '_no_correct_drift'
-    
-    
     file = file + '.mat'
-    
-    print(file)
-    
-    
     file_res = folder_results / Path(file)
+    if not os.path.exists(file_res):
+        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_'  \
+                  + choice_n_subsample
+        if choice_n_subsample == 'auto_shanon' :
+            file = file + '_threshold_' + str(threshold)
+        file = file + test_fct   
+#        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+#            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
+#        file = file_save
+        if not adv_corrected:
+            file = file + '\\_no_correct_drift'
+        file = file + '.mat'
+        file_res = folder_results / Path(file)
+    print(file)
     
     # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
     I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
     param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
-    
     
     #%% Reduction of the noise matrix
     if svd_pchol:
         U_cov_noises, S_cov_noises, _ = sps.linalg.svds(pchol_cov_noises, k=nb_modes)
         pchol_cov_noises = U_cov_noises @ S_cov_noises
 
+    #%% Folder to save data assimilation plot results
+    plt.close('all')
+##    file_plots = '3rd' + file_save[3:] + '\\'
+#    file_plots = '3rdresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+#            choice_n_subsample + '_threshold_' + str(threshold) + test_fct + '\\'
+    file_plots = '3rdresult\\' + type_data + '_' + str(nb_modes) + '_modes_'  \
+              + choice_n_subsample
+    if choice_n_subsample == 'auto_shanon' :
+        file_plots = file_plots + '_threshold_' + str(threshold)
+    file_plots = file_plots + test_fct + '\\'
+    if modal_dt:
+        file_plots = file_plots + '_modal_dt'    
+    if not adv_corrected:
+        file_plots = file_plots + '_no_correct_drift'
+    file_plots = file_plots + '_integ_Ito'
+    if svd_pchol:
+        file_plots = file_plots + '_svd_pchol'
+    file_plots = file_plots + '\\' + assimilate + \
+                              '\\_DADuration_' + str(SECONDS_OF_SIMU) + '_'
+    if sub_sampling_PIV_data_temporaly:
+        file_plots = file_plots + 'ObsSubt_' + str(factor_of_PIV_time_subsampling) + '_'    
+    if mask_obs:
+        file_plots = file_plots + 'ObsMaskyy_sub_' + str(subsampling_PIV_grid_factor) \
+                 + '_from_' + str(x0_index) + '_to_ ' \
+                 + str(nbPoints_x+x0_index*subsampling_PIV_grid_factor) \
+                 + '_from_' + str(y0_index) + '_to_ ' \
+                 + str(nbPoints_y+y0_index*subsampling_PIV_grid_factor) + '_'
+    else:
+        file_plots = file_plots + 'no_mask_'
+    if init_centred_on_ref:
+        file_plots = file_plots + 'initOnRef_'
+    file_plots = file_plots + 'beta_2_' + str(beta_2)
+        
+#    file_plots = file_plots.replace(".", "_")
+    folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
+    file_plots_res = os.path.join(folder_results_plot, file_plots) 
+#    file_plots_res = folder_results / Path(file_plots)
+#    print( file_plots_res )
+    if not os.path.exists(file_plots_res):
+        os.makedirs( file_plots_res )
     
     #%% Parameters of the ODE of the b(t)
     
@@ -1333,35 +1448,48 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     #%% Do not temporally subsample, in order to prevent aliasing in the results
     
     if not reconstruction:
-        
-#        if exists: 
-        current_pwd = Path(__file__).parents[1]
-        if param['nb_period_test'] is math.nan:
-            name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
-                                               '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
-        else:
-            name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
-                                               '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
-        
+        if assimilate == 'fake_real_data':
+    #        if exists: 
+            current_pwd = Path(__file__).parents[1]
+            if param['nb_period_test'] is math.nan:
+                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+                                                   '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
+            else:
+                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+                                                   '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
+            
+               
            
-       
+                
+            if name_file_data.exists():
+                mat = hdf5storage.loadmat(str(name_file_data))
+                bt_tot = mat['bt']
+                truncated_error2 = mat['truncated_error2']
+                param['truncated_error2'] = truncated_error2
+                
+                
+                
+            else:
+                print('ERROR: File does not exist ', str(name_file_data))
+                return 0
             
-        if name_file_data.exists():
-            mat = hdf5storage.loadmat(str(name_file_data))
-            bt_tot = mat['bt']
-            truncated_error2 = mat['truncated_error2']
-            param['truncated_error2'] = truncated_error2
+            if param['big_data'] == True:
+                print('Test basis creation done')
             
+            #Test basis creation
             
-            
+            param['N_tot'] = bt_tot.shape[0]
+            param['N_test'] = param['N_tot'] - 1
+            bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
+            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+    
         else:
-            print('ERROR: File does not exist ', str(name_file_data))
-            return 0
-        
-        if param['big_data'] == True:
-            print('Test basis creation done')
-        
-        #Test basis creation
+            bt_tot = float('nan')
+            truncated_error2 = float('nan')
+            param['truncated_error2'] = truncated_error2
+            bt_tronc = float('nan')
+            
         
     
     #%% Time integration of the reconstructed Chronos b(t)
@@ -1369,11 +1497,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param['folder_results'] = param_ref['folder_results']
     param['N_particules'] = param_ref['N_particules']
     n_simu = param_ref['n_simu']
-    param['N_tot'] = bt_tot.shape[0]
-    param['N_test'] = param['N_tot'] - 1
-    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+#    param['N_tot'] = bt_tot.shape[0]
+#    param['N_test'] = param['N_tot'] - 1
+#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
+#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
     
     param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
     param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
@@ -1398,14 +1526,23 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    lambda_values = lambda_values[0]*np.ones(lambda_values.shape)
     
     
-    bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules']))   # initializes the chronos of all particules equally
-    shape = (1,bt_tronc.shape[1],int(param['N_particules']))    # Define the shape of this vector containing all the chronos of all particles
+
     
+    if init_centred_on_ref:
+        bt_MCMC = np.tile(bt_tronc.T,(1,1,param['N_particules']))   # initializes the chronos of all particules equally
+#        shape = (1,bt_tronc.shape[1],int(param['N_particules']))    # Define the shape of this vector containing all the chronos of all particles
+#        bt_MCMC[:,:,:] =  bt_MCMC + \
+#        beta_2*np.tile(np.sqrt(lambda_values)[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+##        beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+    else:
+        bt_MCMC = np.zeros((1,nb_modes,param['N_particules']))
     
-    
-#    bt_MCMC[:,:,:] =  bt_MCMC + beta_2*np.tile(lambda_values[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
-    bt_MCMC[:,:,:] = beta_2*np.tile(np.sqrt(lambda_values)[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape) # Initialise the chronos paricles randomly and dependent of the lambda values 
-    
+    bt_MCMC[:,:,:] = bt_MCMC + \
+        beta_2*np.tile(np.sqrt(lambda_values)[...,np.newaxis],(1,1,param['N_particules']))\
+            *np.random.normal(0,1,size=(1,nb_modes,param['N_particules'])) # Initialise the chronos paricles randomly and dependent of the lambda values 
+#        beta_2*np.tile(np.sqrt(lambda_values)[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
+    # Initialise the chronos particles randomly and dependent of the lambda values 
+
     bt_fv = bt_MCMC.copy()                                              # Define bt_fv 
     bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))   # Define bt_m
     iii_realization = np.zeros((param['N_particules'],1))               # Define iii_realization that is necessary if any explosion in the simulation
@@ -1416,34 +1553,51 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
    
    
 #      LOAD TOPOS
-    print('Loading Topos...')
-    path_topos = Path(folder_data).parents[1].joinpath('data').joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes') # Topos path 
+    print('Loading H_PIV @ Topos...')
+    path_topos = Path(folder_data).parents[1].joinpath('data_PIV').\
+            joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes_PIV') # Topos path 
     topos_data = hdf5storage.loadmat(str(path_topos))                                                                 # Load topos
-    topos = topos_data['phi_m_U']                                                                                     # Select Topos          
-    MX = param['MX'][0,:]                                                                                             # Select DNS grid
-    
-    if topos.shape[-1]==3:                        # Select only the u and v vector field.
-        topos = topos[...,:data_assimilate_dim]   # Selecting...
-    
+    topos = topos_data['phi_m_U']   
+    MX_PIV = topos_data['MX_PIV'].astype(int)
+    MX_PIV = tuple(map(tuple,MX_PIV))[0]
+    coordinates_x_PIV= topos_data['x_PIV_after_crop']
+    coordinates_y_PIV= topos_data['y_PIV_after_crop']
+    coordinates_x_PIV= np.reshape(coordinates_x_PIV,MX_PIV,order='F') 
+    coordinates_y_PIV= np.reshape(coordinates_y_PIV,MX_PIV,order='F') 
+    coordinates_x_PIV =  np.transpose(coordinates_x_PIV[:,0])  
+    coordinates_y_PIV = coordinates_y_PIV[0,:]                                            # Select Topos          
+#    MX = param['MX']  
+   
+##      LOAD TOPOS
+#    print('Loading Topos...')
+#    path_topos = Path(folder_data).parents[1].joinpath('data').joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes') # Topos path 
+#    topos_data = hdf5storage.loadmat(str(path_topos))                                                                 # Load topos
+#    topos = topos_data['phi_m_U']                                                                                     # Select Topos          
+#    MX = param['MX'][0,:]                                                                                             # Select DNS grid
+#    
+#    if topos.shape[-1]==3:                        # Select only the u and v vector field.
+#        topos = topos[...,:data_assimilate_dim]   # Selecting...
+#    
     dim = topos.shape[-1]                                                                              # Define the vectorial field dimension
-    topos_l = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
-    topos_l = np.reshape(topos_l,(int(topos_l.shape[0]*topos_l.shape[1]),topos_l.shape[2]),order='F')  # Reshape the topos, the last dimensions being the number of resolved modes plus one and the first dimensions is (Nx * Ny * dim)
+    topos = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
+#    topos_l = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
+#    topos_l = np.reshape(topos_l,(int(topos_l.shape[0]*topos_l.shape[1]),topos_l.shape[2]),order='F')  # Reshape the topos, the last dimensions being the number of resolved modes plus one and the first dimensions is (Nx * Ny * dim)
     grid = param['MX'][0]                                                                              # Define the DNS grid
     distance = param['dX'][0,0]                                                                        # Define the spatial space between 2 samples in DNS grid 
-    matrix_H,number = calculate_H_PIV(topos_l,distance,grid,std_space,only_load,dim,slicing,slice_z)   # Apply spatial filter in the topos. The filtr was estimated before and is based in the PIV measures
-    
-    print('\nCalculating PIV mask and applying on the Topos...')
-    matrix_H = np.transpose(matrix_H,(0,1,2,4,3))                                                                                                                                # Rearrange  matrix_H
-    matrix_H = np.reshape(matrix_H,(int(matrix_H.shape[0]*matrix_H.shape[1]*matrix_H.shape[2]),matrix_H.shape[3],matrix_H.shape[4]),order='F')                                   # Reshape matrix_H  
-    if assimilate in ['real_data','fake_real_data']:                                                                                                                                                # Select if real data to transform Hpiv_Topos from space DNS to PIV
-        topos_new_coordinates,coordinates_x_PIV,coordinates_y_PIV = reduce_and_interpolate_topos_same_as_matlab(matrix_H,param['grid'][0],MX,data_assimilate_dim,slicing,\
-                                                                                                             slice_z,u_inf_measured,cil_diameter,center_cil_grid_dns_x_index,\
-                                                                                                             center_cil_grid_dns_y_index,center_cil_grid_PIV_x_distance,\
-                                                                                                            center_cil_grid_PIV_y_distance,std_space)
-    else:
-        print('Error: Data to assimilate is not known.')
-        sys.exit()
-        
+#    matrix_H,number = calculate_H_PIV(topos_l,distance,grid,std_space,only_load,dim,slicing,slice_z)   # Apply spatial filter in the topos. The filtr was estimated before and is based in the PIV measures
+#    
+#    print('\nCalculating PIV mask and applying on the Topos...')
+#    matrix_H = np.transpose(matrix_H,(0,1,2,4,3)) 
+##    imgplot = plt.imshow(matrix_H)                                                                                                                               # Rearrange  matrix_H
+#    matrix_H = np.reshape(matrix_H,(int(matrix_H.shape[0]*matrix_H.shape[1]*matrix_H.shape[2]),matrix_H.shape[3],matrix_H.shape[4]),order='F')                                   # Reshape matrix_H  
+#    if assimilate in ['real_data','fake_real_data']:                                                                                                                                                # Select if real data to transform Hpiv_Topos from space DNS to PIV
+#        topos_new_coordinates,coordinates_x_PIV,coordinates_y_PIV = reduce_and_interpolate_topos_same_as_matlab(matrix_H,param['grid'][0],MX,data_assimilate_dim,slicing,\
+#                                                                                                             slice_z,u_inf_measured,cil_diameter,center_cil_grid_dns_x_index,\
+#                                                                                                             center_cil_grid_dns_y_index,center_cil_grid_PIV_x_distance,\
+#                                                                                                            center_cil_grid_PIV_y_distance,std_space)
+#    else:
+#        print('Error: Data to assimilate is not known.')
+#        sys.exit()
               
     '''
     The Sigma_inverse matrix was calculated before in the space H_piv, so we need just to load it.
@@ -1467,12 +1621,29 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     - The subgrid that Valentin used in the Matlab code was not exactly the original PIV grid. Therefore we have not found the same grid. Therefore, the indexes 3->-4 and 1->-1 cutting 'coordinates_x_PIV' and 
     'coordinates_y_PIV' transforms my estimated grid in the same grid estimated by valentin.
     '''
-    coordinates_x_PIV = coordinates_x_PIV[3:-4]                            # Transforming the grid in x 
-    coordinates_y_PIV = coordinates_y_PIV[1:-1]                            # Transforming the grid in y
-    topos_new_coordinates = topos_new_coordinates[3:-4,1:-1,:,:]           # Selecting the data in valentin grid
-    topos_new_coordinates = np.transpose(topos_new_coordinates,(0,1,3,2))  # Transposing the topos 
+#    coordinates_x_PIV = coordinates_x_PIV[3:-4]                            # Transforming the grid in x 
+#    coordinates_y_PIV = coordinates_y_PIV[1:-1]                            # Transforming the grid in y
+#    topos_new_coordinates = topos_new_coordinates[3:-4,1:-1,:,:]           # Selecting the data in valentin grid
+#    topos_new_coordinates = np.transpose(topos_new_coordinates,(0,1,3,2))  # Transposing the topos 
+    topos_new_coordinates = np.reshape(topos,\
+                              MX_PIV + tuple(np.array([data_assimilate_dim,(nb_modes+1)])),order='F') 
+#                              (len(coordinates_x_PIV),len(coordinates_y_PIV),\
+#                               data_assimilate_dim,(nb_modes+1)),order='F') 
     
-
+    
+    # Plots for debug
+    if plot_debug:
+        matrix_H_plot = topos_new_coordinates.copy()
+    #    matrix_H_plot = np.reshape(matrix_H_plot,(len(coordinates_x_PIV),len(coordinates_y_PIV),matrix_H.shape[1],matrix_H.shape[2]),order='F') 
+        fig=plt.figure(1)
+        imgplot = plt.imshow(np.transpose(matrix_H_plot[:,:,0,-1]),\
+                             interpolation='none', extent=\
+                             [coordinates_x_PIV[0],coordinates_x_PIV[-1],\
+                              coordinates_y_PIV[0],coordinates_y_PIV[-1]])
+        plt.pause(1) 
+        fig.colorbar(imgplot)
+        plt.pause(1) 
+    
     
     Hpiv_Topos = np.reshape(topos_new_coordinates,(int(topos_new_coordinates.shape[0]*topos_new_coordinates.shape[1]*topos_new_coordinates.shape[2]),topos_new_coordinates.shape[3]),order='F') # The topos that we have estimated reshaped to posterior matrix multiplications
 
@@ -1496,7 +1667,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         
         xEnd_index = x0_index + nbPoints_x*subsampling_PIV_grid_factor  # Define the last x index of the new grid
         yEnd_index = y0_index + nbPoints_y*subsampling_PIV_grid_factor  # Define the last y new grid index
-        
+#        print(len(coordinates_y_PIV-1))
+#        print(len(coordinates_x_PIV-1))
         if (yEnd_index-subsampling_PIV_grid_factor)>(len(coordinates_y_PIV-1)) or  (xEnd_index-subsampling_PIV_grid_factor)>(len(coordinates_x_PIV-1)): # Checks if the points are inside the observed grid
             print('Error: grid selected is bigger than the observed')
             sys.exit()
@@ -1526,12 +1698,28 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 Mask_final = np.concatenate((Mask_final,Mask_x.copy()))
                 
                 
-        Mask_final = np.concatenate((Mask_final,Mask_final))                                        # It must be concatenated with himself because we are working with 2 dimensions
-        Mask_final_bool = Mask_final.astype(bool)                                                   # Transform the data inside in boolean. 1->True and 0->False
+#        Mask_final = np.concatenate((Mask_final,Mask_final))                                        # It must be concatenated with himself because we are working with 2 dimensions
+#        Mask_final_bool = Mask_final.astype(bool)                                                   # Transform the data inside in boolean. 1->True and 0->False
+#    
+#        print('The coordinates that will be observed: ')
+#        print('The x coordinates: '+str(coordinates_x_PIV_with_MASK))
+#        print('The y coordinates: '+str(coordinates_y_PIV_with_MASK))
+    else:
+        Mask_final = np.ones(int(len(coordinates_x_PIV)*len(coordinates_y_PIV)),dtype = np.int8)    # Construct the mask
+        coordinates_x_PIV_with_MASK = coordinates_x_PIV
+        coordinates_y_PIV_with_MASK = coordinates_y_PIV
+#        x0_index = 1
+#        y0_index = 1
+        xEnd_index = len(coordinates_x_PIV)
+        yEnd_index = len(coordinates_y_PIV)
+#        subsampling_PIV_grid_factor = 1
+        
+    Mask_final = np.concatenate((Mask_final,Mask_final))                                        # It must be concatenated with himself because we are working with 2 dimensions
+    Mask_final_bool = Mask_final.astype(bool)                                                   # Transform the data inside in boolean. 1->True and 0->False
     
-        print('The coordinates that will be observed: ')
-        print('The x coordinates: '+str(coordinates_x_PIV_with_MASK))
-        print('The y coordinates: '+str(coordinates_y_PIV_with_MASK))
+    print('The coordinates that will be observed: ')
+    print('The x coordinates: '+str(coordinates_x_PIV_with_MASK))
+    print('The y coordinates: '+str(coordinates_y_PIV_with_MASK))
 #    
     #%%   Calculate Sigma_inverse
     
@@ -1801,9 +1989,30 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
      
         vector_of_assimilation_time = vector_of_assimilation_time[:int(index_final):factor_of_PIV_time_subsampling]
         
-        if vector_of_assimilation_time[0] == 0:
-            matrix_data_PIV_all_data[1:,:,:]
-            vector_of_assimilation_time = vector_of_assimilation_time[1:]
+        # Plots for debug
+        if plot_debug:
+            mean_vector_flow = np.mean(vector_flow, axis=0)
+            mean_vector_flow = np.reshape(mean_vector_flow,(len(coordinates_x_PIV),len(coordinates_y_PIV),2),order='F') 
+            mean_vector_flow.shape
+            fig=plt.figure()
+            imgplot = plt.imshow(np.transpose(mean_vector_flow[:,:,0]),interpolation='none', extent=[coordinates_x_PIV[0],coordinates_x_PIV[-1],coordinates_y_PIV[0],coordinates_y_PIV[-1]])
+            plt.pause(1) 
+            fig.colorbar(imgplot)
+            plt.pause(1) 
+        
+            differ = mean_vector_flow[:,:,1] - matrix_H_plot[:,:,1,-1]
+            fig=plt.figure(3)
+            imgplot = plt.imshow(np.transpose(differ),interpolation='none', extent=[coordinates_x_PIV[0],coordinates_x_PIV[-1],coordinates_y_PIV[0],coordinates_y_PIV[-1]])
+            plt.pause(1) 
+            fig.colorbar(imgplot)
+            plt.pause(1) 
+        
+        if len(vector_of_assimilation_time) > 0:
+            if vector_of_assimilation_time[0] == 0:
+                matrix_data_PIV_all_data[1:,:,:]
+                vector_of_assimilation_time = vector_of_assimilation_time[1:]
+        else:
+            vector_of_assimilation_time = np.full((1, 1), np.inf)
         
     else:
         print('Error: Data to assimilate is not known.')
@@ -1957,7 +2166,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             # Call particle filter 
             particles = particle_filter(ILC_a_cst,obs,K,Hpiv_Topos_K,particles,N_threshold,\
                                         np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
-                                        particles_past,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,pchol_cov_noises) 
+                                        particles_past,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,pchol_cov_noises,time[-1]) 
                                         
                                         
                                         
@@ -2067,18 +2276,22 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             line23.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
             line31.set_data(time,particles_mean[:,2])
+#            ax_3.collections.clear()
 #            ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
             line33.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
             line41.set_data(time,particles_mean[:,3])
+#            ax_4.collections.clear()
 #            ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
             line43.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
             line51.set_data(time,particles_mean[:,4])
+#            ax_5.collections.clear()
 #            ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
             line53.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
             line61.set_data(time,particles_mean[:,5])
+#            ax_6.collections.clear()
 #            ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
             line63.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
             
@@ -2179,7 +2392,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     #    time_bt_tot = np.arange(0,(bt_MCMC.shape[0])*dt_tot,n_simu*dt_tot*3)
     #    ref = bt_tot[:int(len(time_bt_tot)),:]
         for index in range(particles_mean.shape[1]):
-            plt.figure(index)
+            plt.figure(index,figsize=(12, 9))
             plt.ylim(-10, 10)
             ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
             if plot_ref==True:
@@ -2197,7 +2410,19 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.ylabel('Chronos '+r'$b'+str(index+1)+'$'+' amplitude',fontsize=20)
             plt.xlabel('Time',fontsize=20)
             plt.legend(fontsize=15)
+            file_res_mode = file_plots_res / Path(str(index+1) + '.pdf')
+#            file_res_mode = file_plots_res / Path(str(index+1) + '.png')
+#            file_res_mode = file_plots_res / Path(str(index+1) + '.jpg')
+#            file_res_mode = file_plots_res / str(index) + '.png'
+#            plt.savefig(file_res_mode)
+            plt.savefig(file_res_mode,dpi=200 )
+#            plt.savefig(file_res_mode,dpi=500 )
+#            plt.savefig(file_res_mode,quality = 95)
+            
         
+    ############################ Construct the path to select the model constants I,L,C,pchol and etc.
+    
+            
         
         
         
