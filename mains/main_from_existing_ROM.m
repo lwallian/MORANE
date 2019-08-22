@@ -150,6 +150,7 @@ cd(current_pwd);
 param_ref.folder_results=folder_results;
 param_ref.folder_data =folder_data ;
 param_ref.svd_pchol=svd_pchol;
+param_ref.eq_proj_div_free=eq_proj_div_free;
 
 % if nargin > 0
 %     plot_each_mode=false;

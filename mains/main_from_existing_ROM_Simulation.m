@@ -143,7 +143,7 @@ param_ref2.type_data = type_data;
 param_ref2.nb_modes = nb_modes;
 param_ref2.adv_corrected = adv_corrected;
 param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
-
+param_ref2.eq_proj_div_free = eq_proj_div_free;
 
 if (~ strcmp(choice_n_subsample,'auto_shanon'))
     modal_dt = true;
