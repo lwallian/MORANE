@@ -43,10 +43,12 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m,mutation,noi
     del L
     del C
     
-    noises_centered = np.random.normal(size=((n+1)*n,nb_pc1))
+    noises_centered = np.random.normal(size=(pchol_cov_noises.shape[1],nb_pc1))
+#    noises_centered = np.random.normal(size=((n+1)*n,nb_pc1))
     if mutation == True:
 #        pho = 0.995
-        noises_centered = pho*noise_past + np.sqrt(1-pho**2)*np.random.normal(size=((n+1)*n,nb_pc1))
+        noises_centered = pho*noise_past + np.sqrt(1-pho**2)*np.random.normal(size=(pchol_cov_noises.shape[1],nb_pc1))
+#        noises_centered = pho*noise_past + np.sqrt(1-pho**2)*np.random.normal(size=((n+1)*n,nb_pc1))
         
         
     noises = np.matmul(pchol_cov_noises,noises_centered)*np.sqrt(dt)

@@ -36,7 +36,8 @@ def evol_forward_bt_MCMC_each_particle(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_
     del C
     
     
-    noises = np.matmul(pchol_cov_noises,np.random.normal(size=((n_modes+1)*n_modes)))*np.sqrt(dt)
+    noises = np.matmul(pchol_cov_noises,np.random.normal(size=(pchol_cov_noises.shape[1])))*np.sqrt(dt)
+#    noises = np.matmul(pchol_cov_noises,np.random.normal(size=((n_modes+1)*n_modes)))*np.sqrt(dt)
     noises = noises[:,np.newaxis,np.newaxis]
     
     del pchol_cov_noises

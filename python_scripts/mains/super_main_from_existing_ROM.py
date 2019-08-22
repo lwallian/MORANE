@@ -40,6 +40,9 @@ if __name__ == '__main__':
     no_subampl_in_forecast = False 
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [False]
+    test_fct = 'b'
+    svd_pchol = True
+    choice_n_subsample = 'auto_shanon'
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
@@ -65,7 +68,8 @@ if __name__ == '__main__':
                         n_particle = 100
                         main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
                                                no_subampl_in_forecast,reconstruction,\
-                                               adv_corrected,modal_dt,n_particle)
+                                               adv_corrected,modal_dt,n_particle,\
+                                               test_fct,svd_pchol,choice_n_subsample)
     
 
     

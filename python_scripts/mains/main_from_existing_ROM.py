@@ -1281,6 +1281,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
     
     
+    #%% Reduction of the noise matrix
+    if svd_pchol:
+        U_cov_noises, S_cov_noises, _ = sps.linalg.svds(pchol_cov_noises, k=nb_modes)
+        pchol_cov_noises = U_cov_noises @ S_cov_noises
+
     
     #%% Parameters of the ODE of the b(t)
     
