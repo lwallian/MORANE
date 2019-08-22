@@ -6,6 +6,7 @@ function main(type_data,nb_modes,igrida,coef_correctif_estim,...
 
 global computed_PIV_variance_tensor
 global compute_fake_PIV
+global compute_PIV_modes
 
 %% Reset
 
@@ -233,6 +234,12 @@ if param.big_data
 end
 
 %% Quadratic variation tensor estimation
+if compute_PIV_modes
+    PIV_modes(param);
+    toc;tic;
+    disp('Fake PIV computation done');
+    keyboard;
+end
 if compute_fake_PIV
     Fake_PIV_data(param);
     toc;tic;

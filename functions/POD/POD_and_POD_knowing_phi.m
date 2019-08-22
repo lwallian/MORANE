@@ -258,16 +258,21 @@ bool = (exist(param.name_file_noise_cov,'file')==2 ) && ( ...
 % bool = (exist(param.name_file_diffusion_mode,'file')==2) || ...
 %         (exist(param_temp.name_file_diffusion_mode,'file')==2);
 
-% global computed_PIV_variance_tensor
-% if computed_PIV_variance_tensor 
-%     bool =true;
-%     warning('To remove after testing')
-% end
-% global compute_fake_PIV
-% if compute_fake_PIV 
-%     bool =true;
-%     warning('To remove after testing')
-% end
+global computed_PIV_variance_tensor
+if computed_PIV_variance_tensor 
+    bool =true;
+    warning('To remove after testing')
+end
+global compute_fake_PIV
+if compute_fake_PIV 
+    bool =true;
+    warning('To remove after testing')
+end
+global compute_PIV_modes
+if compute_PIV_modes 
+    bool =true;
+    warning('To remove after testing')
+end
 
 % Subsample residual velocity
 if ~ bool
