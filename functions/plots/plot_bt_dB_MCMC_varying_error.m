@@ -1,8 +1,8 @@
 function [ idx_min_error, idx_min_err_tot] = ...
     plot_bt_dB_MCMC_varying_error(...
     param,bt_forecast_sto_scalar,bt_forecast_sto_beta,...
-    bt_forecast_sto_a_cst_modal_dt, bt_forecast_sto_a_NC_modal_dt, bt_forecast_deter, ...
-    bt_forecast_MEV,bt_sans_coef1,bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC)
+    bt_pseudoSto, bt_forecast_sto_a_NC_modal_dt, bt_forecast_deter, ...
+    bt_forecast_MEV,bt_forecast_MEV_noise,struct_bt_MEV_noise,bt_tot,struct_bt_MCMC,bt_MCMC)
 % Plot the sum of the error along time (in log scale)
 %
 
@@ -60,6 +60,12 @@ end
 if nargin < 12
     bt_MCMC =nan(size(bt_tot));
 end
+if param.plot_EV_noise
+    bt_forecast_MEV_noise=bt_forecast_MEV_noise(1:N_test,:,:);
+    struct_bt_MEV_noise.tot.mean=struct_bt_MEV_noise.tot.mean(1:N_test,:);
+    struct_bt_MEV_noise.tot.var=struct_bt_MEV_noise.tot.var(1:N_test,:);
+    struct_bt_MEV_noise.tot.one_realiz=struct_bt_MEV_noise.tot.one_realiz(1:N_test,:);
+end
 bt_MCMC=bt_MCMC(1:N_test,:,:);
 struct_bt_MCMC.tot.mean=struct_bt_MCMC.tot.mean(1:N_test,:);
 struct_bt_MCMC.tot.var=struct_bt_MCMC.tot.var(1:N_test,:);
@@ -80,7 +86,7 @@ struct_bt_MCMC.tot.one_realiz=struct_bt_MCMC.tot.one_realiz(1:N_test,:);
 bt_tot=bt_tot(1:N_test,:);
 bt_forecast_deter=bt_forecast_deter(1:N_test,:);
 bt_forecast_MEV=bt_forecast_MEV(1:N_test,:);
-bt_sans_coef1=bt_sans_coef1(1:N_test,:);
+bt_pseudoSto=bt_pseudoSto(1:N_test,:);
 if ~ param.reconstruction
     param.truncated_error2=param.truncated_error2(1:N_test,:);
 end
@@ -247,7 +253,7 @@ bt_0 = sum((bt_tot).^2,2)/nrj_tot+err_fix;
 bt_forecast_deter = sum((bt_forecast_deter-bt_tot).^2,2)/nrj_tot+err_fix;
 % bt_forecast_sto_scalar = sum((bt_forecast_sto_scalar-bt_tot).^2,2)/nrj_tot+err_fix;
 % bt_forecast_sto_beta = sum((bt_forecast_sto_beta-bt_tot).^2,2)/nrj_tot+err_fix;
-bt_sans_coef1 = sum((bt_sans_coef1-bt_tot).^2,2)/nrj_tot+err_fix;
+bt_pseudoSto = sum((bt_pseudoSto-bt_tot).^2,2)/nrj_tot+err_fix;
 % bt_sans_coef_a_NC = sum((bt_sans_coef_a_NC-bt_tot).^2,2)/nrj_tot+err_fix;
 bt_forecast_MEV = sum((bt_forecast_MEV-bt_tot).^2,2)/nrj_tot+err_fix;
 struct_bt_MCMC.tot.mean = sum((struct_bt_MCMC.tot.mean-bt_tot).^2,2)/nrj_tot+err_fix;
@@ -263,6 +269,20 @@ bt_MCMC_min_error = bt_MCMC_min_error+err_fix;
 bt_MCMC_RMSE = mean(bt_MCMC,3)+err_fix;
 clear bt_MCMC
 struct_bt_MCMC.tot.var = struct_bt_MCMC.tot.var/nrj_tot;
+
+if param.plot_EV_noise
+    struct_bt_MEV_noise.tot.mean = sum((struct_bt_MEV_noise.tot.mean-bt_tot).^2,2)/nrj_tot+err_fix;
+    struct_bt_MEV_noise.tot.one_realiz = sum((struct_bt_MEV_noise.tot.one_realiz-bt_tot).^2,2)/nrj_tot+err_fix;
+    
+    bt_forecast_MEV_noise = sum(( bsxfun(@minus, bt_forecast_MEV_noise, bt_tot) ).^2,2)/nrj_tot;
+    err_tot_MEV_noise = sum(bt_forecast_MEV_noise,1);
+    [ err_tot_min_MEV_noise, idx_min_err_tot_MEV_noise] = min(err_tot_MEV_noise,[],3);
+    [ bt_forecast_MEV_noise_min_error, idx_min_error_MEV_noise] = min(bt_forecast_MEV_noise,[],3);
+    bt_forecast_MEV_noise_min_error = bt_forecast_MEV_noise_min_error+err_fix;
+    bt_forecast_MEV_noise_RMSE = mean(bt_forecast_MEV_noise,3)+err_fix;
+    clear bt_forecast_MEV_noise
+    struct_bt_MEV_noise.tot.var = struct_bt_MEV_noise.tot.var/nrj_tot;
+end
 
 %%
 
@@ -379,8 +399,8 @@ elseif strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')...
     % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
     % %     end
 elseif strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
-%     subplot(2,2,param.nb_modes/2);
-subplot(2,2,log2(param.nb_modes));
+    subplot(2,2,param.nb_modes/2);
+% subplot(2,2,log2(param.nb_modes));
     %     subplot(3,2,log2(param.nb_modes));
     % % elseif ( strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated') ) ...
     % %         && (param.nb_modes<=16)
@@ -407,6 +427,25 @@ k=1;
 % Real values
 
 hold on;
+
+if param.plot_EV_noise
+    delta_MEV = sqrt(abs (struct_bt_MEV_noise.tot.var(:,k)));
+    h_MEV = area (time_ref, [sqrt(err_fix), ...
+        delta_MEV]);
+%     h_MEV = area(time_ref, [struct_bt_MEV_noise.qtl(:,k), ...
+%         struct_bt_MEV_noise.diff(:,k)]);
+    set (h_MEV(1), 'FaceColor', 'none');
+    %         set (h_MEV(2), 'FaceColor', [0.6 0.9 0.9]);
+    %         set (h_MEV(2), 'FaceColor', [0.8 0.95 0.95]);
+    set (h_MEV(2), 'FaceColor', [0.85 0.95 0.95]);
+    %         set (h_MEV(2), 'FaceColor', [0.9 0.975 0.975]);
+    %         set (h_MEV(2), 'FaceColor', [0.6 0.8 0.8]);
+    set (h_MEV, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
+    % Raise current axis to the top layer, to prevent it
+    % from being hidden by the grayed area
+    set (gca, 'Layer', 'top');
+    
+end
 
 delta = sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
 % delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
@@ -436,7 +475,7 @@ if plot_EV
     plot(time,sqrt(bt_forecast_MEV(:,k))','b--', 'LineWidth', LineWidth);
     %     plot(time,sqrt(bt_forecast_MEV(:,k))','g', 'LineWidth', LineWidth);
 end
-% plot(time,sqrt(bt_sans_coef1(:,k))','r--', 'LineWidth', LineWidth);
+% plot(time,sqrt(bt_pseudoSto(:,k))','r--', 'LineWidth', LineWidth);
 
 plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
 % plot(time,sqrt(struct_bt_MCMC.fv.mean(:,k))','c', 'LineWidth', LineWidth);
@@ -444,6 +483,12 @@ plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
 plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
 % plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
 plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
+
+if param.plot_EV_noise
+    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g-+', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r-+', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m-+', 'LineWidth', LineWidth);
+end
 
 % if plot_modal_dt
 %     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);
@@ -459,7 +504,7 @@ save('D:\donnees\Stages_Red_LUM\PODFS-RedLUM\test\savematlab','var_save')
 
 hold off;
 
-%%
+% %%
 
 if ~logscale
     err_min=0;

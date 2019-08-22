@@ -12,6 +12,7 @@ function [tau] = simpleCorrelationTime(covMatrix, chronos, dt)
 cov_s = smallScaleVelocityCov(covMatrix, chronos);
 correlation = estimateAutocorrelation(cov_s);
 tau = sqrt(2 * mean((correlation).^2) / mean((diff(correlation) ./ dt).^2));
+tau = tau / dt;
 
 end
 

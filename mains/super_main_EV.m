@@ -39,12 +39,14 @@ vect_nb_modes = [ 16 8 6 4 2] % For a full test
 type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
 % % type_data = 'incompact3d_wake_episode3_cut_truncated'
 
+% Additive noise ?
+add_noise = true;
 
 %% With correctif coefficient
 % for q=1:length(v_threshold)
 
 for k=vect_nb_modes
     % for k=2:2:nb_modes_max
-    main_EV(k,type_data);
+    main_EV(k,type_data,add_noise);
 end
 

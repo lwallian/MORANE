@@ -90,7 +90,7 @@ else
                 dx_z_gradphi = diff_l(z_gradphi,1,dX); % 1 x 1 x d x 1 x Mx x My x Mz
                 dy_z_gradphi = diff_l(z_gradphi,2,dX); % 1 x 1 x d x 1 x Mx x My x Mz
                 dz_z_gradphi = diff_l(z_gradphi,3,dX); % 1 x 1 x d x 1 x Mx x My x Mz
-                div_z_gradphi = dx_z_gradphi(1,1,1,1,:,:,:) + dy_z_gradphi(1,1,2,1,:,:,:) + dy_z_gradphi(1,1,3,1,:,:,:); % 1 x 1 x 1 x 1 x Mx x My x Mz
+                div_z_gradphi = dx_z_gradphi(1,1,1,1,:,:,:) + dy_z_gradphi(1,1,2,1,:,:,:) + dz_z_gradphi(1,1,3,1,:,:,:); % 1 x 1 x 1 x 1 x Mx x My x Mz
                 div_z_gradphi = permute(div_z_gradphi, [5 6 7 1 2 3 4]); % Mx x My x Mz
                 xi_1(:,:,:,1,l) = div_z_gradphi;
             end

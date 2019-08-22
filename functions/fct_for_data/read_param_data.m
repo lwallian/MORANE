@@ -551,6 +551,28 @@ switch type_data
         rho0=1e3;
         
         
+    case 'incompact3D_noisy2D_40dt_subsampl_truncated'
+        load([ folder_data 'incompact3D_noisy2D_40dt_subsampl_truncated_U_centered.mat'])
+        
+        N_test = 374;
+        normalized = 1;
+        Re = 300;
+        
+        Mx = 146;
+        My = 107;
+        MX = [Mx, My];
+        [M,N_tot,d]=size(U);
+        dX = [0.1871, 0.1869];
+        dt = 0.08;
+        dx = dX(1);
+        dy = dX(2);
+        a = dx * (1 : Mx)';
+        b = dy * (1 : My)';
+        grid = {a, b'};
+        clear U;
+        
+        rho0=1e3;
+        
     case 'test_1_block'
         load([ folder_data 'data_test_1_block.mat']);
         

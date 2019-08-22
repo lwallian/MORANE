@@ -1,10 +1,10 @@
 function super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
-    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
+    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
+    decor_by_subsampl)
 % Launch a set of simulations with a several set of parameters
 % Especially several number of modes
 %
-
 
 % % Number of periods reconstructed
 % nb_period_test = 9;% for DNS 300
@@ -12,6 +12,10 @@ function super_main_from_existing_ROM(...
 
 if nargin == 0
     init;
+    global correlated_model
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     
     %% Number of modes for the the ROM
 %     vect_nb_modes = [ 16 8 6 4 2]
@@ -19,6 +23,7 @@ if nargin == 0
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
     vect_adv_corrected = [ false]
+    vect_svd_pchol = [true  ]
     
     %% Type of data
     % Other datasets (do not use)
@@ -82,6 +87,37 @@ if nargin == 0
             v_threshold=0.0005
             vect_modal_dt=false
     end
+    
+    % (specific) time sub-sampling (forced time-decorrelation of unresolved chronos)
+    decor_by_subsampl.bool=true;
+    % Choice of subsampling time step based on chronos
+    decor_by_subsampl.test_fct='b';
+    % Way the subsampling is done (in which part of the code)
+    % (can be  'bt_decor' or  'a_estim_decor')
+    decor_by_subsampl.meth='bt_decor';
+    % Meth to choose the time sub-sampling
+    % ('auto_shanon'=maxim frequency of resolved chronos)
+    % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
+    decor_by_subsampl.choice_n_subsample='auto_shanon'; % 'htgen' 'auto_shanon' 'lms'
+    % decor_by_subsampl.choice_n_subsample = 'corr_time';
+    
+    % Stochastic integration path : 'Ito' or 'Str'
+    stochastic_integration = 'Ito';
+    
+    % Definition of global variable to manage methods more easily
+    choice_n_subsample = decor_by_subsampl.choice_n_subsample;
+    
+    % During the noise covariance estimation,
+    % remove the finite-variation part of the chronos
+    estim_rmv_fv = true;
+    
+    correlated_model = false
+else    
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
+    global correlated_model
+    vect_svd_pchol = true;
 end
 
 % % v_threshold=[1 10]/1000;
@@ -98,7 +134,7 @@ end
 
 nb_modes_max = max(vect_nb_modes);
 
-
+for svd_pchol=vect_svd_pchol
 for modal_dt=vect_modal_dt
     for q=1:length(v_threshold)
         % parfor q=1:length(v_threshold)
@@ -112,7 +148,8 @@ for modal_dt=vect_modal_dt
                     %     for k=nb_modes_min:2:nb_modes_max
                     main_from_existing_ROM(k,threshold,type_data,...
                         nb_period_test,...
-                        no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+                        no_subampl_in_forecast,reconstruction,...
+                        adv_corrected,modal_dt,decor_by_subsampl.test_fct,svd_pchol)
                     %         main_full_sto_vect_modal_dt_2nd_res(k,v_threshold(q))
                 end
                 %% Save plot
@@ -151,10 +188,11 @@ for modal_dt=vect_modal_dt
         end
     end
 end
-
+end
 
 %% Plots
 super_main_from_existing_ROM_Simulation(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
-    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
+    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
+    decor_by_subsampl.test_fct,vect_svd_pchol)
 

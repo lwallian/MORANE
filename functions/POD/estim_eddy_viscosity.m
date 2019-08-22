@@ -64,15 +64,15 @@ end
 
 Y=(d_bt_obs - d_b_deter)';
 X= -1/param.viscosity * X;
-clear d_bt_obs d_b_deter
+clear d_b_deter
 
 %% Least Square
 % eddy_visco=zeros(1,nb_modes);
-% for i=1:nb_modes
-%     Y_i = Y(i,:)';
-%     X_i = X(i,:)';
+for i=1:nb_modes
+    Y_i = Y(i,:)';
+    X_i = X(i,:)';
 %     eddy_visco(i)= LS_constrained(X_i,Y_i,-inf);
-% end
+end
 X=X(:);
 Y=Y(:);
 eddy_visco = (X'*X)\(X'*Y);
@@ -86,5 +86,33 @@ ILC.EV.I=I_deter;
 ILC.EV.L=L_deter + eddy_visco/param.viscosity * L_used ;
 % ILC.MEV.L=L_deter + bsxfun(@times, eddy_visco/param.viscosity , L_used );
 ILC.EV.C=C_deter;
+
+%% Noise
+% if param.add_noise
+%     err = Y  - eddy_visco * X;
+%     sigma_err = sqrt( mean(err(:).^2) * dt );
+%     ILC.EV.sigma_err = sigma_err;
+% end
+if param.add_noise    
+%     sigma_err=zeros(1,nb_modes);
+%     for i=1:nb_modes
+%         Y_i = Y(i,:)';
+%         X_i = X(i,:)';
+%         err_i = Y_i  - eddy_visco * X_i;
+%         sigma_err(i) = sqrt( mean(err_i(:).^2) * dt );
+%     end
+%     ILC.EV.sigma_err = sigma_err;
+    
+    d_b_deter = deriv_bt(ILC.EV.I,ILC.EV.L,ILC.EV.C, bt); % (N-2) x m
+    % Error
+    err = (d_bt_obs - d_b_deter)';
+    % Remove bias
+    err = bsxfun(@plus, err, - mean(err,2));
+    mat_cov_error = 1/(size(err,2)-1) * (err * err') * dt  ;
+    
+    p_chol = zeros([param.nb_modes*(param.nb_modes+1),param.nb_modes]);
+    p_chol(1:param.nb_modes,:) = chol(mat_cov_error,'lower');
+    ILC.EV.pchol_cov_noises = p_chol;
+end
 
 end

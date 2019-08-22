@@ -4,6 +4,10 @@ function main(type_data,nb_modes,igrida,coef_correctif_estim,...
 % Launch a complete simulation with a fixed set of parameters
 %
 
+global computed_PIV_variance_tensor
+global compute_fake_PIV
+global compute_PIV_modes
+
 %% Reset
 
 % init; 
@@ -144,9 +148,13 @@ if ~exist('decor_by_subsampl','var')
         % 'auto_shanon' means that it use a Nyquist-Shanon based criterion
         % 'tuning' means that param.decor_by_subsampl.n_subsampl_decor is
         % set manually
-        % 'corr_time' uses the autocorrelation time to choose the
-        % subsampling rate.
-        param.decor_by_subsampl.choice_n_subsample='corr_time';
+        % 'lms' uses the correlation time estimated through an lms filtered
+        % correlation function to choose the subsampling rate.
+        % 'truncated' uses the correlation time estimated through a 
+        % truncated correlation function to choose the subsampling rate.
+        % 'htgen' uses the correlation time estimated through an
+        % heterogeneous estimator to choose the subsampling rate.
+        param.decor_by_subsampl.choice_n_subsample='auto_shanon';
         % param.decor_by_subsampl.spectrum_threshold and param.decor_by_subsampl.test_fct
         % are parameters used in the new time sampling period choice.
         % spectrum_threshold is a threshold to know
@@ -177,7 +185,7 @@ param.eq_proj_div_free = true;
 % if param.save_all_bi = true, the N Chronos will be computed and saved
 % with N = the number of time steps
 % It can be useful for offline studies
-if ~exist('save_all_bi','var')
+if ~exist('save_all_bi', 'var')
     param.save_all_bi = false;
 else % the variable is already defined in a super_main
     param.save_all_bi = save_all_bi;
@@ -199,7 +207,7 @@ plot_bts = true;
 % else
     param.folder_results = [ pwd '/resultats/current_results/'];
     current_pwd = pwd; cd ..
-    param.folder_data = [ pwd '/data/' ];
+    param.folder_data = [ pwd '/data/'];
     cd(current_pwd); clear current_pwd
 %     param.folder_results = ['/Users/Resseguier/Documents/MATLAB/POD/all/resultats/current_results/'];
 %     param.folder_data = '/Users/Resseguier/Documents/MATLAB/POD/data/';
@@ -226,7 +234,24 @@ if param.big_data
 end
 
 %% Quadratic variation tensor estimation
-
+if compute_PIV_modes
+    PIV_modes(param);
+    toc;tic;
+    disp('Fake PIV computation done');
+    keyboard;
+end
+if compute_fake_PIV
+    Fake_PIV_data(param);
+    toc;tic;
+    disp('Fake PIV computation done');
+    keyboard;
+end
+if computed_PIV_variance_tensor
+    quadratic_variation_estimation_PIV(param,bt_tot);
+    toc;tic;
+    disp('PIV variance tensor estimation done');
+    keyboard;
+end
 % Computation of the variance tensor a
 % or computation of its parameters z_i(x)
 % Since it is big data, they are saved in specific files
@@ -261,24 +286,48 @@ if param.big_data
     disp('Galerkin projection on deterministic Navier-Stokes done');
 end
 % Additional coefficients due to stochastic terms
+global stochastic_integration
 if param.adv_corrected
-    [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
+    if strcmp(stochastic_integration, 'Ito')
+        [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
+    elseif strcmp(stochastic_integration, 'Str')
+        [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
+        [F1, ~] = coefficients_sto(param);
+        L_sto = L_sto - F1;
+    else
+        error('Invalid stochastic integration path');
+    end
 else
-    [F1 ~] = coefficients_sto(param);
+    if strcmp(stochastic_integration, 'Ito')
+        [F1, ~] = coefficients_sto(param);
+    elseif strcmp(stochastic_integration, 'Str')
+        F1 = zeros([param.nb_modes param.nb_modes 1]);
+    else
+        error('Invalid stochastic integration path')
+    end
     L_sto = F1;
     I_sto = zeros([param.nb_modes 1]);
     C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);
 end
 
+deter = struct('I',I_deter,'L',L_deter,'C',C_deter);
+sto = struct('I',I_sto,'L',L_sto,'C',C_sto);
 I_sto = I_deter + I_sto;
 L_sto = L_deter + L_sto;
 C_sto = C_deter + C_sto;
+tot = struct('I',I_sto,'L',L_sto,'C',C_sto);
+ILC=struct('deter',deter,'sto',sto,'tot',tot);
 if param.big_data
     toc;tic;
     disp('Galerkin projection on stochastic Navier-Stokes done');
 end
 
-[Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot);
+global correlated_model;
+if correlated_model
+    [Cov_noises, pchol_cov_noises, Mi_sigma, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt_tot);
+else
+    [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot,ILC.tot);
+end
 
 if param.big_data
 	toc;tic;
@@ -287,7 +336,8 @@ end
 
 %% Save first results, especially I, L, C
 clear plot_modal_dt
-param = fct_name_1st_result(param);
+% param = fct_name_1st_result(param);
+param = fct_name_1st_result_new(param);
 save(param.name_file_1st_result,'-v7.3');
 clear coef_correctif_estim
 if param.igrida
@@ -361,34 +411,101 @@ if ~param.igrida && reconstruct_chronos
 %     param.N_test=param.N_test*n_simu;
     
     % Reconstruction in the stochastic case
-    bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
-    bt_fv=bt_MCMC;
-    bt_m=zeros(1,param.nb_modes,param.N_particules);
-    for l = 1:param.N_test
-        [bt_MCMC(l+1,:,:),bt_fv(l+1,:,:),bt_m(l+1,:,:)] = ...
-            evol_forward_bt_MCMC(I_sto,L_sto,C_sto, ...
-            pchol_cov_noises, param.dt, bt_MCMC(l,:,:), ...
-            bt_fv(l,:,:),bt_m(l,:,:));
+    if strcmp(stochastic_integration, 'Ito') && ~correlated_model
+        bt_MCMC = repmat(bt_tronc,[1 1 param.N_particules]);
+        bt_fv = bt_MCMC;
+        bt_m = zeros(1, param.nb_modes, param.N_particules);
+        for l = 1 : param.N_test
+            [bt_MCMC(l+1, :, :), bt_fv(l+1, :, :), bt_m(l+1, :, :)] = ...
+                evol_forward_bt_MCMC(I_sto, L_sto, C_sto, ...
+                pchol_cov_noises, param.dt, bt_MCMC(l, :, :), ...
+                bt_fv(l, :, :),bt_m(l, :, :));
+        end
+        clear bt_tronc
+        
+        param.dt = param.dt * n_simu;
+        param.N_test = param.N_test / n_simu;
+        bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+        bt_fv = bt_fv(1 : n_simu : end, :, :);
+        bt_m = bt_m(1 : n_simu : end, :, :);
+        bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+        bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
+        
+        struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+        struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+        struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+        struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+        struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+        struct_bt_MCMC.m.mean = mean(bt_m, 3);
+        struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+        struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
+        
+    elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
+        bt_MCMC = repmat(bt_tronc, [1 1 param.N_particules]);
+        for l = 1 : param.N_test
+            [bt_MCMC(l+1, :, :)] = ...
+                evol_forward_bt_SSPRK3_MCMC(I_sto, L_sto, C_sto, ...
+                pchol_cov_noises, param.dt, bt_MCMC(l, :, :));
+        end
+        clear bt_tronc
+        
+        param.dt = param.dt * n_simu;
+        param.N_test = param.N_test / n_simu;
+        bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+        bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+        bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
+        
+        struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+        struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+    elseif correlated_model
+        global tau_ss;
+        bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+        bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
+        bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
+        bt_fv = bt_MCMC;
+        bt_m = zeros(1, param.nb_modes, param.N_particules);
+        
+        % Initialization of model's stochastic variables
+        eta_0 = permute(eta_0, [3, 1, 2, 4]);
+        eta = repmat(eta_0, [1, 1, 1, param.N_particules]);
+        Gr = randn(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+        Mi_ss_0 = permute(Mi_ss_0, [3, 1, 2, 4]);
+        Mi_ss = repmat(Mi_ss_0, [1, 1, 1, param.N_particules]);
+        
+        for l = 1 : param.N_test
+        [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
+            eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+            evol_forward_correlated_centered(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+            pchol_cov_noises, tau_ss * param.dt, param.dt, bt_MCMC(l, :, :), ...
+            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
+        end
+        clear bt_tronc
+        
+        param.dt = param.dt * n_simu;
+        param.N_test = param.N_test / n_simu;
+        bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+        bt_fv = bt_fv(1 : n_simu : end, :, :);
+        bt_m = bt_m(1 : n_simu : end, :, :);
+        eta = eta(1 : n_simu : end, :, :, :);
+        Gr = Gr(1 : n_simu : end, :, :, :);
+        Mi_ss = Mi_ss(1: n_simu : end, :, :);
+        bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
+        bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
+        
+        struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+        struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+        struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+        struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+        struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+        struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+        struct_bt_MCMC.m.mean = mean(bt_m, 3);
+        struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+        struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
+    else
+        error('Invalid stochastic integration path')
     end
-    clear bt_tronc
-    
-    param.dt = param.dt*n_simu;
-    param.N_test=param.N_test/n_simu;
-    bt_MCMC=bt_MCMC(1:n_simu:end,:,:);
-    bt_fv=bt_fv(1:n_simu:end,:,:);
-    bt_m=bt_m(1:n_simu:end,:,:);
-    bt_forecast_sto=bt_forecast_sto(1:n_simu:end,:);
-    bt_forecast_deter=bt_forecast_deter(1:n_simu:end,:);
-    
-    struct_bt_MCMC.tot.mean = mean(bt_MCMC,3);
-    struct_bt_MCMC.tot.var = var(bt_MCMC,0,3);
-    struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
-    struct_bt_MCMC.fv.mean = mean(bt_fv,3);
-    struct_bt_MCMC.fv.var = var(bt_fv,0,3);
-    struct_bt_MCMC.fv.one_realiz = bt_fv(:,:,1);
-    struct_bt_MCMC.m.mean = mean(bt_m,3);
-    struct_bt_MCMC.m.var = var(bt_m,0,3);
-    struct_bt_MCMC.m.one_realiz = bt_m(:,:,1);
     
     % BETA : confidence interval
     struct_bt_MCMC.qtl = quantile(bt_MCMC, 0.025, 3);
@@ -402,7 +519,7 @@ if ~param.igrida && reconstruct_chronos
     
     %% Save 2nd results, especially I, L, C and the reconstructed Chronos
     if param.decor_by_subsampl.bool
-        if strcmp(dependance_on_time_of_a,'a_t')
+        if strcmp(dependance_on_time_of_a, 'a_t')
             char_filter = [ '_on_' param.type_filter_a ];
         else
             char_filter = [];
@@ -415,15 +532,15 @@ if ~param.igrida && reconstruct_chronos
 %             '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
 %             'fct_test_' param.decor_by_subsampl.test_fct ];
     else
-        file_save=[ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
+        file_save = [ param.folder_results '2ndresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
             dependance_on_time_of_a ];
     end
-    file_save=[file_save '_fullsto'];
+    file_save = [file_save '_fullsto'];
     if ~ param.adv_corrected
-        file_save=[file_save '_no_correct_drift'];
+        file_save = [file_save '_no_correct_drift'];
     end
-    file_save=[file_save '_reconstruction'];
-    file_save=[file_save '.mat'];
+    file_save = [file_save '_reconstruction'];
+    file_save = [file_save '.mat'];
     save(file_save);
     clear C_deter C_sto L_deter L_sto I_deter I_sto
     if param.big_data
@@ -433,24 +550,23 @@ end
 %% Plots of the reconstructed Chronos
 plot_bts = false;
 if plot_bts
-    
-    param.plot.plot_deter=plot_deterministic;
-    param.plot.plot_EV=false;
-    param.plot.plot_tuned=false;
+    param.plot.plot_deter = plot_deterministic;
+    param.plot.plot_EV = false;
+    param.plot.plot_tuned = false;
     param.plot_modal_dt = false;
     
     % plot_bt_dB(param,bt_tot,bt_tot,...
     %     bt_tot, bt_tot, bt_forecast_deter,...
     %     bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot)
     
-    plot_bt_dB_MCMC(param,bt_tot,bt_tot,...
+    plot_bt_dB_MCMC(param, bt_tot, bt_tot,...
             bt_tot, bt_tot, bt_forecast_deter,...
-            bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+            bt_tot, bt_forecast_sto, bt_forecast_sto, bt_tot, struct_bt_MCMC)
     
     if plot_each_mode
         plot_bt_MCMC(param,bt_tot,bt_tot,...
             bt_tot, bt_tot, bt_forecast_deter,...
-            bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+            bt_tot, bt_forecast_sto, bt_forecast_sto, bt_tot, struct_bt_MCMC)
     end
 end
 % if plot_bts

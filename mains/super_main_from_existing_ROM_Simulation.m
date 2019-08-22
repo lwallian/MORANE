@@ -1,17 +1,22 @@
 function super_main_from_existing_ROM_Simulation(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
-    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected)
+    no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,test_fct,vect_svd_pchol)
 % Launch a set of simulations with a several set of parameters
 % Especially several number of modes
 %
 
 close all
 
+
 if nargin == 0
     init;
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     
     %% Number of modes for the the ROM
-    vect_nb_modes = [2 4 6 8]
+%     vect_nb_modes = [2 4 6 8]
+    vect_nb_modes = [16]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
@@ -20,9 +25,12 @@ if nargin == 0
     
     % To choose between the shannon and correlation time downsampling
     % methods
-    global choice_n_subsample;
 %     choice_n_subsample = 'auto_shannon';
-    choice_n_subsample = 'auto_corr_time';
+    choice_n_subsample = 'auto_shanon'; % 'auto_shanon' 'htgen' 'lms'
+    stochastic_integration = 'Str'; % 'Str'  'Ito'
+    estim_rmv_fv = false;
+    test_fct ='b';
+    vect_svd_pchol = true
     
     %% Type of data
     % Other datasets (do not use)
@@ -43,10 +51,10 @@ if nargin == 0
     % % type_data = 'turb2D_blocks_truncated'
     
     % These 3D data ( Re 300) gives good results
-%     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
     
     % These 2D data ( Re 100) gives good results
-    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
@@ -86,9 +94,18 @@ if nargin == 0
             v_threshold=0.0005
             vect_modal_dt=false
     end
+    
+    if strcmp(choice_n_subsample, 'corr_time')
+        v_threshold = NaN;
+    end
+else
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
 end
 nb_modes_max = max(vect_nb_modes);
 
+for svd_pchol=vect_svd_pchol
 for modal_dt=vect_modal_dt
     for adv_corrected=vect_adv_corrected
         for reconstruction = vect_reconstruction
@@ -98,7 +115,7 @@ for modal_dt=vect_modal_dt
                 for k=vect_nb_modes
                     main_from_existing_ROM_Simulation(type_data,k,...
                         v_threshold(q),...
-                        no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+                        no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol)
                     
                     switch type_data
                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
@@ -123,15 +140,18 @@ for modal_dt=vect_modal_dt
                 iii = (threshold =='.');
                 threshold(iii)='_';
                 
-                global choice_n_subsample;
+                dir = [ folder_results type_data '/sum_modes_n=' ...
+                    num2str(nb_modes_max) ];
+                mkdir(dir);
+                
                 switch choice_n_subsample
                     case 'auto_shanon'
-                        str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-                            num2str(nb_modes_max) '_threshold_' threshold ...
+                        str = ['print -dpng ' dir '/' choice_n_subsample ...
+                            'threshold_' threshold ...
                             '_fullsto'];
-                    case 'auto_corr_time'
-                        str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
-                            num2str(nb_modes_max) 'auto_corr_time_fullsto'];
+                    otherwise
+                        str = ['print -dpng ' dir '/' choice_n_subsample ...
+                            'auto_corr_time_fullsto'];
                 end
 %                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
 %                     num2str(nb_modes_max) 'auto_corr_time_fullsto'];
@@ -149,6 +169,13 @@ for modal_dt=vect_modal_dt
                 else
                     str =[ str '_forecast'];
                 end
+                str = [str '_integ_' stochastic_integration];
+                if estim_rmv_fv
+                    str=[str '_estim_rmv_fv'];
+                end
+                if svd_pchol
+                    str=[str '_svd_pchol'];
+                end
                 str =[ str '.png'];
                 str
                 drawnow
@@ -157,4 +184,5 @@ for modal_dt=vect_modal_dt
             end
         end
     end
+end
 end

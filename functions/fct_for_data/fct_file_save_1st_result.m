@@ -1,7 +1,9 @@
 function file_save = fct_file_save_1st_result(param)
+% function file_save = fct_file_save_1st_result(param)
 % Create the file name to save the first results of the POD
 %
-
+global stochastic_integration;
+global correlated_model;
 
 if param.a_time_dependant
     dependance_on_time_of_a = '_a_time_dependant_';
@@ -22,7 +24,7 @@ if param.decor_by_subsampl.bool
                 '_choice_' num2str(param.decor_by_subsampl.choice_n_subsample)  ...
                 '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold)  ...
                 'fct_test_' param.decor_by_subsampl.test_fct ];
-        case 'auto_corr_time'
+        otherwise
             file_save=[ param.folder_results '1stresult_' param.type_data '_' num2str(param.nb_modes) '_modes_' ...
                 dependance_on_time_of_a char_filter ...
                 '_decor_by_subsampl_' num2str(param.decor_by_subsampl.meth) ...
@@ -36,4 +38,8 @@ end
 if isfield(param,'N_estim')
     file_save=[file_save '_p_estim_' num2str(param.period_estim)];
 end
+if correlated_model
+    file_save = [file_save, '_correlated'];
+end
+file_save = [file_save '_integ_' stochastic_integration];
 file_save=[file_save '.mat'];

@@ -1,5 +1,5 @@
 function main_from_existing_ROM_Simulation(type_data,nb_modes,...
-    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt)
+    threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -13,6 +13,7 @@ tic
 % Plots to do
 plot_deterministic=true; % deterministic POD-Galerkin
 plot_EV=true; % estimated Eddy Visocvity
+plot_EV_noise=false; % estimated Eddy Visocvity
 plot_tuned=false; % estimated corrective coefficients
 
 if nargin < 7
@@ -49,7 +50,7 @@ plot_each_mode=false;
 % % % n_simu = 100;
 
 % On which function the Shanon ctriterion is used
-test_fct='b'; % 'b' is better than db
+% test_fct='b'; % 'b' is better than db
 
 % Learning duration
 % period_estim=3;
@@ -79,6 +80,22 @@ test_fct='b'; % 'b' is better than db
 if nargin == 0
     nb_modes = 2;
 end
+
+% On which function the Shanon ctriterion is used
+if nargin < 8 
+    test_fct = 'b';
+end
+if nargin < 9 
+    svd_pchol = false;
+end
+% if nargin < 9 
+%     test_fct = 'b';
+% end
+% if nargin < 10 
+%     svd_pchol = false;
+% end
+param_ref2.decor_by_subsampl.test_fct = test_fct;
+param_ref2.svd_pchol=svd_pchol;
 
 % % On which function the Shanon ctriterion is used
 % decor_by_subsampl.test_fct = 'b';
@@ -116,49 +133,110 @@ folder_data_ref = folder_data;
 a_t='_a_cst_';
 
 global choice_n_subsample;
-switch choice_n_subsample
-    case 'auto_shanon'
-        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_thr_' ...
-            num2str(threshold) ...
-            'fct_test_' test_fct ];
-    case 'auto_corr_time'
-        file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-            a_t '_decor_by_subsampl_bt_decor_choice_auto_corr_time_' ...
-            'fct_test_' test_fct];
-end
+global stochastic_integration;
+global estim_rmv_fv;
+global correlated_model;
 
-% file_res_2nd_res = [ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-%             a_t '_decor_by_subsampl_bt_decor_choice_auto_corr_time_'...
-%             'fct_test_' test_fct ]; % there's no param...
+param_ref2.decor_by_subsampl.spectrum_threshold = threshold;
+param_ref2.type_data = type_data;
+param_ref2.nb_modes = nb_modes;
+param_ref2.adv_corrected = adv_corrected;
+param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
+
+
+if (~ strcmp(choice_n_subsample,'auto_shanon'))
+    modal_dt = true;
+end
+param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
+file_res_2nd_res = param_ref2.name_file_2nd_result;
+file_res_2nd_res
+erase(file_res_2nd_res,'_modal_dt')
+if ~ (exist(file_res_2nd_res,'file') == 2)
+    if (~ strcmp(choice_n_subsample,'auto_shanon')) && ...
+            (exist(erase(file_res_2nd_res,'_modal_dt'),'file') == 2)
+        file_res_2nd_res = erase(file_res_2nd_res,'_modal_dt');
+    else        
+        switch choice_n_subsample
+            case 'auto_shanon'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
+                    num2str(threshold) ...
+                    'fct_test_' test_fct ];
+            case 'lms'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_lms_' ...
+                    'fct_test_' test_fct];
+            case 'truncated'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_truncated_' ...
+                    'fct_test_' test_fct];
+            case 'htgen'
+                file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
+                    a_t '_decor_by_subsampl_bt_decor_choice_htgen_' ...
+                    'fct_test_' test_fct];
+            otherwise
+                error('unknown case');
+        end
         
-% file_res_2nd_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-%             a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
-%             num2str(threshold) ...
-%             'fct_test_' test_fct ];
-% if modal_dt
-%     file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
-% end
-
-file_res_2nd_res=[file_res_2nd_res '_fullsto'];
-if modal_dt == 1
-    file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
-elseif modal_dt == 2
-    file_res_2nd_res=[file_res_2nd_res '_real_dt'];
+        file_res_2nd_res=[file_res_2nd_res '_fullsto'];
+        if modal_dt == 1
+            file_res_2nd_res=[file_res_2nd_res '_modal_dt'];
+        elseif modal_dt == 2
+            file_res_2nd_res=[file_res_2nd_res '_real_dt'];
+        end
+        if ~ adv_corrected
+            file_res_2nd_res=[file_res_2nd_res '_no_correct_drift'];
+        end
+        if no_subampl_in_forecast
+            file_res_2nd_res=[file_res_2nd_res '_no_subampl_in_forecast'];
+        end
+        if reconstruction
+            file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
+        end
+        if correlated_model
+            file_res_2nd_res = [file_res_2nd_res '_correlated_'];
+        end
+        file_res_2nd_res_save = file_res_2nd_res;
+        file_res_2nd_res=[file_res_2nd_res '_integ_' stochastic_integration];
+        if estim_rmv_fv
+            file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
+            param.estim_rmv_fv = true;
+        end
+        if svd_pchol
+            file_res_2nd_res=[file_res_2nd_res '_svd_pchol'];
+        end
+        
+        % Annoying cases
+        file_res_2nd_res=[file_res_2nd_res '.mat'];
+        if (~(exist(file_res_2nd_res,'file') == 2)) ...
+                && strcmp(stochastic_integration,'Ito')
+            file_res_2nd_res = file_res_2nd_res_save;
+            if estim_rmv_fv
+                file_res_2nd_res=[file_res_2nd_res '_estim_rmv_fv'];
+                param.estim_rmv_fv = true;
+            end
+            if svd_pchol
+                file_res_2nd_res=[file_res_2nd_res '_svd_pchol'];
+            end
+            file_res_2nd_res=[file_res_2nd_res '.mat'];
+        else
+            clear file_res_2nd_res_save;
+        end
+        if (~(exist(file_res_2nd_res,'file') == 2)) && ...
+                strcmp(choice_n_subsample,'auto_shanon')
+            file_res_2nd_res = erase(file_res_2nd_res,'_modal_dt');
+            if (~(exist(file_res_2nd_res,'file') == 2)) ...
+                    && strcmp(stochastic_integration,'Ito')
+                file_res_2nd_res = erase(file_res_2nd_res,'_integ_Ito');
+            end            
+        end
+            
+    end
 end
-if ~ adv_corrected
-    file_res_2nd_res=[file_res_2nd_res '_no_correct_drift'];
-end
-if no_subampl_in_forecast
-    file_res_2nd_res=[file_res_2nd_res '_no_subampl_in_forecast'];
-end
-if reconstruction
-    file_res_2nd_res=[file_res_2nd_res '_reconstruction'];
-end
-
-file_res_2nd_res=[file_res_2nd_res '.mat'];
 load(file_res_2nd_res)
-
+if (~ strcmp(choice_n_subsample,'auto_shanon'))
+    modal_dt = false;
+end
 
 if reconstruction
     param.reconstruction=true;
@@ -223,9 +301,54 @@ param.folder_results=param_ref2.folder_results;
 
 struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 
-
+if ~isfield(struct_bt_MCMC,'qtl')
+    % BETA : confidence interval
+    struct_bt_MCMC.qtl = fx_quantile(bt_MCMC, 0.025, 3);
+    struct_bt_MCMC.diff = fx_quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
+    save(file_res_2nd_res,'struct_bt_MCMC','-append');
+end
 
 %% Eddy viscosity solutions
+
+param.plot_EV_noise = plot_EV_noise;
+if plot_EV_noise
+    param.plot.plot_EV= plot_EV;
+    file_EV=[ param.folder_results 'EV_result_' param.type_data ...
+        '_' num2str(param.nb_modes) '_modes'];
+    file_EV=[file_EV '_noise.mat'];
+    load(file_EV,'param_deter',...
+        'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+    %     load(file_EV,'param_deter',...
+    %         'bt_forecast_deter',...
+    %         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
+    %     if modal_dt ~= 1
+    bt_forecast_MEV = ...
+        bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:,:);
+    bt_forecast_EV = ...
+        bt_forecast_EV(1:param.decor_by_subsampl.n_subsampl_decor:end,:,:);
+    
+%     bt_forecast_EV= reshape( bt_forecast_EV, ...
+%         [param.N_test+1 param.nb_modes param.N_particules]);
+%     bt_forecast_MEV= reshape( bt_forecast_MEV, ...
+%         [param.N_test+1 param.nb_modes param.N_particules]);
+    bt_forecast_EV_noise = bt_forecast_EV; clear bt_forecast_EV
+    bt_forecast_MEV_noise = bt_forecast_MEV; clear bt_forecast_MEV
+    bt_forecast_MEV_noise = bt_forecast_EV_noise;
+    %     end
+    clear bt_forecast_EV_noise
+    
+    struct_bt_MEV_noise.tot.mean = mean(bt_forecast_MEV_noise, 3);
+    struct_bt_MEV_noise.tot.var = var(bt_forecast_MEV_noise, 0, 3);
+    struct_bt_MEV_noise.tot.one_realiz = bt_forecast_MEV_noise(:, :, 1);
+    % BETA : confidence interval
+    struct_bt_MEV_noise.qtl = fx_quantile(bt_forecast_MEV_noise, 0.025, 3);
+    struct_bt_MEV_noise.diff = fx_quantile(bt_forecast_MEV_noise, 0.975, 3) ...
+        - struct_bt_MEV_noise.qtl;
+else
+    struct_bt_MEV_noise = nan;
+    bt_forecast_MEV_noise = nan;
+end
+
 if plot_EV
     param.plot.plot_EV= plot_EV;
     file_EV=[ param.folder_results 'EV_result_' param.type_data ...
@@ -242,6 +365,8 @@ if plot_EV
     clear bt_forecast_EV
     bt_forecast_MEV = ...
         bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+else
+    bt_forecast_MEV = nan;
 end
 
 
@@ -264,7 +389,9 @@ if plot_bts
     %     if param_ref.plot_each_mode
     plot_bt_MCMC(param,bt_tot,bt_tot,...
         bt_tot, bt_tot, bt_forecast_deter,...
-        bt_forecast_MEV,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+        bt_forecast_MEV,struct_bt_MEV_noise,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+%         bt_forecast_MEV,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
+
     %     plot_bt_MCMC(param,bt_tot,bt_tot,...
     %         bt_tot, bt_tot, bt_forecast_deter,...
     %         bt_tot,bt_forecast_sto,bt_forecast_sto,bt_tot,struct_bt_MCMC)
@@ -280,8 +407,10 @@ if plot_bts
     
     [ idx_min_error, idx_min_err_tot] = ...
         plot_bt_dB_MCMC_varying_error(param,zzz,zzz,...
-        zzz, zzz, bt_forecast_deter,...
-        bt_forecast_MEV,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
+        bt_forecast_sto, zzz, bt_forecast_deter,...
+        bt_forecast_MEV,bt_forecast_MEV_noise,struct_bt_MEV_noise,...
+        bt_tot,struct_bt_MCMC,bt_MCMC)
+%         bt_forecast_MEV,bt_forecast_sto,zzz,bt_tot,struct_bt_MCMC,bt_MCMC)
     save(file_res_2nd_res,'idx_min_error','idx_min_err_tot','-append')
     %         otherwise
     %             %     plot_bt_dB_MCMC(param,zzz,zzz,...
