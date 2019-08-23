@@ -1299,10 +1299,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
 #        else:
 #            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
-            
-        
-        
-       
+    
+    #%%  Initialize randm generator
+    np.random.seed()      
     
     #%%  Parameters already chosen
     
