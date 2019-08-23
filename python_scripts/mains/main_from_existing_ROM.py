@@ -31,7 +31,7 @@ u_inf_measured = 0.388                  # The PIV measured velocity (See the .pn
 cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
 center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
 center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
-Re = 300                                # Reynolds constant
+#Re = 300                                # Reynolds constant
 center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 
@@ -1269,22 +1269,36 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         subsampling_PIV_grid_factor = subsampling_PIV_grid_factor_gl
     
     
+    switcher = {
+    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 300 ,
+    'DNS100_inc3d_2D_2018_11_16_blocks_truncated': 100  
+    }
+    Re = switcher.get(type_data,[float('Nan')])
+    
     if assimilate == 'real_data':
-        dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
+        switcher = {
+        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 0.080833  # BEST
+        }
+        dt_PIV = switcher.get(type_data,[float('Nan')])
+        plot_ref = plot_ref_gl 
+#        dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
         number_of_PIV_files = int(SECONDS_OF_SIMU/dt_PIV) + 1                                                 # Number of PIV files to load
         vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
         vector_of_assimilation_time = vector_of_assimilation_time[::factor_of_PIV_time_subsampling]              # Using the factor to select the moments that we will take to assimilate
     elif assimilate == 'fake_real_data':
         plot_ref = True                     # Plot bt_tot
-        dt_PIV = 0.25                       # Temporal step between 2 consecutive PIV images.
-        nb_snapshots_each_file = 16         # The amount of snapshots that each file contains
-        time_per_file = (nb_snapshots_each_file)*dt_PIV
-        if SECONDS_OF_SIMU%time_per_file == 0:
-            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
-        else:
-            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
-    else:
-        plot_ref = plot_ref_gl 
+        switcher = {
+        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 80 ,
+        'DNS100_inc3d_2D_2018_11_16_blocks_truncated': 14  
+        }
+        nb_file_learning_basis = switcher.get(type_data,[float('Nan')])
+#        dt_PIV = 0.25                       # Temporal step between 2 consecutive PIV images.
+#        nb_snapshots_each_file = 16         # The amount of snapshots that each file contains
+#        time_per_file = (nb_snapshots_each_file)*dt_PIV
+#        if SECONDS_OF_SIMU%time_per_file == 0:
+#            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+#        else:
+#            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
             
         
         
@@ -1612,8 +1626,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             - THE NOISE IS UNCORRELATED IN TIME AND IN SPACE. SUBSAMPLING SPATIALLY AND TEMPORALLY CAN INCREASE THE POSSIBILITY OF BE TRUE.
     
     '''
-    
-    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
+    threshold_ = str(threshold).replace('.', '_',)
+    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').\
+    joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])\
+             +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
+#    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
     Sigma_inverse_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
     
     
@@ -1968,16 +1985,30 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         The case of assimilate fake_real_data is choosen when it should be assimilated the DNS smoothed and with noise. Hence, 
         a fake PIV(real data).
         '''
-        index_final = SECONDS_OF_SIMU/dt_PIV
         i=1
-        file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)+'_fake').joinpath('strat'+str(80+i)+'_U_temp_PIV')   # The path to load PIV data
+        file = (Path(__file__).parents[3]).joinpath('data_PIV')\
+        .joinpath('wake_Re'+str(Re)+'_fake')\
+        .joinpath('strat'+str(nb_file_learning_basis+i)+'_U_temp_PIV')   # The path to load PIV data
         data = hdf5storage.loadmat(str(file)) 
         vector_of_assimilation_time = np.array(data['interval_time_local'][0,:])
+        
+        dt_PIV = np.array(data['dt'][0,:])
+        index_final = SECONDS_OF_SIMU/dt_PIV
         vector_flow = data['U'].copy()
+        
+        nb_snapshots_each_file = vector_flow.shape[1]
+        time_per_file = (nb_snapshots_each_file)*dt_PIV
+        if SECONDS_OF_SIMU%time_per_file == 0:
+            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+        else:
+            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
+        
         print('Loading Fake PIV data:'+str(number_of_FAKE_PIV_files)+' files ...')
         if number_of_FAKE_PIV_files>1:
             for i in range(1,number_of_FAKE_PIV_files+1,1)[1:]:
-                file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)+'_fake').joinpath('strat'+str(80+i)+'_U_temp_PIV')   # The path to load PIV data
+                file = (Path(__file__).parents[3]).joinpath('data_PIV')\
+                .joinpath('wake_Re'+str(Re)+'_fake')\
+                .joinpath('strat'+str(nb_file_learning_basis+i)+'_U_temp_PIV')   # The path to load PIV data
                 data = hdf5storage.loadmat(str(file)) 
                 vector_flow = np.concatenate((vector_flow,data['U']),axis=1)
                 vector_of_assimilation_time = np.concatenate((vector_of_assimilation_time,np.array(data['interval_time_local'][0,:])))
