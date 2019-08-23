@@ -1374,7 +1374,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     #%% Reduction of the noise matrix
     if svd_pchol:
         U_cov_noises, S_cov_noises, _ = sps.linalg.svds(pchol_cov_noises, k=nb_modes)
-        pchol_cov_noises = U_cov_noises @ S_cov_noises
+        pchol_cov_noises = U_cov_noises @ np.diag(S_cov_noises)
 
     #%% Folder to save data assimilation plot results
     plt.close('all')
