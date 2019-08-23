@@ -1755,15 +1755,16 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         - It contains the inversed matrix of correlations that is uncorrelated in space and in time. The correlation is between dimensions. 
         
     '''
-    Sigma_inverse_squared = np.zeros((int(nb_points*nb_dim),int(nb_points*nb_dim)))     # Create a matrix to stock the data     
-    
-    for line in range(int(nb_points)):                                                  # To all spatial samples we create the first part of the matrix that contains the correlation of Vx
-        Sigma_inverse_squared[line,line] = Sigma_inverse[line,0,0]                      # Correlation of Vx with Vx
-        Sigma_inverse_squared[line,line+nb_points] =  Sigma_inverse[line,0,1]           # Correlation of Vx with Vy 
-       
-    for line in range(int(nb_points)):                                                  # Now the second part of the matrix with Vy
-        Sigma_inverse_squared[line+nb_points,line] = Sigma_inverse[line,1,0]            # Correlation of Vy with Vx
-        Sigma_inverse_squared[line+nb_points,line+nb_points] =  Sigma_inverse[line,1,1] # Correlation of Vy with Vy
+#    Sigma_inverse_squared = np.zeros((int(nb_points*nb_dim),int(nb_points*nb_dim)))     # Create a matrix to stock the data     
+##    print(nb_points)
+##    print(nb_dim)
+#    for line in range(int(nb_points)):                                                  # To all spatial samples we create the first part of the matrix that contains the correlation of Vx
+#        Sigma_inverse_squared[line,line] = Sigma_inverse[line,0,0]                      # Correlation of Vx with Vx
+#        Sigma_inverse_squared[line,line+nb_points] =  Sigma_inverse[line,0,1]           # Correlation of Vx with Vy 
+#       
+#    for line in range(int(nb_points)):                                                  # Now the second part of the matrix with Vy
+#        Sigma_inverse_squared[line+nb_points,line] = Sigma_inverse[line,1,0]            # Correlation of Vy with Vx
+#        Sigma_inverse_squared[line+nb_points,line+nb_points] =  Sigma_inverse[line,1,1] # Correlation of Vy with Vy
     
     
   
@@ -1773,9 +1774,21 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     # Calculating necessary matrices
-    K = Sigma_inverse_squared @ Hpiv_Topos   # We define K as the sigma inversed matrix times the Hpiv_Topos matrix
+    K= np.zeros((int(nb_dim),int(nb_modes+1),int(nb_points)))
+    Sigma_inverse = np.transpose(Sigma_inverse,(1,2,0))
+    Hpiv_Topos = np.reshape(Hpiv_Topos,(int(nb_points),int(nb_dim),int(nb_modes+1)))
+    Hpiv_Topos = np.transpose(Hpiv_Topos,(1,2,0))
+    for line in range(int(nb_points)):                                                  # To all spatial samples we create the first part of the matrix that contains the correlation of Vx
+        K[:,:,line] = Sigma_inverse[:,:,line] @ Hpiv_Topos[:,:,line]                   # Correlation of Vx with Vx 
+    K = np.transpose(K,(2,1,0)) # ((nb_points),(nb_dim),(nb_modes+1),)
+    K = np.reshape(K,(int(nb_points*nb_dim),int(nb_modes+1)))
+    Hpiv_Topos = np.transpose(Hpiv_Topos,(2,1,0)) # ((nb_points),(nb_dim),(nb_modes+1),)
+    Hpiv_Topos = np.reshape(Hpiv_Topos,(int((nb_points)*nb_dim),int(nb_modes+1)))
+    Sigma_inverse = np.transpose(Sigma_inverse,(2,1,0)) # ((nb_points),(nb_dim),(nb_dim),)
+#    K = Sigma_inverse_squared @ Hpiv_Topos   # We define K as the sigma inversed matrix times the Hpiv_Topos matrix
     Hpiv_Topos_K = Hpiv_Topos.T @ K          # The Hpiv_Topos times K is necessary too
     
+    print('Likelihood matrices computed')
     
 #%%
     
