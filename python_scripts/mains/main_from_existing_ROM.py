@@ -1332,6 +1332,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    if var_exits == True and period_estim == True:
 #        file = file + '_p_estim_' + str(period_estim);
     file = file + '_fullsto' # File where the ROM coefficients are save
+    print(file)
 #    file_save = file
     if not adv_corrected:
         file = file + '_no_correct_drift'
@@ -1343,6 +1344,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         if choice_n_subsample == 'auto_shanon' :
             file = file + '_threshold_' + str(threshold)
         file = file + test_fct   
+        file = file + '_fullsto' # File where the ROM coefficients are save
 #        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
 #            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
 #        file = file_save
