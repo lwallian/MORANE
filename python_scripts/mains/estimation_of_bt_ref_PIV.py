@@ -104,7 +104,8 @@ print(file)
 # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
 I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
 param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
-    
+diag_reg = sqrt(param['lambda'])
+#diag_reg = np.ones((nb_modes,1)) / diag_reg_inv
 
 
 '''
@@ -173,7 +174,8 @@ Get the topos with chronos different from 1
 n -> n-1
 '''
 Hpiv_Topos_otimization = Hpiv_Topos[:,:-1].copy()
-
+for j in range(int(nb_modes)): 
+    Hpiv_Topos_otimization[:,j] = Hpiv_Topos_otimization[:,j] / diag_reg[j]
 
 
 '''
@@ -185,6 +187,8 @@ for time in range(y.shape[0]):
     reg = linear_model.RidgeCV(alphas=np.logspace(-2.5, 2.5, 30))
     reg.fit(Hpiv_Topos_otimization,y[time:time+1,...].T)       
     valeurs[time,:] = reg.coef_
+for j in range(int(nb_modes)): 
+    valeurs[:,j] = valeurs[:,j] * diag_reg[j]
 
 
 #%%   Calculate Sigma for LS variance estimation
@@ -204,7 +208,13 @@ if Plot_error_bar:
     #Hpiv_Topos = np.transpose(Hpiv_Topos,(2,0,1)) # ((nb_points),(nb_dim),(nb_modes+1),)
     #Hpiv_Topos = np.reshape(Hpiv_Topos,(int(nb_points*nb_dim),int(nb_modes+1)),order='F') 
     #Sigma_inverse = np.transpose(Sigma_inverse,(2,0,1))  # ((nb_points),(nb_dim),(nb_dim),)
+    for i in range(int(nb_modes)): 
+        for j in range(int(nb_modes)): 
+            cov[i,j] = cov[i,j] * diag_reg[i] * diag_reg[j]
     estim_err = 1.96*sqrt(np.diag(cov))
+    
+for j in range(int(nb_modes)): 
+    Hpiv_Topos_otimization[:,j] = Hpiv_Topos_otimization[:,j] * diag_reg[j]
 
 
 '''
