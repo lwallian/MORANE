@@ -37,16 +37,35 @@ center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV
 
 SECONDS_OF_SIMU = 70 #70 #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
 sub_sampling_PIV_data_temporaly = True  # True                                                           # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
-factor_of_PIV_time_subsampling_gl = 10                                                                       # The factor that we will take to subsampled PIV data. 
+## factor_of_PIV_time_subsampling_gl = 10  
+#factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
+
 
 plt_real_time = False                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
 
-mask_obs = False      # True            # Activate spatial mask in the observed data
+mask_obs = True      # True            # Activate spatial mask in the observed data
+
 subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
-x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+nbPoints_x_gl = 1      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+nbPoints_y_gl = 1      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+dt_PIV = 0.080833
+factor_of_PIV_time_subsampling_gl = int(5/10 / dt_PIV) 
+
+#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 10      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 10      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
+
+#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
 
 plot_debug = False
 plot_ref_gl = False
@@ -1461,7 +1480,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     #%% Do not temporally subsample, in order to prevent aliasing in the results
-    
+    N_tot_max = int(SECONDS_OF_SIMU/param['dt'])+1
+    N_tot = param['N_tot']
+    param['N_tot'] = N_tot
+    param['N_test'] = param['N_tot'] - 1
+    if N_tot > N_tot_max:
+        N_tot = N_tot_max
     if not reconstruction:
         if assimilate == 'fake_real_data':
     #        if exists: 
@@ -1493,7 +1517,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             
             #Test basis creation
             
-            param['N_tot'] = bt_tot.shape[0]
+#            param['N_tot'] = bt_tot.shape[0]
+            param['N_tot'] = N_tot
             param['N_test'] = param['N_tot'] - 1
             bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
             time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
@@ -2160,7 +2185,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
 
     
-    
+    N_tot_max = int(SECONDS_OF_SIMU/param['dt'])+1
+    N_tot = param['N_tot']*n_simu
+    if N_tot > N_tot_max:
+        N_tot = N_tot_max
+    param['N_tot'] = N_tot
+    param['N_test'] = param['N_tot'] - 1
     
                    
     ################################ Start temporal integration ###################################
