@@ -16,7 +16,7 @@ import os
 from convert_mat_to_python import convert_mat_to_python
 #from pathlib import Path
 
-Plot_error_bar = False
+Plot_error_bar = True
 
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
@@ -104,7 +104,7 @@ print(file)
 # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
 I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
 param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
-diag_reg = sqrt(param['lambda'])
+diag_reg = np.sqrt(param['lambda'])
 #diag_reg = np.ones((nb_modes,1)) / diag_reg_inv
 
 
@@ -137,12 +137,12 @@ Hpiv_Topos = np.reshape(topos_new_coordinates,(int(topos_new_coordinates.shape[0
 if Plot_error_bar:
     print('Loading Sigma')
     threshold_ = str(threshold).replace('.', '_',)
-    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').\
-    joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])\
+    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
+    joinpath('diffusion_mode_PIV_'+type_data+'_'+str(param['nb_modes'])\
              +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
     #    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
     Sigma_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
-    Sigma = Sigma_data['HSigSigH'][:,0,:,:]                             # Load Sigma inverse 
+    Sigma = Sigma_data['z_on_tau'][:,0,:,:]                             # Load Sigma inverse 
     ##### Transform this matrix in a square matrix
     nb_points = Sigma.shape[0]                                                      # Number of points in the grid
     nb_dim = Sigma.shape[1]            
@@ -194,7 +194,7 @@ for j in range(int(nb_modes)):
 #%%   Calculate Sigma for LS variance estimation
 if Plot_error_bar:
     pinv_Hpiv = np.linalg.pinv(Hpiv_Topos_otimization)
-    cov = np.zeros((int(nb_modes),int(nb_modes+1)))
+    cov = np.zeros((int(nb_modes),int(nb_modes)))
     # Calculating necessary matrices
     #K = np.zeros((int(nb_dim),int(nb_modes+1),int(nb_points)))
     Sigma = np.transpose(Sigma,(1,2,0))
@@ -211,7 +211,11 @@ if Plot_error_bar:
     for i in range(int(nb_modes)): 
         for j in range(int(nb_modes)): 
             cov[i,j] = cov[i,j] * diag_reg[i] * diag_reg[j]
-    estim_err = 1.96*sqrt(np.diag(cov))
+    estim_err = 1.96*np.sqrt(np.diag(cov))
+    estim_err = np.tile( np.reshape(estim_err,(1,nb_modes)) ,(valeurs.shape[0],1 ))
+    quantiles = np.zeros((2,valeurs.shape[0],valeurs.shape[1]))
+    quantiles[0,:,:] = valeurs - estim_err
+    quantiles[1,:,:] = valeurs + estim_err
     
 for j in range(int(nb_modes)): 
     Hpiv_Topos_otimization[:,j] = Hpiv_Topos_otimization[:,j] * diag_reg[j]
@@ -224,6 +228,8 @@ t = np.arange(0,valeurs.shape[0]*dt_PIV,dt_PIV)
 for i in range(valeurs.shape[1]):
     plt.figure()
     plt.plot(t,valeurs[:,i])
+    if Plot_error_bar:
+        plt.fill_between(t,quantiles[0,:,i],quantiles[1,:,i],color='gray')
 
 
 
