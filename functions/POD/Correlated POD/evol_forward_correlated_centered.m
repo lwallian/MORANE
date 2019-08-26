@@ -1,5 +1,5 @@
-function [bt_evol, db_fv, db_m, eta, Mi_ss, Gr] = evol_forward_correlated_centered(I, L, C, ...
-                        pchol_cov_noises, tau, dt, bt, eta, Gr, Mi_ss, bt_fv, bt_m)
+function [bt_evol, db_fv, db_m, eta, Mi_ss, spiral] = evol_forward_correlated_centered(I, L, C, ...
+                        pchol_cov_noises, tau, dt, bt, eta, spiral, Mi_ss, bt_fv, bt_m)
 %EVOL_FORWARD_CORRELATED_CENTERED Evolves the correlated centered chronos using
 %an Euler-Maruyama integration scheme
 %   @param I, L, C: deterministic model coefficients
@@ -8,7 +8,7 @@ function [bt_evol, db_fv, db_m, eta, Mi_ss, Gr] = evol_forward_correlated_center
 %   @param dt: time step
 %   @param bt: last chronos states
 %   @param eta: last multiplicative noise coefficients
-%   @param Gr: last noise evolution coefficient for Mi_ss
+%   @param spiral: last noise evolution coefficient for Mi_ss
 %   @return bt_evol: current chronos states
 %   @return eta: current multiplicative noise coefficients
 %   @return Mi_ss: current additive noise coefficients
@@ -16,7 +16,7 @@ function [bt_evol, db_fv, db_m, eta, Mi_ss, Gr] = evol_forward_correlated_center
 
 [~ , n , nb_pcl ] = size(bt);
 noises = generate_noises(pchol_cov_noises, n, nb_pcl, dt);
-[eta, Mi_ss, Gr] = evolve_sto_coeff(noises, pchol_cov_noises, tau, eta, Mi_ss, Gr, n, nb_pcl, dt);
+[eta, Mi_ss, spiral] = evolve_sto_coeff(noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt);
 clear noises;
 
 % Evolve the equation with Euler-Maruyama
@@ -64,11 +64,11 @@ db_m = reshape(eta_bt, [1, n, nb_pcl]) + Mi_ss;
 end
 
 
-function [db_eta, db_Mi_ss, db_Gr] = evolve_sto_coeff(noises, pchol_cov_noises, tau, eta, Mi_ss, Gr, n, nb_pcl, dt)
+function [db_eta, db_Mi_ss, db_Gr] = evolve_sto_coeff(noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve both eta_i and M_i_ss
 db_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt);
-[db_Mi_ss, db_Gr] = evolve_Mi_ss(pchol_cov_noises, tau, Mi_ss, Gr, n, nb_pcl, dt);
+[db_Mi_ss, db_Gr] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt);
 
 end
 
@@ -84,30 +84,27 @@ db_eta = eta + dt * db_deter + db_sto;
 end
 
 
-function [db_Mi_ss, db_Gr] = evolve_Mi_ss(pchol_cov_noises, tau, Mi_ss, Gr, n, nb_pcl, dt)
+function [db_Mi_ss, db_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve Mi_ss with Euler-Maruyama
-mi_ss_noise = randn(1, 1, n, nb_pcl) .* sqrt(dt);
-db_Gr = evolve_Gr(pchol_cov_noises, Gr, tau, dt, nb_pcl, n);
+mi_ss_noise = noises(1 : n, :);
+db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl);
 db_deter = - 2 * Mi_ss / tau;
-db_sto = bsxfun(@times, db_Gr, mi_ss_noise);
+db_sto = bsxfun(@times, db_spiral, mi_ss_noise);
 db_sto = sum(db_sto, 3);
 db_sto = reshape(db_sto, [1, n, nb_pcl]);
 
-% db_Mi_ss = Mi_ss + dt * db_deter - db_sto;
 db_Mi_ss = Mi_ss + dt * db_deter + db_sto;
 
 end
 
-function db_Gr = evolve_Gr(pchol_cov_noises, Gr, tau, dt, nb_pcl, n)
+function db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl)
 
-% Evolve Gr with Euler-Maruyama
-db_sto = repmat(pchol_cov_noises(1 : n, (n + 1) * n + 1 : end), [1, 1, nb_pcl]) ...
-    .* randn(1, 1, nb_pcl) * sqrt(dt);
-db_sto = reshape(db_sto, [1, n, n, nb_pcl]);
-db_deter = -Gr / tau;
+% Evolve spiral with Euler-Maruyama
+db_sto = sqrt(dt) * sqrt(2 / tau) * randn(1, 1, nb_pcl);
+db_deter = -spiral / tau;
 
-db_Gr = Gr + dt * db_deter + db_sto;
+db_spiral = spiral + dt * db_deter + db_sto;
 
 end
 
