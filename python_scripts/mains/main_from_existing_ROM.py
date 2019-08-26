@@ -1254,6 +1254,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         factor_of_PIV_time_subsampling = 1
     else:
         factor_of_PIV_time_subsampling = factor_of_PIV_time_subsampling_gl
+        if type_data == 'DNS100_inc3d_2D_2018_11_16_blocks_truncated' :
+            factor_of_PIV_time_subsampling = \
+               factor_of_PIV_time_subsampling *20
         
     if not mask_obs:   # If we must select a smaller grid inside the observed grid. 
         x0_index = 1
