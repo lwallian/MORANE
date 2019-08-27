@@ -1542,7 +1542,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             param['N_tot'] = N_tot
             param['N_test'] = param['N_tot'] - 1
             bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-#            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
 #            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
     
         else:
@@ -1557,13 +1557,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             if bt_tot.shape[0] > N_tot_PIV_max-1:
                 bt_tot = bt_tot[:N_tot_PIV_max,:]
                 quantiles_PIV = quantiles_PIV[:,:N_tot_PIV_max,:]
-#            time_bt_tot = np.range(0,bt_tot.shape[0],1)*dt_PIV
+            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_PIV
 #            bt_tot = float('nan')
             truncated_error2 = float('nan')
             param['truncated_error2'] = truncated_error2
 #            bt_tronc = float('nan')
     
-    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
     bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
         
     
