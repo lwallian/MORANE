@@ -50,10 +50,15 @@ Mi_sigma = zeros(M, d);
 %compute the sum(b_p * d2bt_i * dX_res)
 del_pi = zeros(M, m + 1, m, d); % (M,m(p),m(i),d)
 % add the constant term to bt
-bt = cat(2, bt, zeros(size(bt,1), 1));
-lambda(m + 1) = T.^3 / 3;
+bt = cat(2, bt, ones(size(bt,1), 1));
+lambda(m + 1) = T.^3 / 3 / T;
 
-for t = 1 : N_tot - 2 * length(param.name_file_U_temp) % loop on time
+if iscell(param.name_file_U_temp)
+    N_final = 2 * length(param.name_file_U_temp);
+else
+    N_final = 2;
+end
+for t = 1 : N_tot - N_final % loop in time
     if t_local > size(U, 2) - 2 % A new file needs to be loaded
         % Save previous file with residual velocity
         save(name_file_U_temp, 'U', '-v7.3');
