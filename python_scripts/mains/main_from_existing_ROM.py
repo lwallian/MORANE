@@ -71,7 +71,7 @@ assimilation_period = 5/10
 ##assimilation_period = 5/10 
 
 plot_debug = False
-plot_ref_gl = False
+plot_ref_gl = True
 
 #import matplotlib.pyplot as plt
 import math
@@ -1542,15 +1542,29 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             param['N_tot'] = N_tot
             param['N_test'] = param['N_tot'] - 1
             bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+#            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+#            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
     
         else:
-            bt_tot = float('nan')
+            file = (Path(__file__).parents[3]).joinpath('data_PIV').\
+            joinpath('bt_tot_PIV_Re'+str(Re)+'.mat')
+            print(file)
+            dict_python = hdf5storage.loadmat(str(file))
+            bt_tot = dict_python['bt_tot_PIV']
+            quantiles_PIV = dict_python['quantiles_PIV']
+            dt_PIV = dict_python['dt_PIV']
+            N_tot_PIV_max = int(SECONDS_OF_SIMU/dt_PIV)+1
+            if bt_tot.shape[0] > N_tot_PIV_max-1:
+                bt_tot = bt_tot[:N_tot_PIV_max,:]
+                quantiles_PIV = quantiles_PIV[:,:N_tot_PIV_max,:]
+#            time_bt_tot = np.range(0,bt_tot.shape[0],1)*dt_PIV
+#            bt_tot = float('nan')
             truncated_error2 = float('nan')
             param['truncated_error2'] = truncated_error2
-            bt_tronc = float('nan')
-            
+#            bt_tronc = float('nan')
+    
+    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
         
     
     #%% Time integration of the reconstructed Chronos b(t)
@@ -2122,6 +2136,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     index_of_filtering = []                                              # Control de index of assimilation
     time = [0]                                                           # The time of assimilation
     index_pf = [0]                                                       # Flag to control de noise in the past until now to mutation steps in Metropolis-Hastings
+    time_bt_tot = time_bt_tot + next_time_of_assimilation
     
     # Defining figure to plot if real data is True 
     if plt_real_time==True:

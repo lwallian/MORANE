@@ -272,6 +272,7 @@ dict_python['average_time_value_PIV_y'] = np.reshape(average_time_value_PIV,(202
 dict_python['bt_tot_PIV'] = valeurs
 dict_python['dt_PIV'] = dt_PIV
 dict_python['Re'] = Re
+dict_python['quantiles_PIV'] = quantiles
 
 file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('bt_tot_PIV_Re'+str(dict_python['Re'])+'.mat')
 #data = hdf5storage.loadmat(str(file))
