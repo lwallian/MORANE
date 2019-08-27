@@ -1558,6 +1558,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 bt_tot = bt_tot[:N_tot_PIV_max,:]
                 quantiles_PIV = quantiles_PIV[:,:N_tot_PIV_max,:]
             time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_PIV
+            time_bt_tot = time_bt_tot[0,:]
 #            bt_tot = float('nan')
             truncated_error2 = float('nan')
             param['truncated_error2'] = truncated_error2
@@ -2125,6 +2126,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     else:
         print('Error: Data to assimilate is not known.')
         sys.exit()
+    vector_of_assimilation_time = vector_of_assimilation_time[2:]
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
