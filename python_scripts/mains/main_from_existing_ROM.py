@@ -22,7 +22,7 @@ pho = 0.998                             # Constant that constrol the balance in 
 
 #    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
 std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
-assimilate = 'real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
 only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
 slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
 slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
@@ -1439,10 +1439,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         file_plots = file_plots + 'ObsSubt_' + str(factor_of_PIV_time_subsampling) + '_'    
     if mask_obs:
         file_plots = file_plots + 'ObsMaskyy_sub_' + str(subsampling_PIV_grid_factor) \
-                 + '_from_' + str(x0_index) + '_to_ ' \
-                 + str(nbPoints_x+x0_index*subsampling_PIV_grid_factor) \
-                 + '_from_' + str(y0_index) + '_to_ ' \
-                 + str(nbPoints_y+y0_index*subsampling_PIV_grid_factor) + '_'
+                 + '_from_' + str(x0_index) + '_to_' \
+                 + str(x0_index + nbPoints_x*subsampling_PIV_grid_factor) \
+                 + '_from_' + str(y0_index) + '_to_' \
+                 + str(y0_index+nbPoints_y*subsampling_PIV_grid_factor) + '_'
     else:
         file_plots = file_plots + 'no_mask_'
     if init_centred_on_ref:
@@ -1544,7 +1544,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
             time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
 #            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
-    
+            quantiles_PIV = np.zeros((2,bt_tot.shape[0],bt_tot.shape[1]))
         else:
             file = (Path(__file__).parents[3]).joinpath('data_PIV').\
             joinpath('bt_tot_PIV_Re'+str(Re)+'.mat')
@@ -2502,7 +2502,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
         quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
-      
+        
         
     #    time_simu = np.arange(0,(bt_MCMC.shape[0])*dt_tot,dt_tot)
     #    time_bt_tot = np.arange(0,(bt_MCMC.shape[0])*dt_tot,n_simu*dt_tot*3)
@@ -2534,6 +2534,21 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.savefig(file_res_mode,dpi=200 )
 #            plt.savefig(file_res_mode,dpi=500 )
 #            plt.savefig(file_res_mode,quality = 95)
+            
+        dict_python = {}
+        dict_python['time_bt_tot'] = time_bt_tot
+        dict_python['bt_tot'] = bt_tot
+        dict_python['dt_PIV'] = dt_PIV
+        dict_python['index_pf'] = index_pf
+        dict_python['time_DA'] = np.array(time)[np.array(index_pf)[1:]]
+        dict_python['Re'] = Re
+        dict_python['time'] = time
+        dict_python['particles_mean'] = particles_mean
+        dict_python['param'] = param
+        dict_python['quantiles_bt_tot'] = quantiles_PIV
+        dict_python['quantiles'] = quantiles
+        file_res = file_res_mode = file_plots_res / Path('chronos.mat')
+        sio.savemat(file_res,dict_python)
             
         
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
