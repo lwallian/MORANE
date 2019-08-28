@@ -1402,7 +1402,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
 #        file = file_save
         if not adv_corrected:
-            file = file + '\\_no_correct_drift'
+            file = file + '/_no_correct_drift'
         file = file + '.mat'
         file_res = folder_results / Path(file)
     print(file)
@@ -1418,14 +1418,14 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 
     #%% Folder to save data assimilation plot results
     plt.close('all')
-##    file_plots = '3rd' + file_save[3:] + '\\'
+##    file_plots = '3rd' + file_save[3:] + '/'
 #    file_plots = '3rdresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-#            choice_n_subsample + '_threshold_' + str(threshold) + test_fct + '\\'
-    file_plots = '3rdresult\\' + type_data + '_' + str(nb_modes) + '_modes_'  \
+#            choice_n_subsample + '_threshold_' + str(threshold) + test_fct + '/'
+    file_plots = '3rdresult/' + type_data + '_' + str(nb_modes) + '_modes_'  \
               + choice_n_subsample
     if choice_n_subsample == 'auto_shanon' :
         file_plots = file_plots + '_threshold_' + str(threshold)
-    file_plots = file_plots + test_fct + '\\'
+    file_plots = file_plots + test_fct + '/'
     if modal_dt:
         file_plots = file_plots + '_modal_dt'    
     if not adv_corrected:
@@ -1433,8 +1433,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     file_plots = file_plots + '_integ_Ito'
     if svd_pchol:
         file_plots = file_plots + '_svd_pchol'
-    file_plots = file_plots + '\\' + assimilate + \
-                              '\\_DADuration_' + str(SECONDS_OF_SIMU) + '_'
+    file_plots = file_plots + '/' + assimilate + \
+                              '/_DADuration_' + str(SECONDS_OF_SIMU) + '_'
     if sub_sampling_PIV_data_temporaly:
         file_plots = file_plots + 'ObsSubt_' + str(factor_of_PIV_time_subsampling) + '_'    
     if mask_obs:
