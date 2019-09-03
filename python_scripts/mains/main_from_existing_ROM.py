@@ -22,7 +22,7 @@ pho = 0.998                             # Constant that constrol the balance in 
 
 #    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
 std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
-assimilate = 'real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
 only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
 slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
 slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
@@ -45,22 +45,22 @@ plt_real_time = False                                                           
 
 mask_obs = True      # True            # Activate spatial mask in the observed data
 
-#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
-#x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-#nbPoints_x_gl = 1      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-#y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-#nbPoints_y_gl = 1      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-##dt_PIV = 0.080833
-##factor_of_PIV_time_subsampling_gl = int(5/10 / dt_PIV) 
-#assimilation_period = 5/10  
-
 subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
 x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-nbPoints_x_gl = 3     # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+nbPoints_x_gl = 1      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
 y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-nbPoints_y_gl = 3     # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-#factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
-assimilation_period = 5 
+nbPoints_y_gl = 1      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#dt_PIV = 0.080833
+#factor_of_PIV_time_subsampling_gl = int(5/10 / dt_PIV) 
+assimilation_period = 5/10  
+
+#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 3     # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 3     # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
+#assimilation_period = 5 
 
 ##subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
 ##x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
@@ -1366,7 +1366,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     modal_dt_ref = modal_dt # Define modal_dt_ref
-     
+    
     
     
     #%% Get data
@@ -1529,14 +1529,15 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         if assimilate == 'fake_real_data':
     #        if exists: 
             current_pwd = Path(__file__).parents[1]
-            if param['nb_period_test'] is math.nan:
-                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
-                                                   '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
-            else:
-                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
-                                                   '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
-            
-               
+#            if param['nb_period_test'] is math.nan:
+#                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+#                                                   '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
+#            else:
+#                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+#                                                   '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
+            name_file_data = current_pwd.parents[1].joinpath('data').\
+            joinpath( type_data + '_' + str(nb_modes) + '_modes' + \
+                     '_subsample_1_nb_period_test_NaN_Chronos_test_basis.mat')               
            
                 
             if name_file_data.exists():
@@ -1544,6 +1545,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 bt_tot = mat['bt']
                 truncated_error2 = mat['truncated_error2']
                 param['truncated_error2'] = truncated_error2
+                dt_bt_tot = param['dt']/param['decor_by_subsampl']['n_subsampl_decor']
                 
                 
                 
@@ -1559,8 +1561,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #            param['N_tot'] = bt_tot.shape[0]
             param['N_tot'] = N_tot
             param['N_test'] = param['N_tot'] - 1
-            bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+            bt_tot = bt_tot[:(param['N_test']*param['decor_by_subsampl']['n_subsampl_decor'] + 1),:]                # Ref. Chronos in the DNS cas
+#            bt_tot = bt_tot[:(param['N_test'] + 1),:]                # Ref. Chronos in the DNS cas
+            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_bt_tot
+#            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
 #            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
             quantiles_PIV = np.zeros((2,bt_tot.shape[0],bt_tot.shape[1]))
         else:
@@ -2146,7 +2150,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     else:
         print('Error: Data to assimilate is not known.')
         sys.exit()
-    vector_of_assimilation_time = vector_of_assimilation_time[2:]
+#    vector_of_assimilation_time = vector_of_assimilation_time[2:]
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
@@ -2159,7 +2163,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     index_of_filtering = []                                              # Control de index of assimilation
     time = [0]                                                           # The time of assimilation
     index_pf = [0]                                                       # Flag to control de noise in the past until now to mutation steps in Metropolis-Hastings
-    time_bt_tot = time_bt_tot + next_time_of_assimilation
+#    time_bt_tot = time_bt_tot + next_time_of_assimilation
     
     # Defining figure to plot if real data is True 
     if plt_real_time==True:
