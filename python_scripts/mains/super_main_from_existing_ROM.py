@@ -42,7 +42,8 @@ if __name__ == '__main__':
     vect_adv_corrected = [False]
     test_fct = 'b'
     svd_pchol = True
-    choice_n_subsample = 'auto_shanon'
+    choice_n_subsample = 'htgen'
+#    choice_n_subsample = 'auto_shanon'
     EV = True
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
@@ -57,6 +58,8 @@ if __name__ == '__main__':
     
     # Get threshold and modal_dt
     v_threshold,vect_modal_dt = switch_type_data(type_data)
+    if not( choice_n_subsample == 'auto_shanon'):
+        vect_modal_dt = [False]
     
     nb_period_test = math.nan
     nb_modes_max = np.max(vect_nb_modes)

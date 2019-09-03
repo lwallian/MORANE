@@ -98,6 +98,7 @@ from scipy import interpolate
 #from scipy import sparse as svds
 import scipy.sparse as sps
 from PIL import Image
+import time as t_exe
 
 #def calculate_sigma_inv(L):
 #    
@@ -1407,8 +1408,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #        file = file_save
         if not adv_corrected:
             file = file + '/_no_correct_drift'
+        file_save = file
         file = file + '.mat'
         file_res = folder_results / Path(file)
+        if not os.path.exists(file_res):
+            file = file_save + '_integ_Ito'
+            file = file + '.mat'
+            file_res = folder_results / Path(file)
     print(file)
     
     # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
@@ -1561,7 +1567,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #            param['N_tot'] = bt_tot.shape[0]
             param['N_tot'] = N_tot
             param['N_test'] = param['N_tot'] - 1
-            bt_tot = bt_tot[:(param['N_test']*param['decor_by_subsampl']['n_subsampl_decor'] + 1),:]                # Ref. Chronos in the DNS cas
+            bt_tot = bt_tot[:int(param['N_test']\
+                    *param['decor_by_subsampl']['n_subsampl_decor'] + 1),:]                # Ref. Chronos in the DNS cas
 #            bt_tot = bt_tot[:(param['N_test'] + 1),:]                # Ref. Chronos in the DNS cas
             time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_bt_tot
 #            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
@@ -1681,8 +1688,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     topos = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
 #    topos_l = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
 #    topos_l = np.reshape(topos_l,(int(topos_l.shape[0]*topos_l.shape[1]),topos_l.shape[2]),order='F')  # Reshape the topos, the last dimensions being the number of resolved modes plus one and the first dimensions is (Nx * Ny * dim)
-    grid = param['MX'][0]                                                                              # Define the DNS grid
-    distance = param['dX'][0,0]                                                                        # Define the spatial space between 2 samples in DNS grid 
+
+    grid = param['MX']                                                                     # Define the DNS grid
+    distance = param['dX']                                                                     # Define the spatial space between 2 samples in DNS grid 
+#    grid = param['MX'][0]                                                                              # Define the DNS grid
+#    distance = param['dX'][0,0]                                                                        # Define the spatial space between 2 samples in DNS grid 
+
 #    matrix_H,number = calculate_H_PIV(topos_l,distance,grid,std_space,only_load,dim,slicing,slice_z)   # Apply spatial filter in the topos. The filtr was estimated before and is based in the PIV measures
 #    
 #    print('\nCalculating PIV mask and applying on the Topos...')
@@ -1713,7 +1724,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     '''
     threshold_ = str(threshold).replace('.', '_',)
     path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').\
-    joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])\
+    joinpath('HSigSigH_PIV_'+type_data+'_'+str(nb_modes)\
              +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
 #    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
     Sigma_inverse_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
@@ -2279,6 +2290,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         N_tot = N_tot_max
     param['N_tot'] = N_tot
     param['N_test'] = param['N_tot'] - 1
+    time_exe = 0
+    if EV:
+        time_exe_EV = 0
     
                    
     ################################ Start temporal integration ###################################
@@ -2291,20 +2305,26 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #                                                        pchol_cov_noises,param['dt'],\
 #                                                        bt_MCMC[-1,:,:],float('Nan'),\
 #                                                        float('Nan'),mutation=False,noise_past=0,pho=0)
+        start = t_exe.time()
         val0,val1,val2,noises_centered = evol_forward_bt_MCMC(ILC_a_cst['I'],\
                                                         ILC_a_cst['L'],\
                                                         ILC_a_cst['C'],\
                                                         pchol_cov_noises,param['dt'],\
                                                         bt_MCMC[-1,:,:],float('Nan'),\
                                                         float('Nan'),mutation=False,noise_past=0,pho=0)
+        end = t_exe.time()
+        time_exe = time_exe + end - start
         if EV:
+            start = t_exe.time()
             val0_EV,val1_EV,val2_EV,noises_centered_EV = evol_forward_bt_MCMC(ILC_EV['I'],\
                                                             ILC_EV['L'],\
                                                             ILC_EV['C'],\
                                                             ILC_EV['pchol_cov_noises'],param['dt'],\
                                                             bt_forecast_EV[-1,:,:],float('Nan'),\
                                                             float('Nan'),mutation=False,noise_past=0,pho=0)
-            
+            end = t_exe.time()
+            time_exe_EV = time_exe_EV + end - start
+        
         time.append(param['dt']+time[-1])
         #########################################----------------------#############################################
         #########################################--PARTICLE FILTERING--#############################################
@@ -2348,14 +2368,19 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             delta_t = index_pf[-1] - index_pf[-2]       # Define the delta t as the number of integrations(IMPORTANT: In the case of real time assimilation the dt is variable.....)
             
             # Call particle filter 
+            start = t_exe.time()
             particles = particle_filter(ILC_a_cst,obs,K,Hpiv_Topos_K,particles,N_threshold,\
                                         np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
                                         particles_past,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,pchol_cov_noises,time[-1]) 
+            end = t_exe.time()
+            time_exe = time_exe + end - start
             if EV:
+                start = t_exe.time()
                 particles_EV = particle_filter(ILC_EV,obs,K,Hpiv_Topos_K,particles_EV,N_threshold,\
                                         np.concatenate((noises_EV,noises_centered_EV[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
                                         particles_past_EV,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,ILC_EV['pchol_cov_noises'],time[-1]) 
-            
+                end = t_exe.time()
+                time_exe_EV = time_exe_EV + end - start
                                         
                                         
             
@@ -2772,7 +2797,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    name_file_data = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+str(nb_modes)+'_bruit_'+str(beta_1)+'reynolds300')
 #    sio.savemat(str(name_file_data),dict_python)
     
-    
+    # Time of execution
+    print('Time of execution of PF & Red LUM for ' + \
+          str(SECONDS_OF_SIMU) + ' s of simulation:')
+    print('\n')
+    print(str(time_exe) + ' s')
+    print('\n')
+    if EV:
+        print('Time of execution of PF & random EV for ' + \
+              str(SECONDS_OF_SIMU) + ' s of simulation:')
+        print('\n')
+        print(str(time_exe_EV) + ' s')
+        print('\n')
     
     
     del C_deter 

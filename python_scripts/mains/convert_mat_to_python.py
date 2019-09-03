@@ -21,11 +21,14 @@ def convert_mat_to_python(PATH_MAT_FILE):
     
     # Loop to run all the dtypes in the data
     for name in param.dtype.names :
-        
+#        if name == 'lambda':
+#            print(3)
         
         # If the dtype has only one information we take his name and create a key for this information
         if param[0][name][0].dtype.names == None:
-            if param[0][name][0].shape == (1,1):
+            if param[0][name].shape[0] >1:
+                param_dict[name] = param[0][name]
+            elif param[0][name][0].shape == (1,1):
                 param_dict[name] = param[0][name][0][0,0]
             elif param[0][name][0].shape == (1,):
                 param_dict[name] = param[0][name][0][0]
@@ -40,9 +43,15 @@ def convert_mat_to_python(PATH_MAT_FILE):
 #                    aux_dict[name2] = param[0][name][0][name2][0,0,0]
 #                else:
 #                    aux_dict[name2] = param[0][name][0][name2][0]
-                aux_dict[name2] = param[0][name][0][name2][0][0][0]
-                if aux_dict[name2].shape == (1,):
-                    aux_dict[name2] = aux_dict[name2][0]
+                if param[0][name][0][name2][0].shape == (1,1):
+                    aux_dict[name2] = param[0][name][0][name2][0][0][0]
+                elif param[0][name][0][name2][0].shape == (1,):
+                    aux_dict[name2] = param[0][name][0][name2][0][0]
+                else:
+                    aux_dict[name2] = param[0][name][0][name2][0]
+#                aux_dict[name2] = param[0][name][0][name2][0][0][0]
+#                if aux_dict[name2].shape == (1,):
+#                    aux_dict[name2] = aux_dict[name2][0]
                     
                     
             param_dict[name] = aux_dict
