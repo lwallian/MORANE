@@ -12,8 +12,8 @@ param_ref = {}
 param_ref['n_simu'] = 100               # Number of simulations steps in time
 #param_ref['N_particules'] = n_particles # Number of particles to select  
 #    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-beta_2 = 1        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
-beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+beta_2 = 1.        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
+beta_3 = 1.                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
 #    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
 init_centred_on_ref = False              # If True, the initial condition is centered on the reference initial condiion
 N_threshold = 40                        # Effective sample size in the particle filter
@@ -28,14 +28,14 @@ slicing = True                          # If True we will select one slice to as
 slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
 data_assimilate_dim = 2                 # In this experiments we assimilate 2D data, and in the case Reynolds=300, the vector flow in the z direction will be ignored.
 u_inf_measured = 0.388                  # The PIV measured velocity (See the .png image in the respective PIV folder with all measured constants). It must be represented in m/s
-cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
+cil_diameter = 12.                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
 center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
 center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
 #Re = 300                                # Reynolds constant
 center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 
-SECONDS_OF_SIMU = 70 #70 #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+SECONDS_OF_SIMU = 70. #70. #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
 sub_sampling_PIV_data_temporaly = True  # True                                                           # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
 ## factor_of_PIV_time_subsampling_gl = 10  
 #factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
@@ -52,7 +52,7 @@ y0_index_gl = 10         # 10                                                   
 nbPoints_y_gl = 1      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
 #dt_PIV = 0.080833
 #factor_of_PIV_time_subsampling_gl = int(5/10 / dt_PIV) 
-assimilation_period = 5/10  
+assimilation_period = float(5/10)
 
 #subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
 #x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
@@ -60,7 +60,7 @@ assimilation_period = 5/10
 #y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
 #nbPoints_y_gl = 3     # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
 ##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
-#assimilation_period = 5 
+#assimilation_period = float(5)
 
 ##subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
 ##x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
@@ -68,13 +68,14 @@ assimilation_period = 5/10
 ##y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
 ##nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
 ###factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
-##assimilation_period = 5/10 
+##assimilation_period = float(5/10) 
         
 color_mean_EV = 'deepskyblue'
 color_quantile_EV = 'paleturquoise'
         
 plot_debug = False
 plot_ref_gl = True
+plot_Q_crit = False
 
 #import matplotlib.pyplot as plt
 import math
@@ -1287,8 +1288,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #               factor_of_PIV_time_subsampling *20
         
     if not mask_obs:   # If we must select a smaller grid inside the observed grid. 
-        x0_index = 1
-        y0_index = 1
+        x0_index = 1.
+        y0_index = 1.
         nbPoints_x = float('nan')
         nbPoints_y = float('nan')
         subsampling_PIV_grid_factor = 1
@@ -1308,8 +1309,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     if assimilate == 'real_data':
         switcher = {
-        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 0.080833,
-        'DNS100_inc3d_2D_2018_11_16_blocks_truncated' : 0.05625
+        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': float(0.080833),
+        'DNS100_inc3d_2D_2018_11_16_blocks_truncated' : float(0.05625)
         }
         dt_PIV = switcher.get(type_data,[float('Nan')])
         if not sub_sampling_PIV_data_temporaly:
@@ -1420,6 +1421,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
     I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
     param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
+    param['dt'] = float(param['dt'])
     
     if EV:
         file_EV= 'EV_result_' + type_data + '_' + str(nb_modes) + '_modes'
@@ -1571,6 +1573,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                     *param['decor_by_subsampl']['n_subsampl_decor'] + 1),:]                # Ref. Chronos in the DNS cas
 #            bt_tot = bt_tot[:(param['N_test'] + 1),:]                # Ref. Chronos in the DNS cas
             time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_bt_tot
+            if len(time_bt_tot.shape)>1:
+                time_bt_tot = time_bt_tot[0,:]
 #            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
 #            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
             quantiles_PIV = np.zeros((2,bt_tot.shape[0],bt_tot.shape[1]))
@@ -2162,6 +2166,14 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         print('Error: Data to assimilate is not known.')
         sys.exit()
 #    vector_of_assimilation_time = vector_of_assimilation_time[2:]
+        
+    #%% Pre-processing for plotting Q cirterion
+    if plot_Q_crit:
+        file = 'tensor_mode_' + type_data + '_'+str(nb_modes)+'_modes'
+        name_file_data = Path(__file__).parents[3].joinpath('data').joinpath(file)
+        mat = hdf5storage.loadmat(str(name_file_data))
+        Omega_phi_m_U = mat['Omega_phi_m_U']
+        S_phi_m_U = mat['S_phi_m_U']
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
@@ -2808,6 +2820,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
               str(SECONDS_OF_SIMU) + ' s of simulation:')
         print('\n')
         print(str(time_exe_EV) + ' s')
+        print('\n')
+        print('Ratio speed :')
+        print('\n')
+        print(str(100*time_exe_EV/time_exe) + ' %')
         print('\n')
     
     
