@@ -1436,7 +1436,36 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         file_EV_res = folder_results / Path(file_EV)
         ILC_EV = convert_mat_to_python_EV(str(file_EV_res)) # Call the function and load the matlab data calculated before in matlab scripts.
 
-
+    
+    
+    #%% Redefined path to get acces to data
+    
+    param['nb_period_test'] = nb_period_test
+    param['decor_by_subsampl']['test_fct'] = test_fct
+    folder_data = param_ref['folder_data']
+    folder_results = param_ref['folder_results']
+    
+    big_data = False
+    
+    param['folder_data'] = str(folder_data)
+    param['folder_results'] = str(folder_results)
+    param['big_data'] = big_data
+    param['plots_bts'] = plot_bts
+    
+    
+    param['folder_results'] = param_ref['folder_results']
+    param['N_particules'] = param_ref['N_particules']
+    n_simu = param_ref['n_simu']
+#    param['N_tot'] = bt_tot.shape[0]
+#    param['N_test'] = param['N_tot'] - 1
+#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
+#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+    
+    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
+    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
+    
+    
         
     #%% Reduction of the noise matrix
     if svd_pchol:
@@ -1506,35 +1535,6 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     ILC = {'deter':deter,'sto':sto,'tot':tot}
     
     ILC_a_cst = ILC.copy()
-    
-    #%% Redefined path to get acces to data
-    
-    param['nb_period_test'] = nb_period_test
-    param['decor_by_subsampl']['test_fct'] = test_fct
-    folder_data = param_ref['folder_data']
-    folder_results = param_ref['folder_results']
-    
-    big_data = False
-    
-    param['folder_data'] = str(folder_data)
-    param['folder_results'] = str(folder_results)
-    param['big_data'] = big_data
-    param['plots_bts'] = plot_bts
-    
-    
-    param['folder_results'] = param_ref['folder_results']
-    param['N_particules'] = param_ref['N_particules']
-    n_simu = param_ref['n_simu']
-#    param['N_tot'] = bt_tot.shape[0]
-#    param['N_test'] = param['N_tot'] - 1
-#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
-    
-    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
-    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
-    
-    
     
     #%% Choice of modal time step
    
