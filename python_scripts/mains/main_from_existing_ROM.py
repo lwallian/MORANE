@@ -2844,7 +2844,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             dict_python['particles_median_EV'] = particles_median_EV
             dict_python['bt_forecast_EV'] = bt_forecast_EV
             dict_python['quantiles_EV'] = quantiles_EV
-        file_res = file_res_mode = file_plots_res / Path('chronos.mat')
+        file_res = file_plots_res / Path('chronos.mat')
         sio.savemat(file_res,dict_python)
         
         
@@ -2864,7 +2864,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             param['N_test']=int(param['N_test']/n_simu)
             param['N_tot']=param['N_test']+1
             param['dt'] = param['dt'] * n_simu
-            plot_bt_dB_MCMC_varying_error_DA( \
+            plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
                     param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC)
         
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
