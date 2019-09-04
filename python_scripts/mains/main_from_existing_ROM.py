@@ -1462,10 +1462,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
 #    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
     
-    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
-    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
-    
-    
+
         
     #%% Reduction of the noise matrix
     if svd_pchol:
@@ -1633,6 +1630,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    bt_forecast_sto = bt_tronc
 #    for index in range(param['N_test']):
 #        bt_forecast_sto = np.vstack((bt_forecast_sto,evol_forward_bt_RK4(ILC_a_cst['modal_dt']['I'],ILC_a_cst['modal_dt']['L'],ILC_a_cst['modal_dt']['C'],param['dt'],bt_forecast_sto)))
+    
+    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
+    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
     
     
     
