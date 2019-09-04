@@ -41,7 +41,14 @@ sub_sampling_PIV_data_temporaly = True  # True                                  
 #factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
 
 
-plt_real_time = False                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+plt_real_time = True                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+plot_period = float(5/10)/2
+heavy_real_time_plot = True
+#n_frame_plots = 20           
+fig_width= 18
+fig_height = 8
+plot_Q_crit = False
+
 
 mask_obs = True      # True            # Activate spatial mask in the observed data
 
@@ -75,7 +82,7 @@ color_quantile_EV = 'paleturquoise'
         
 plot_debug = False
 plot_ref_gl = True
-plot_Q_crit = False
+pos_Mes = -7
 
 #import matplotlib.pyplot as plt
 import math
@@ -100,6 +107,7 @@ from scipy import interpolate
 import scipy.sparse as sps
 from PIL import Image
 import time as t_exe
+import json 
 
 #def calculate_sigma_inv(L):
 #    
@@ -1320,7 +1328,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         plot_ref = plot_ref_gl 
 #        dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
         number_of_PIV_files = int(SECONDS_OF_SIMU/dt_PIV) + 1                                                 # Number of PIV files to load
-        vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
+        vector_of_assimilation_time = np.arange(start=0,stop=number_of_PIV_files*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
+#        vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
         vector_of_assimilation_time = vector_of_assimilation_time[::factor_of_PIV_time_subsampling]              # Using the factor to select the moments that we will take to assimilate
     elif assimilate == 'fake_real_data':
         plot_ref = True                     # Plot bt_tot
@@ -1417,7 +1426,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             file = file_save + '_integ_Ito'
             file = file + '.mat'
             file_res = folder_results / Path(file)
-    print(file)
+#    print(file)
     
     # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
     I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
@@ -1514,6 +1523,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    print( file_plots_res )
     if not os.path.exists(file_plots_res):
         os.makedirs( file_plots_res )
+    
+    if plot_Q_crit:
+        # File to save Q cirterion for real time 3D plots
+        path_Q_crit = Path(__file__).parents[3].\
+            joinpath('data_after_filtering').joinpath('aurore')
+        if not os.path.exists(path_Q_crit):
+            os.makedirs( path_Q_crit )
     
     #%% Parameters of the ODE of the b(t)
     
@@ -2165,17 +2181,28 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             fig.colorbar(imgplot)
             plt.pause(1) 
         
-        if len(vector_of_assimilation_time) > 0:
-            if vector_of_assimilation_time[0] == 0:
-                matrix_data_PIV_all_data[1:,:,:]
-                vector_of_assimilation_time = vector_of_assimilation_time[1:]
-        else:
-            vector_of_assimilation_time = np.full((1, 1), np.inf)
+#        if len(vector_of_assimilation_time) > 0:
+#            if vector_of_assimilation_time[0] == 0:
+#                matrix_data_PIV_all_data[1:,:,:]
+##                vector_of_assimilation_time = vector_of_assimilation_time[1:]
+#        else:
+#            vector_of_assimilation_time = np.full((1, 1), np.inf)
+            
+#        if len(vector_of_assimilation_time) == 0:
+#            vector_of_assimilation_time = np.full((1, 1), np.inf)
         
     else:
         print('Error: Data to assimilate is not known.')
         sys.exit()
 #    vector_of_assimilation_time = vector_of_assimilation_time[2:]
+        
+    
+    if len(vector_of_assimilation_time) > 0:
+        if vector_of_assimilation_time[0] == 0:
+            matrix_data_PIV_all_data=matrix_data_PIV_all_data[1:,:,:]
+            vector_of_assimilation_time = vector_of_assimilation_time[1:]
+    else:
+        vector_of_assimilation_time = np.full((1, 1), np.inf)
         
     #%% Pre-processing for plotting Q cirterion
     if plot_Q_crit:
@@ -2201,7 +2228,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     # Defining figure to plot if real data is True 
     if plt_real_time==True:
         plt.ion()
-        fig = plt.figure(0)
+        fig = plt.figure(0,figsize =[fig_width,fig_height])
         plt.rcParams['axes.grid'] = True
         
         
@@ -2229,57 +2256,67 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             quantiles_now_EV = np.quantile(bt_forecast_EV[-1,:,:],q=[0.025,0.975],axis=1)
             particles_mean_now_EV = np.mean(bt_forecast_EV[-1,:,:],axis=1)
         
-        line11, = ax_1.plot(time[-1], particles_mean_now[0], 'b-',label = 'Particles mean')
+        line11, = ax_1.plot(time[-1], particles_mean_now[0], 'b-',label = 'Red LUM particles mean')
         line12  = ax_1.fill_between([0], quantiles_now[0:1,0],quantiles_now[1:2,0], color='gray')
         if EV:
-            line11, = ax_1.plot(time[-1], particles_mean_now_EV[0], '-', \
+            line11EV, = ax_1.plot(time[-1], particles_mean_now_EV[0], '-', \
                                     color=color_mean_EV,label = 'EV particles mean')
-            line12  = ax_1.fill_between([0], quantiles_now_EV[0:1,0],quantiles_now[1:2,0], color=color_quantile_EV)
-        line13,  = ax_1.plot([0],[-2*1],'r.',label = 'Assimilate True')
+            line12EV  = ax_1.fill_between([0], quantiles_now_EV[0:1,0],quantiles_now[1:2,0], color=color_quantile_EV)
+        line13,  = ax_1.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
         
         
-        line21, = ax_2.plot(time[-1], particles_mean_now[1], 'b-',label = 'Particles mean')
-#        line22 = ax_2.fill_between([0], quantiles_now[0:1,1],quantiles_now[1:2,1], color='gray')
+        line21, = ax_2.plot(time[-1], particles_mean_now[1], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line22 = ax_2.fill_between([0], quantiles_now[0:1,1],quantiles_now[1:2,1], color='gray')
         if EV:
-            line21, = ax_2.plot(time[-1], particles_mean_now_EV[1], '-', \
+            line21EV, = ax_2.plot(time[-1], particles_mean_now_EV[1], '-', \
                                     color=color_mean_EV,label = 'EV particles mean')
-#            line22  = ax_2.fill_between([0], quantiles_now_EV[0:1,1],quantiles_now[1:2,1], color=color_quantile_EV)
-        line23,  = ax_2.plot([0],[-2*1],'r.',label = 'Assimilate True')
+            if heavy_real_time_plot:
+                line22EV  = ax_2.fill_between([0], quantiles_now_EV[0:1,1],quantiles_now[1:2,1], color=color_quantile_EV)
+        line23,  = ax_2.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
        
         
         
-        line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Particles mean')
-#        line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
+        line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
         if EV:
-            line31, = ax_3.plot(time[-1], particles_mean_now_EV[2], '-', \
+            line31EV, = ax_3.plot(time[-1], particles_mean_now_EV[2], '-', \
                                     color=color_mean_EV,label = 'EV particles mean')
-#            line32  = ax_3.fill_between([0], quantiles_now_EV[0:1,2],quantiles_now[1:2,2], color=color_quantile_EV)
-        line33,  = ax_3.plot([0],[-2*1],'r.',label = 'Assimilate True')
+            if heavy_real_time_plot:
+                line32EV  = ax_3.fill_between([0], quantiles_now_EV[0:1,2],quantiles_now[1:2,2], color=color_quantile_EV)
+        line33,  = ax_3.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
-        line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Particles mean')
-#        line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
+        line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
         if EV:
-            line41, = ax_4.plot(time[-1], particles_mean_now_EV[3], '-', \
+            line41EV, = ax_4.plot(time[-1], particles_mean_now_EV[3], '-', \
                                     color=color_mean_EV,label = 'EV particles mean')
-#            line42  = ax_4.fill_between([0], quantiles_now_EV[0:1,3],quantiles_now[1:2,3], color=color_quantile_EV)
-        line43,  = ax_4.plot([0],[-2*1],'r.',label = 'Assimilate True')
+            if heavy_real_time_plot:
+                line42EV  = ax_4.fill_between([0], quantiles_now_EV[0:1,3],quantiles_now[1:2,3], color=color_quantile_EV)
+        line43,  = ax_4.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
     
-        line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Particles mean')
-#        line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
+        line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
         if EV:
-            line51, = ax_5.plot(time[-1], particles_mean_now_EV[4], '-', \
+            line51EV, = ax_5.plot(time[-1], particles_mean_now_EV[4], '-', \
                                     color=color_mean_EV,label = 'EV particles mean')
-#            line52  = ax_5.fill_between([0], quantiles_now_EV[0:1,4],quantiles_now[1:2,4], color=color_quantile_EV)
-        line53,  = ax_5.plot([0],[-2*1],'r.',label = 'Assimilate True')
+            if heavy_real_time_plot:
+                line52EV  = ax_5.fill_between([0], quantiles_now_EV[0:1,4],quantiles_now[1:2,4], color=color_quantile_EV)
+        line53,  = ax_5.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
        
-        line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Particles mean')
-#        line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
+        line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
         if EV:
-            line61, = ax_6.plot(time[-1], particles_mean_now_EV[5], '-', \
+            line61EV, = ax_6.plot(time[-1], particles_mean_now_EV[5], '-', \
                                     color=color_mean_EV,label = 'EV particles mean')
-#            line62  = ax_6.fill_between([0], quantiles_now_EV[0:1,5],quantiles_now[1:2,5], color=color_quantile_EV)
-        line63,  = ax_6.plot([0],[-2*1],'r.',label = 'Assimilate True')
+            if heavy_real_time_plot:
+                line6EV2  = ax_6.fill_between([0], quantiles_now_EV[0:1,5],quantiles_now[1:2,5], color=color_quantile_EV)
+        line63,  = ax_6.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
         
         if plot_ref==True:
@@ -2315,6 +2352,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     time_exe = 0
     if EV:
         time_exe_EV = 0
+    n_frame_plots = int(plot_period/param['dt'])
     
                    
     ################################ Start temporal integration ###################################
@@ -2529,10 +2567,43 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 del iii_realization_EV   
     
         
+        #%% Plots
+        
+            
         ######################### Testing real time plot #######################
         
-        if (index%20)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
+        if (index%n_frame_plots)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
+#        if (index%20)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
             particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
+            
+            ########################## Plotting Q cirterion ########################
+            if plot_Q_crit:
+#                particles_mean = mat['particles_mean']
+                particles_mean_ = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[i,:]
+                particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
+                particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
+                
+                Omega = np.multiply(particles_mean_,Omega_phi_m_U)
+                Omega = np.sum(Omega,axis=1)
+                Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
+                
+                S = np.multiply(particles_mean_,S_phi_m_U)
+                S = np.sum(S,axis=1)
+                S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
+                
+                Q = 0.5 * ( Omega - S )
+                del Omega
+                del S
+                
+                MX = param['MX'].astype(int)
+                Q = np.reshape(Q,(MX))
+                
+#                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                name_file_data = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'.json')
+                
+                with open(str(name_file_data), 'w') as f:
+                    json.dump(Q.tolist(), f)
+            
             quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
             if EV:
                 particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
@@ -2545,50 +2616,71 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             ax_5.set_xlim([0, time[-1]+10])
             ax_6.set_xlim([0, time[-1]+10])
     
-            lim = np.where((time_bt_tot<=time[-1]))[0][-1]
+            lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
             
-            line11.set_data(time,particles_mean[:,0])
             ax_1.collections.clear()
-            ax_1.fill_between(time, quantiles[0,:,0],quantiles[1,:,0], color='gray')
             if EV:
-                line11.set_data(time,particles_mean_EV[:,0], color=color_mean_EV)
+                line11EV.set_data(time,particles_mean_EV[:,0])
+#                line11.set_data(time,particles_mean_EV[:,0], color=color_mean_EV)
                 ax_1.fill_between(time, quantiles_EV[0,:,0],quantiles_EV[1,:,0], color=color_quantile_EV)
-            line13.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            line11.set_data(time,particles_mean[:,0])
+            ax_1.fill_between(time, quantiles[0,:,0],quantiles[1,:,0], color='gray')
+            line13.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_2.collections.clear()
+            if EV:
+                line21EV.set_data(time,particles_mean_EV[:,1])
+#                line21EV.set_data(time,particles_mean_EV[:,1], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_2.fill_between(time, quantiles_EV[0,:,1],quantiles_EV[1,:,1], color=color_quantile_EV)
             line21.set_data(time,particles_mean[:,1])
-#            ax_2.collections.clear()
-#            ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
-            if EV:
-                line11.set_data(time,particles_mean_EV[:,1], color=color_mean_EV)
-            line23.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
+            line23.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_3.collections.clear()
+            if EV:
+                line31EV.set_data(time,particles_mean_EV[:,2])
+#                line31EV.set_data(time,particles_mean_EV[:,2], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_3.fill_between(time, quantiles_EV[0,:,2],quantiles_EV[1,:,2], color=color_quantile_EV)
             line31.set_data(time,particles_mean[:,2])
-#            ax_3.collections.clear()
-#            ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
-            if EV:
-                line11.set_data(time,particles_mean_EV[:,2], color=color_mean_EV)
-            line33.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
+            line33.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_4.collections.clear()
+            if EV:
+                line41EV.set_data(time,particles_mean_EV[:,3])
+#                line41EV.set_data(time,particles_mean_EV[:,3], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_4.fill_between(time, quantiles_EV[0,:,3],quantiles_EV[1,:,3], color=color_quantile_EV)
             line41.set_data(time,particles_mean[:,3])
-#            ax_4.collections.clear()
-#            ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
-            if EV:
-                line11.set_data(time,particles_mean_EV[:,3], color=color_mean_EV)
-            line43.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
+            line43.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_5.collections.clear()
+            if EV:
+                line51EV.set_data(time,particles_mean_EV[:,4])
+#                line51EV.set_data(time,particles_mean_EV[:,4], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_5.fill_between(time, quantiles_EV[0,:,0],quantiles_EV[1,:,4], color=color_quantile_EV)
             line51.set_data(time,particles_mean[:,4])
-#            ax_5.collections.clear()
-#            ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
-            if EV:
-                line11.set_data(time,particles_mean_EV[:,4], color=color_mean_EV)
-            line53.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
+            line53.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
-            line61.set_data(time,particles_mean[:,5])
-#            ax_6.collections.clear()
-#            ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
+            ax_6.collections.clear()
             if EV:
-                line11.set_data(time,particles_mean_EV[:,5], color=color_mean_EV)
-            line63.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+                line61EV.set_data(time,particles_mean_EV[:,5])
+#                line61EV.set_data(time,particles_mean_EV[:,5], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_6.fill_between(time, quantiles_EV[0,:,5],quantiles_EV[1,:,5], color=color_quantile_EV)
+            line61.set_data(time,particles_mean[:,5])
+            if heavy_real_time_plot:
+                ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
+            line63.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
             
             if plot_ref==True:
@@ -2694,24 +2786,26 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.figure(index,figsize=(12, 9))
             plt.ylim(-10, 10)
             ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
+            if EV:
+                plt.fill_between(time,quantiles_EV[0,:,index],quantiles_EV[1,:,index],color=color_quantile_EV)
+                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
+                                    color=color_mean_EV, label = 'EV particles mean')
             if plot_ref==True:
                 plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
                 
                 
-            if EV:
-                plt.fill_between(time,quantiles_EV[0,:,index],quantiles_EV[1,:,index],color=color_quantile_EV)
             plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
                 
-            line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Particles mean')
-            if EV:
-                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
-                                    color=color_mean_EV, label = 'EV particles mean')
+            line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Red LUM particles mean')
+#            if EV:
+#                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
+#                                    color=color_mean_EV, label = 'EV particles mean')
                 
     #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
     #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
     #        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
     #        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
-            plt.plot(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))),'r.')
+            plt.plot(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))),'r.')
             plt.grid()
             plt.ylabel('Chronos '+r'$b'+str(index+1)+'$'+' amplitude',fontsize=20)
             plt.xlabel('Time',fontsize=20)

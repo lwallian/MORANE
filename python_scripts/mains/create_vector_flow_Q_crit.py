@@ -34,18 +34,20 @@ if __name__ == '__main__':
     for i in range(5):
         particles_mean = mat['particles_mean']
         particles_mean = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[i,:]
-        tile = np.tile(particles_mean,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],1]))
-        particles_mean = np.transpose(tile,(0,2,1))
+        particles_mean = np.tile(particles_mean,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
+        particles_mean = np.transpose(particles_mean,(0,3,1,2))
         
-        multip = np.multiply(particles_mean,Omega_phi_m_U)
-        sum_multip = np.sum(multip,axis=1)
-        Omega = np.sum(np.sum(np.power(sum_multip,2),axis=3),axis=2)
+        Omega = np.multiply(particles_mean,Omega_phi_m_U)
+        Omega = np.sum(Omega,axis=1)
+        Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
         
-        multip = np.multiply(particles_mean,S_phi_m_U)
-        sum_multip = np.sum(multip,axis=1)
-        S = np.sum(np.sum(np.power(sum_multip,2),axis=3),axis=2)
+        S = np.multiply(particles_mean,S_phi_m_U)
+        S = np.sum(S,axis=1)
+        S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
         
         Q = 0.5 * ( Omega - S )
+        del Omega
+        del S
         
         Q = np.reshape(Q,(MX))
         
