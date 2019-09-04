@@ -49,6 +49,8 @@ test_fct = 'b'
 #svd_pchol = True
 choice_n_subsample = 'auto_shanon'
 adv_corrected = [False]
+u_inf_measured = 0.388 
+number_of_PIV_files = 4082
 
 
 current_pwd = Path(__file__).parents[1] # Select the path
@@ -147,14 +149,58 @@ if Plot_error_bar:
     nb_points = Sigma.shape[0]                                                      # Number of points in the grid
     nb_dim = Sigma.shape[1]            
 
+#%% Load PIV
+    
+file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(1).zfill(4)+'.dat')   # The path to load PIV data
+data = open(str(file))                                                                                                     # Open the PIV data  
+datContent = [i.strip().split() for i in data.readlines()]                                                                 # Reading the data 
+data = datContent[4:]                                                                                                      # Getting the data PIV
 
+nb_lines = len(data)                           # lines amount
+nb_collums = len(data[0][2:4])                 # Commumns amount 
+matrix = np.zeros(shape=(nb_lines,nb_collums)) # Creating matrix to stock data 
+
+'''
+We will select the first data in 0.080833 and after we will load the files taking in account the factor of subsampling and the amount of files. 
+'''
+for i,line in enumerate(data):  # Select the data in the first PIV file 
+    for j,number in enumerate(line[2:4]):
+        matrix[i,j] = number
+
+matrix_data_PIV_all_data = matrix.copy()[np.newaxis,...] # Select the PIV data in the first mask calculated (The mask inside PIV and DNS)    
+print('Loading PIV data: '+str(number_of_PIV_files)+' files...')
+
+if number_of_PIV_files>1:
+    for nb_file in range(1,(number_of_PIV_files+1),1)[1:]:                                                    # Loading the other files as defined in the start of this function
+        print(nb_file)
+        file = (Path(__file__).parents[3]).joinpath('data_PIV').\
+        joinpath('wake_Re'+str(Re)).joinpath('B'+str(nb_file).zfill(4)+'.dat') # Path to file
+        data = open(str(file))                                                                                                         # Open the file       
+        datContent = [i.strip().split() for i in data.readlines()]                                                                     # Read the data                                                                                                                                                                              
+        data = datContent[4:]                                                                                                          # Getting the data PIV 
+        
+        
+        matrix = np.zeros(shape=(nb_lines,nb_collums)) # Define the matrix to stock the data  
+        for i,line in enumerate(data):                 # Decode the information and save it as a matrix
+            for j,number in enumerate(line[2:4]):
+                matrix[i,j] = number
+        
+    
+        matrix_data_PIV_all_data = np.concatenate((matrix_data_PIV_all_data,\
+                                                   matrix.copy()[np.newaxis,...]),\
+        axis=0)  # Save the matrix inside the matrix of all the PIV data
+
+
+# Normalizing  measured data
+matrix_data_PIV_all_data = matrix_data_PIV_all_data/u_inf_measured  # Normalizing the PIV data to compare with DNS 
+y = matrix_data_PIV_all_data
 
 '''
 Load PIV
 '''
-path_y = Path(folder_data).parents[1].joinpath('data_PIV').\
-        joinpath('Data_piv.npy')
-y = np.load(path_y)[:4082,:]
+#path_y = Path(folder_data).parents[1].joinpath('data_PIV').\
+#        joinpath('Data_piv.npy')
+#y = np.load(path_y)[:4082,:]
 
 '''
 Reshape Piv data in order to compare with topos
@@ -185,7 +231,8 @@ valeurs = np.zeros((y_less_average.shape[0],Hpiv_Topos_otimization.shape[1]))
 for time in range(y.shape[0]):
     print(time)
     reg = linear_model.RidgeCV(alphas=np.logspace(-2.5, 2.5, 30))
-    reg.fit(Hpiv_Topos_otimization,y[time:time+1,...].T)       
+    reg.fit(Hpiv_Topos_otimization,y[time,...].T)       
+#    reg.fit(Hpiv_Topos_otimization,y[time:time+1,...].T)       
     valeurs[time,:] = reg.coef_
 for j in range(int(nb_modes)): 
     valeurs[:,j] = valeurs[:,j] * diag_reg[j]
