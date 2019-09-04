@@ -9,7 +9,7 @@ Created on Mon Mar 25 17:17:08 2019
 ######################################----PARAMETERS TO CHOOSE----############################################
 # Parameters choice
 param_ref = {}
-param_ref['n_simu'] = 100               # Number of simulations steps in time
+param_ref['n_simu'] = 30   # 100            # Number of simulations steps in time
 #param_ref['N_particules'] = n_particles # Number of particles to select  
 #    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
 beta_2 = 1.        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
@@ -1380,9 +1380,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
     
     file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-            a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample + \
-            '_threshold_' + str(threshold) + \
-            'fct_test_' + test_fct    
+            a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample 
+    if choice_n_subsample == 'auto_shanon' :
+        file = file + '_threshold_' + str(threshold)
+    file = file +'fct_test_' + test_fct    
 #    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
 #            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
 #            'fct_test_' + test_fct    
@@ -1423,6 +1424,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
     param['dt'] = float(param['dt'])
     
+    # Remove subsampling effect
+    param['dt'] = param['dt'] /param['decor_by_subsampl']['n_subsampl_decor']
+    param['N_test'] = param['N_test'] * param['decor_by_subsampl']['n_subsampl_decor']
+    param['N_tot'] = param['N_test'] + 1
+    param['decor_by_subsampl']['n_subsampl_decor'] = 1
+    
     if EV:
         file_EV= 'EV_result_' + type_data + '_' + str(nb_modes) + '_modes'
         file_EV= file_EV + '_noise.mat'
@@ -1458,20 +1465,21 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     if svd_pchol:
         file_plots = file_plots + '_svd_pchol'
     file_plots = file_plots + '/' + assimilate + \
-                              '/_DADuration_' + str(SECONDS_OF_SIMU) + '_'
+                              '/_DADuration_' + str(int(SECONDS_OF_SIMU)) + '_'
     if sub_sampling_PIV_data_temporaly:
-        file_plots = file_plots + 'ObsSubt_' + str(factor_of_PIV_time_subsampling) + '_'    
+        file_plots = file_plots + 'ObsSubt_' + str(int(factor_of_PIV_time_subsampling)) + '_'    
     if mask_obs:
-        file_plots = file_plots + 'ObsMaskyy_sub_' + str(subsampling_PIV_grid_factor) \
-                 + '_from_' + str(x0_index) + '_to_' \
-                 + str(x0_index + nbPoints_x*subsampling_PIV_grid_factor) \
-                 + '_from_' + str(y0_index) + '_to_' \
-                 + str(y0_index+nbPoints_y*subsampling_PIV_grid_factor) + '_'
+        file_plots = file_plots + 'ObsMaskyy_sub_' + str(int(subsampling_PIV_grid_factor)) \
+                 + '_from_' + str(int(x0_index)) + '_to_' \
+                 + str(int(x0_index + nbPoints_x*subsampling_PIV_grid_factor)) \
+                 + '_from_' + str(int(y0_index)) + '_to_' \
+                 + str(int(y0_index+nbPoints_y*subsampling_PIV_grid_factor)) + '_'
     else:
         file_plots = file_plots + 'no_mask_'
     if init_centred_on_ref:
         file_plots = file_plots + 'initOnRef_'
-    file_plots = file_plots + 'beta_2_' + str(beta_2)
+    file_plots = file_plots + 'beta_2_' + str(int(beta_2))
+    file_plots = file_plots + 'nSimu' + str(int(n_simu))
         
 #    file_plots = file_plots.replace(".", "_")
     folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
@@ -1512,6 +1520,20 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     param['folder_results'] = str(folder_results)
     param['big_data'] = big_data
     param['plots_bts'] = plot_bts
+    
+    
+    param['folder_results'] = param_ref['folder_results']
+    param['N_particules'] = param_ref['N_particules']
+    n_simu = param_ref['n_simu']
+#    param['N_tot'] = bt_tot.shape[0]
+#    param['N_test'] = param['N_tot'] - 1
+#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
+#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+    
+    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
+    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
+    
     
     
     #%% Choice of modal time step
@@ -1580,7 +1602,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             quantiles_PIV = np.zeros((2,bt_tot.shape[0],bt_tot.shape[1]))
         else:
             file = (Path(__file__).parents[3]).joinpath('data_PIV').\
-            joinpath('bt_tot_PIV_Re'+str(Re)+'.mat')
+            joinpath('bt_tot_PIV_Re'+str(int(Re))+'.mat')
             print(file)
             dict_python = hdf5storage.loadmat(str(file))
             bt_tot = dict_python['bt_tot_PIV']
@@ -1602,19 +1624,6 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     #%% Time integration of the reconstructed Chronos b(t)
     
-    param['folder_results'] = param_ref['folder_results']
-    param['N_particules'] = param_ref['N_particules']
-    n_simu = param_ref['n_simu']
-#    param['N_tot'] = bt_tot.shape[0]
-#    param['N_test'] = param['N_tot'] - 1
-#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
-    
-    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
-    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
-    
-    
 #    Reconstruction in the deterministic case
 #    bt_forecast_deter = bt_tronc
 #    for index in range(param['N_test']):
@@ -1629,7 +1638,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
 #    Reconstruction in the stochastic case
-    lambda_values = param['lambda'][:,0] # Define the constant lambda (The integral in one period of the square temporal modes )
+    lambda_values = param['lambda'] # Define the constant lambda (The integral in one period of the square temporal modes )
+#    lambda_values = param['lambda'][:,0] # Define the constant lambda (The integral in one period of the square temporal modes )
     
 #    lambda_values = lambda_values[0]*np.ones(lambda_values.shape)
     
@@ -2810,6 +2820,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    sio.savemat(str(name_file_data),dict_python)
     
     # Time of execution
+    print(choice_n_subsample)
+    print('\n')
     print('Time of execution of PF & Red LUM for ' + \
           str(SECONDS_OF_SIMU) + ' s of simulation:')
     print('\n')
