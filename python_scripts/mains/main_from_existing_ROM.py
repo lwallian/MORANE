@@ -41,7 +41,7 @@ sub_sampling_PIV_data_temporaly = True  # True                                  
 #factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
 
 
-plt_real_time = True                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+plt_real_time = False                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
 plot_period = float(5/10)/2
 heavy_real_time_plot = True
 #n_frame_plots = 20           
@@ -69,13 +69,13 @@ assimilation_period = float(5/10)
 ##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
 #assimilation_period = float(5)
 
-##subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
-##x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-##nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-##y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-##nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-###factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
-##assimilation_period = float(5/10) 
+#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
+#assimilation_period = float(5/10) 
         
 color_mean_EV = 'deepskyblue'
 color_quantile_EV = 'paleturquoise'
@@ -108,6 +108,7 @@ import scipy.sparse as sps
 from PIL import Image
 import time as t_exe
 import json 
+from plot_bt_dB_MCMC_varying_error import plot_bt_dB_MCMC_varying_error_DA
 
 #def calculate_sigma_inv(L):
 #    
@@ -1369,7 +1370,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     current_pwd = Path(__file__).parents[1] # Select the path
     folder_results = current_pwd.parents[0].joinpath('resultats').joinpath('current_results') # Select the current results path
-    folder_data = current_pwd.parents[0].joinpath('data') # Select the data path
+    folder_data = current_pwd.parents[1].joinpath('data') # Select the data path
+#    folder_data = current_pwd.parents[0].joinpath('data') # Select the data path
     
     
     param_ref['folder_results'] = str(folder_results) # Stock folder results path
@@ -1690,7 +1692,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
    
 #      LOAD TOPOS
     print('Loading H_PIV @ Topos...')
-    path_topos = Path(folder_data).parents[1].joinpath('data_PIV').\
+    path_topos = Path(folder_data).parents[0].joinpath('data_PIV').\
             joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes_PIV') # Topos path 
     topos_data = hdf5storage.loadmat(str(path_topos))                                                                 # Load topos
     topos = topos_data['phi_m_U']   
@@ -2818,6 +2820,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.savefig(file_res_mode,dpi=200 )
 #            plt.savefig(file_res_mode,dpi=500 )
 #            plt.savefig(file_res_mode,quality = 95)
+    
         
 #        print(time_bt_tot.shape)
 #        print(time.shape)
@@ -2843,7 +2846,26 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             dict_python['quantiles_EV'] = quantiles_EV
         file_res = file_res_mode = file_plots_res / Path('chronos.mat')
         sio.savemat(file_res,dict_python)
-            
+        
+        
+        
+        if EV:
+            N_ = particles_mean.shape[0]
+            struct_bt_MCMC = {}
+            struct_bt_MCMC['mean'] = particles_mean\
+                .copy()[:N_:n_simu]
+            struct_bt_MCMC['var'] = np.var(bt_MCMC[:,:,:],axis=2)\
+                .copy()[:N_:n_simu]
+            struct_bt_MEV_noise = {}
+            struct_bt_MEV_noise['mean'] = particles_mean_EV\
+                .copy()[:N_:n_simu]
+            struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
+                .copy()[:N_:n_simu]
+            param['N_test']=int(param['N_test']/n_simu)
+            param['N_tot']=param['N_test']+1
+            param['dt'] = param['dt'] * n_simu
+            plot_bt_dB_MCMC_varying_error_DA( \
+                    param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC)
         
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
     
