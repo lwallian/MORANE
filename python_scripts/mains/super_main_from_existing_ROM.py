@@ -42,7 +42,9 @@ if __name__ == '__main__':
     vect_adv_corrected = [False]
     test_fct = 'b'
     svd_pchol = True
-    choice_n_subsample = 'auto_shanon'
+    choice_n_subsample = 'htgen'
+#    choice_n_subsample = 'auto_shanon'
+    EV = True
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
@@ -56,6 +58,8 @@ if __name__ == '__main__':
     
     # Get threshold and modal_dt
     v_threshold,vect_modal_dt = switch_type_data(type_data)
+    if not( choice_n_subsample == 'auto_shanon'):
+        vect_modal_dt = [False]
     
     nb_period_test = math.nan
     nb_modes_max = np.max(vect_nb_modes)
@@ -69,7 +73,7 @@ if __name__ == '__main__':
                         main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
                                                no_subampl_in_forecast,reconstruction,\
                                                adv_corrected,modal_dt,n_particle,\
-                                               test_fct,svd_pchol,choice_n_subsample)
+                                               test_fct,svd_pchol,choice_n_subsample,EV)
     
 
     

@@ -4,6 +4,8 @@ function Fake_PIV_data(param)
 
 %% Get parameters
 
+no_noise = false;
+
 switch param.type_data
     case {'DNS100_inc3d_2D_2018_11_16_blocks',...
             'DNS100_inc3d_2D_2018_11_16_blocks_truncated',...
@@ -92,10 +94,21 @@ switch param.type_data
     otherwise
         error('unknown parameters');
 end
+if no_noise
+   error_estim = 0;
+end
 
 % param = fct_name_file_diffusion_mode_PIV(param);
+% param.folder_file_U_fake_PIV = ...
+%     [ param.folder_file_U_temp(1:end-1) '_fake_PIV/'];
+param.folder_data_PIV = [ param.folder_data(1:end-1) '_PIV/'];
 param.folder_file_U_fake_PIV = ...
-    [ param.folder_file_U_temp(1:end-1) '_fake_PIV/'];
+    [ param.folder_data_PIV '/wake_Re' num2str(1/param.viscosity) ...
+    '_fake/'];
+if no_noise
+    param.folder_file_U_fake_PIV = [ param.folder_file_U_fake_PIV(1:end-1) ...
+        '_noNoise/'];
+end
 mkdir(param.folder_file_U_fake_PIV);
 
 param_temp = param;
@@ -319,7 +332,7 @@ param.type_data=[param.data_in_blocks.type_whole_data num2str(big_T)];
 [U,param_temp]=read_data(param.type_data,param.folder_data, ...
     param.data_in_blocks.type_whole_data,param.modified_Re);
 dt = param_temp.dt;clear param_temp
-time = time+dt;
+% time = time+dt;
 
 % Load
 % load(name_file_U_temp);

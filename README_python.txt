@@ -7,11 +7,22 @@ _______________________________________
 
 
 Les commandes utilisées pour avoir la bonne version de conda/python/spyder
+___________________________________________
 
-(mecflu2) C:\windows\system32>doskey /history
+In the code folder :
 
-conda env create -f F:\MATLAB\RedLUM\environment.yml
-conda activate mecflu2
+conda env create -f environment.yml
+conda activate mecflu
+conda update --all
+conda install -c anaconda hdf5
+spyder
+
+
+
+Or alternatively:
+
+conda env create -f environment.yml
+conda activate mecflu
 conda update spyder
 conda install -c conda-forge qtpy
  conda install qt=5 pyqt=5 qtpy=1.1.2 --force
@@ -27,13 +38,5 @@ conda install --force-reinstall QtPy qt
 conda install --force-reinstall pyqt qt
 pip uninstall PyQt5
 conda install --force-reinstall pyqt qt
-conda install -c anaconda hdf5
-spyder
-
-___________________________________________
-
-(mecflu) C:\windows\system32>doskey /history
-
-conda update all
 conda install -c anaconda hdf5
 spyder

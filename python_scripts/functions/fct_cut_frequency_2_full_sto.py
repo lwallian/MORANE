@@ -96,7 +96,8 @@ def fct_cut_frequency_2_full_sto(bt,ILC,param,pchol_cov_noises,modal_dt):
     L_sto = np.multiply(L_sto,rate_dt.T)
     
     for q in range(nb_modes):
-        I_sto[q] = -np.trace(np.matmul(np.diag(lambda_fct[:,0]),C_sto[q,:,:]))
+        I_sto[q] = -np.trace(np.matmul(np.diag(lambda_fct),C_sto[q,:,:]))
+#        I_sto[q] = -np.trace(np.matmul(np.diag(lambda_fct[:,0]),C_sto[q,:,:]))
     
     modal_dt_dict = {'I':I_sto + I_deter,'L':L_sto + L_deter,'C':C_sto + C_deter}
     

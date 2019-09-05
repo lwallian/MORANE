@@ -2,6 +2,11 @@ function param = ref_Q(param,reconstruction)
 % Reconstruct velocity field and save it
 %
 
+global stochastic_integration;
+global estim_rmv_fv;
+global choice_n_subsample;
+global correlated_model;
+
 %%
 n_subsampl = param.decor_by_subsampl.n_subsampl_decor;
 

@@ -9,6 +9,9 @@ close all
 
 if nargin == 0
     init;
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     % % figure;
     % nb_modes_min=2;
     % nb_modes_max=32;
@@ -46,18 +49,46 @@ if nargin == 0
     %             type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     %         type_data = 'turb2D_blocks_truncated'
     
+    choice_n_subsample = 'htgen'
+%     choice_n_subsample = 'auto_shanon'
+    stochastic_integration = 'Ito'
+    estim_rmv_fv = false
+    svd_pchol = 1
+    eq_proj_div_free = 1
+    
     no_subampl_in_forecast = false;
     % reconstruction = false;
     vect_reconstruction = [ false ]
     % vect_reconstruction = [true ]
     % adv_corrected = true
-    %         vect_adv_corrected = [ false]
     vect_adv_corrected = [ false]
+    %     vect_adv_corrected = [true false]
     %                 vect_adv_corrected = [true ]
     
-    vect_DA = [ true ]
-    vect_coef_bruit_obs = [0.1 0.8 ]
-%     vect_coef_bruit_obs = [0.8 0.1]
+    vect_data_assimilation = [ 2 ]
+    
+    if vect_data_assimilation == 2
+        vect_coef_bruit_obs = nan
+%         vect_coef_bruit_obs = 0.06
+%         param_obs.fake_PIV = True;
+        param_obs.assimilate = 'fake_real_data' %# The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+        param_obs.SECONDS_OF_SIMU = 70 % We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+        param_obs.sub_sampling_PIV_data_temporaly = true  % We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
+
+        param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
+        param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+        param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+        param_obs.nbPoints_x = 1;     %    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        param_obs.y0_index = 10;   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+        param_obs.nbPoints_y = 1;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        param_obs.assimilation_period = 5/10;
+        param_obs
+    else
+        vect_coef_bruit_obs = [0.1 0.8]
+        param_obs = nan
+    end
+%     vect_coef_bruit_obs = [0.1 0.8 ]
+% %     vect_coef_bruit_obs = [0.8 0.1]
     
     %% With correctif coefficient
     
@@ -145,6 +176,7 @@ nb_modes_max = max(vect_nb_modes);
 %% Compute topos vorticity and rate of strain tensors
 current_pwd = pwd; cd ..
 param.folder_data = [ pwd '/data/' ];
+param.folder_data_PIV = [ pwd '/data_PIV/' ];
 cd(current_pwd); clear current_pwd
 for k=vect_nb_modes
     name_file_tensor_mode = [ param.folder_data ...
@@ -159,7 +191,7 @@ end
 
 %% Compute instateneous Q criterion
 for coef_bruit_obs = vect_coef_bruit_obs
-    for DA = vect_DA
+    for data_assimilation = vect_data_assimilation
         for modal_dt=vect_modal_dt
             for adv_corrected=vect_adv_corrected
                 for reconstruction = vect_reconstruction
@@ -174,7 +206,8 @@ for coef_bruit_obs = vect_coef_bruit_obs
                                 v_threshold(q),...
                                 no_subampl_in_forecast,reconstruction,...
                                 adv_corrected,modal_dt,...
-                                DA,coef_bruit_obs)
+                                svd_pchol,eq_proj_div_free,...
+                                data_assimilation,coef_bruit_obs,param_obs)
                             
                             %                     switch type_data
                             %                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'

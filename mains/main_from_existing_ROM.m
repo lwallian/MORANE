@@ -30,8 +30,8 @@ if ~ strcmp(choice_n_subsample,'auto_shanon')
 end
 % param_ref.n_simu = 2;
 % N_particules=2;
-param_ref.n_simu = 2;
-N_particules=2;
+param_ref.n_simu = 100;
+N_particules=100;
 param_ref.N_particules=N_particules;
 
 %% Default parameters
@@ -402,7 +402,10 @@ if ~ reconstruction
     %     end
     
     %% Creation of the test basis
+    n_subsampl_decor_ref = param.decor_by_subsampl.n_subsampl_decor;
+    param.decor_by_subsampl.n_subsampl_decor = 1;
     [param,bt_tot,truncated_error2]=Chronos_test_basis(param);
+    param.decor_by_subsampl.n_subsampl_decor = n_subsampl_decor_ref;
     if param.big_data
         toc;tic;
         disp('Creation of the test basis done');
@@ -423,6 +426,9 @@ bt_tronc=bt_tot(1,:); % Initial condition
 
 param.dt = param.dt/n_simu;
 param.N_test=param.N_test*n_simu;
+param.dt = param.dt/param.decor_by_subsampl.n_subsampl_decor;
+% param.N_test=param.N_test*param.decor_by_subsampl.n_subsampl_decor;
+
 % % BETA only for test2D
 % if strcmp(param.type_data , 'test2D_blocks_truncated')
 %     param.N_test = 6e4-1;

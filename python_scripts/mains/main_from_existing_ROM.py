@@ -9,11 +9,11 @@ Created on Mon Mar 25 17:17:08 2019
 ######################################----PARAMETERS TO CHOOSE----############################################
 # Parameters choice
 param_ref = {}
-param_ref['n_simu'] = 100               # Number of simulations steps in time
+param_ref['n_simu'] = 100   # 100      # Number of simulations steps in time
 #param_ref['N_particules'] = n_particles # Number of particles to select  
 #    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
-beta_2 = 1        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
-beta_3 = 1                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
+beta_2 = 1.        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
+beta_3 = 1.                              # beta_3 is the parameter that controls the impact in the model noise -> beta_3 * pchol_cov_noises 
 #    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
 init_centred_on_ref = False              # If True, the initial condition is centered on the reference initial condiion
 N_threshold = 40                        # Effective sample size in the particle filter
@@ -22,39 +22,73 @@ pho = 0.998                             # Constant that constrol the balance in 
 
 #    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
 std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
-assimilate = 'real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
 only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
 slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
 slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
 data_assimilate_dim = 2                 # In this experiments we assimilate 2D data, and in the case Reynolds=300, the vector flow in the z direction will be ignored.
 u_inf_measured = 0.388                  # The PIV measured velocity (See the .png image in the respective PIV folder with all measured constants). It must be represented in m/s
-cil_diameter = 12                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
+cil_diameter = 12.                       # Cylinder diameter in PIV experiments. It must be in mm. (See the .png image in the respective PIV folder with all measured constants).
 center_cil_grid_dns_x_index = 60        # Index that represents the center of the cylinder in X in the DNS grid
 center_cil_grid_dns_y_index = 49        # Index that represents the center of the cylinder in Y in the DNS grid
-Re = 300                                # Reynolds constant
+#Re = 300                                # Reynolds constant
 center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 
-SECONDS_OF_SIMU = 70 #70 #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+SECONDS_OF_SIMU = 70. #70. #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
 sub_sampling_PIV_data_temporaly = True  # True                                                           # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
-factor_of_PIV_time_subsampling_gl = 10                                                                       # The factor that we will take to subsampled PIV data. 
+## factor_of_PIV_time_subsampling_gl = 10  
+#factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
 
-plt_real_time = False                                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
 
-mask_obs = False      # True            # Activate spatial mask in the observed data
+plt_real_time = False                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+plot_period = float(5/10)/2
+heavy_real_time_plot = True
+#n_frame_plots = 20           
+fig_width= 18
+fig_height = 8
+plot_Q_crit = False
+
+
+mask_obs = True      # True            # Activate spatial mask in the observed data
+
 subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
-x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
-nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
-y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
-nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+nbPoints_x_gl = 1      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+nbPoints_y_gl = 1      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#dt_PIV = 0.080833
+#factor_of_PIV_time_subsampling_gl = int(5/10 / dt_PIV) 
+assimilation_period = float(5/10)
 
+#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 3     # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 3     # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
+#assimilation_period = float(5)
+
+#subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
+#assimilation_period = float(5/10) 
+        
+color_mean_EV = 'deepskyblue'
+color_quantile_EV = 'paleturquoise'
+        
 plot_debug = False
-plot_ref_gl = False
+plot_ref_gl = True
+pos_Mes = -7
 
 #import matplotlib.pyplot as plt
 import math
 import os
 from convert_mat_to_python import convert_mat_to_python
+from convert_mat_to_python_EV import convert_mat_to_python_EV
 from pathlib import Path
 import sys
 import hdf5storage
@@ -72,6 +106,9 @@ from scipy import interpolate
 #from scipy import sparse as svds
 import scipy.sparse as sps
 from PIL import Image
+import time as t_exe
+import json 
+from plot_bt_dB_MCMC_varying_error import plot_bt_dB_MCMC_varying_error_DA
 
 #def calculate_sigma_inv(L):
 #    
@@ -1210,7 +1247,7 @@ def calculate_rotational(topos_Fx,topos_Fy,delta_space,nb_x,nb_y):
     
 #%%                                          Begin the main_from_existing_ROM that constrols all the simulation
     
-def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,n_particles,test_fct,svd_pchol,choice_n_subsample):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
+def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,n_particles,test_fct,svd_pchol,choice_n_subsample,EV):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
     
     ######################################----PARAMETERS TO CHOOSE----############################################
@@ -1250,14 +1287,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    y0_index = 0         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
 #    nbPoints_y = 24      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
     #################################### ----------------------------------------------------------------------- ###################################
-    if not sub_sampling_PIV_data_temporaly:
-        factor_of_PIV_time_subsampling = 1
-    else:
-        factor_of_PIV_time_subsampling = factor_of_PIV_time_subsampling_gl
+
+#    if not sub_sampling_PIV_data_temporaly:
+#        factor_of_PIV_time_subsampling = 1
+#    else:
+#        factor_of_PIV_time_subsampling = factor_of_PIV_time_subsampling_gl
+#        if type_data == 'DNS100_inc3d_2D_2018_11_16_blocks_truncated' :
+#            factor_of_PIV_time_subsampling = \
+#               factor_of_PIV_time_subsampling *20
         
     if not mask_obs:   # If we must select a smaller grid inside the observed grid. 
-        x0_index = 1
-        y0_index = 1
+        x0_index = 1.
+        y0_index = 1.
         nbPoints_x = float('nan')
         nbPoints_y = float('nan')
         subsampling_PIV_grid_factor = 1
@@ -1269,26 +1310,54 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         subsampling_PIV_grid_factor = subsampling_PIV_grid_factor_gl
     
     
+    switcher = {
+    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 300 ,
+    'DNS100_inc3d_2D_2018_11_16_blocks_truncated': 100  
+    }
+    Re = switcher.get(type_data,[float('Nan')])
+    
     if assimilate == 'real_data':
-        dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
+        switcher = {
+        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': float(0.080833),
+        'DNS100_inc3d_2D_2018_11_16_blocks_truncated' : float(0.05625)
+        }
+        dt_PIV = switcher.get(type_data,[float('Nan')])
+        if not sub_sampling_PIV_data_temporaly:
+            factor_of_PIV_time_subsampling = 1
+        else:
+            factor_of_PIV_time_subsampling = int(assimilation_period/dt_PIV)
+        plot_ref = plot_ref_gl 
+#        dt_PIV = 0.080833                                                                                     # Temporal step between 2 consecutive PIV images. (See the .png image in the respective PIV folder with all measured constants).    
         number_of_PIV_files = int(SECONDS_OF_SIMU/dt_PIV) + 1                                                 # Number of PIV files to load
-        vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
+        vector_of_assimilation_time = np.arange(start=0,stop=number_of_PIV_files*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
+#        vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
         vector_of_assimilation_time = vector_of_assimilation_time[::factor_of_PIV_time_subsampling]              # Using the factor to select the moments that we will take to assimilate
     elif assimilate == 'fake_real_data':
         plot_ref = True                     # Plot bt_tot
-        dt_PIV = 0.25                       # Temporal step between 2 consecutive PIV images.
-        nb_snapshots_each_file = 16         # The amount of snapshots that each file contains
-        time_per_file = (nb_snapshots_each_file)*dt_PIV
-        if SECONDS_OF_SIMU%time_per_file == 0:
-            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+        switcher = {
+        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 80 ,
+        'DNS100_inc3d_2D_2018_11_16_blocks_truncated': 14  
+        }
+        nb_file_learning_basis = switcher.get(type_data,[float('Nan')])
+        switcher = {
+        'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 0.25,
+        'DNS100_inc3d_2D_2018_11_16_blocks_truncated' : 0.05
+        }
+        dt_PIV = switcher.get(type_data,[float('Nan')])
+        if not sub_sampling_PIV_data_temporaly:
+            factor_of_PIV_time_subsampling = 1
         else:
-            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
-    else:
-        plot_ref = plot_ref_gl 
-            
-        
-        
-       
+            factor_of_PIV_time_subsampling = int(assimilation_period/dt_PIV)
+#        dt_PIV = 0.25                       # Temporal step between 2 consecutive PIV images.
+#        nb_snapshots_each_file = 16         # The amount of snapshots that each file contains
+#        time_per_file = (nb_snapshots_each_file)*dt_PIV
+#        if SECONDS_OF_SIMU%time_per_file == 0:
+#            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+#        else:
+#            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
+    
+    #%%  Initialize randm generator
+    np.random.seed()      
     
     #%%  Parameters already chosen
     
@@ -1301,7 +1370,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     current_pwd = Path(__file__).parents[1] # Select the path
     folder_results = current_pwd.parents[0].joinpath('resultats').joinpath('current_results') # Select the current results path
-    folder_data = current_pwd.parents[0].joinpath('data') # Select the data path
+    folder_data = current_pwd.parents[1].joinpath('data') # Select the data path
+#    folder_data = current_pwd.parents[0].joinpath('data') # Select the data path
     
     
     param_ref['folder_results'] = str(folder_results) # Stock folder results path
@@ -1309,11 +1379,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     
     modal_dt_ref = modal_dt # Define modal_dt_ref
-     
+    
     
     
     #%% Get data
-    
+
     # On which function the Shanon ctriterion is used
 #    test_fct = 'b'  # 'b' is better than db
     a_t = '_a_cst_' 
@@ -1321,9 +1391,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
     
     file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-            a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample + \
-            '_threshold_' + str(threshold) + \
-            'fct_test_' + test_fct    
+            a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample 
+    if choice_n_subsample == 'auto_shanon' :
+        file = file + '_threshold_' + str(threshold)
+    file = file +'fct_test_' + test_fct    
 #    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
 #            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
 #            'fct_test_' + test_fct    
@@ -1332,6 +1403,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    if var_exits == True and period_estim == True:
 #        file = file + '_p_estim_' + str(period_estim);
     file = file + '_fullsto' # File where the ROM coefficients are save
+    print(file)
 #    file_save = file
     if not adv_corrected:
         file = file + '_no_correct_drift'
@@ -1343,34 +1415,85 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         if choice_n_subsample == 'auto_shanon' :
             file = file + '_threshold_' + str(threshold)
         file = file + test_fct   
+        file = file + '_fullsto' # File where the ROM coefficients are save
 #        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
 #            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
 #        file = file_save
         if not adv_corrected:
-            file = file + '\\_no_correct_drift'
+            file = file + '/_no_correct_drift'
+        file_save = file
         file = file + '.mat'
         file_res = folder_results / Path(file)
-    print(file)
+        if not os.path.exists(file_res):
+            file = file_save + '_integ_Ito'
+            file = file + '.mat'
+            file_res = folder_results / Path(file)
+#    print(file)
     
     # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
     I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
     param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
+    param['dt'] = float(param['dt'])
     
+    # Remove subsampling effect
+    param['dt'] = param['dt'] /param['decor_by_subsampl']['n_subsampl_decor']
+    param['N_test'] = param['N_test'] * param['decor_by_subsampl']['n_subsampl_decor']
+    param['N_tot'] = param['N_test'] + 1
+    param['decor_by_subsampl']['n_subsampl_decor'] = 1
+    
+    if EV:
+        file_EV= 'EV_result_' + type_data + '_' + str(nb_modes) + '_modes'
+        file_EV= file_EV + '_noise.mat'
+        file_EV_res = folder_results / Path(file_EV)
+        ILC_EV = convert_mat_to_python_EV(str(file_EV_res)) # Call the function and load the matlab data calculated before in matlab scripts.
+
+    
+    
+    #%% Redefined path to get acces to data
+    
+    param['nb_period_test'] = nb_period_test
+    param['decor_by_subsampl']['test_fct'] = test_fct
+    folder_data = param_ref['folder_data']
+    folder_results = param_ref['folder_results']
+    
+    big_data = False
+    
+    param['folder_data'] = str(folder_data)
+    param['folder_results'] = str(folder_results)
+    param['big_data'] = big_data
+    param['plots_bts'] = plot_bts
+    
+    
+    param['folder_results'] = param_ref['folder_results']
+    param['N_particules'] = param_ref['N_particules']
+    n_simu = param_ref['n_simu']
+#    param['N_tot'] = bt_tot.shape[0]
+#    param['N_test'] = param['N_tot'] - 1
+#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
+#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+    
+
+        
     #%% Reduction of the noise matrix
     if svd_pchol:
         U_cov_noises, S_cov_noises, _ = sps.linalg.svds(pchol_cov_noises, k=nb_modes)
-        pchol_cov_noises = U_cov_noises @ S_cov_noises
+        pchol_cov_noises = U_cov_noises @ np.diag(S_cov_noises)
+#        if EV:
+#            U_cov_noises_EV, S_cov_noises_EV, _ = \
+#            sps.linalg.svds(ILC_EV['pchol_cov_noises'], k=nb_modes)
+#            ILC_EV['pchol_cov_noises'] = U_cov_noises_EV @ np.diag(S_cov_noises_EV)
 
     #%% Folder to save data assimilation plot results
     plt.close('all')
-##    file_plots = '3rd' + file_save[3:] + '\\'
+##    file_plots = '3rd' + file_save[3:] + '/'
 #    file_plots = '3rdresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-#            choice_n_subsample + '_threshold_' + str(threshold) + test_fct + '\\'
-    file_plots = '3rdresult\\' + type_data + '_' + str(nb_modes) + '_modes_'  \
+#            choice_n_subsample + '_threshold_' + str(threshold) + test_fct + '/'
+    file_plots = '3rdresult/' + type_data + '_' + str(nb_modes) + '_modes_'  \
               + choice_n_subsample
     if choice_n_subsample == 'auto_shanon' :
         file_plots = file_plots + '_threshold_' + str(threshold)
-    file_plots = file_plots + test_fct + '\\'
+    file_plots = file_plots + test_fct + '/'
     if modal_dt:
         file_plots = file_plots + '_modal_dt'    
     if not adv_corrected:
@@ -1378,21 +1501,22 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     file_plots = file_plots + '_integ_Ito'
     if svd_pchol:
         file_plots = file_plots + '_svd_pchol'
-    file_plots = file_plots + '\\' + assimilate + \
-                              '\\_DADuration_' + str(SECONDS_OF_SIMU) + '_'
+    file_plots = file_plots + '/' + assimilate + \
+                              '/_DADuration_' + str(int(SECONDS_OF_SIMU)) + '_'
     if sub_sampling_PIV_data_temporaly:
-        file_plots = file_plots + 'ObsSubt_' + str(factor_of_PIV_time_subsampling) + '_'    
+        file_plots = file_plots + 'ObsSubt_' + str(int(factor_of_PIV_time_subsampling)) + '_'    
     if mask_obs:
-        file_plots = file_plots + 'ObsMaskyy_sub_' + str(subsampling_PIV_grid_factor) \
-                 + '_from_' + str(x0_index) + '_to_ ' \
-                 + str(nbPoints_x+x0_index*subsampling_PIV_grid_factor) \
-                 + '_from_' + str(y0_index) + '_to_ ' \
-                 + str(nbPoints_y+y0_index*subsampling_PIV_grid_factor) + '_'
+        file_plots = file_plots + 'ObsMaskyy_sub_' + str(int(subsampling_PIV_grid_factor)) \
+                 + '_from_' + str(int(x0_index)) + '_to_' \
+                 + str(int(x0_index + nbPoints_x*subsampling_PIV_grid_factor)) \
+                 + '_from_' + str(int(y0_index)) + '_to_' \
+                 + str(int(y0_index+nbPoints_y*subsampling_PIV_grid_factor)) + '_'
     else:
         file_plots = file_plots + 'no_mask_'
     if init_centred_on_ref:
         file_plots = file_plots + 'initOnRef_'
-    file_plots = file_plots + 'beta_2_' + str(beta_2)
+    file_plots = file_plots + 'beta_2_' + str(int(beta_2))
+    file_plots = file_plots + 'nSimu' + str(int(n_simu))
         
 #    file_plots = file_plots.replace(".", "_")
     folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
@@ -1401,6 +1525,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    print( file_plots_res )
     if not os.path.exists(file_plots_res):
         os.makedirs( file_plots_res )
+    
+    if plot_Q_crit:
+        # File to save Q cirterion for real time 3D plots
+        path_Q_crit = Path(__file__).parents[3].\
+            joinpath('data_after_filtering').joinpath('aurore')
+        if not os.path.exists(path_Q_crit):
+            os.makedirs( path_Q_crit )
     
     #%% Parameters of the ODE of the b(t)
     
@@ -1420,45 +1551,38 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     ILC_a_cst = ILC.copy()
     
-    #%% Redefined path to get acces to data
-    
-    param['nb_period_test'] = nb_period_test
-    param['decor_by_subsampl']['test_fct'] = test_fct
-    folder_data = param_ref['folder_data']
-    folder_results = param_ref['folder_results']
-    
-    big_data = False
-    
-    param['folder_data'] = str(folder_data)
-    param['folder_results'] = str(folder_results)
-    param['big_data'] = big_data
-    param['plots_bts'] = plot_bts
-    
-    
     #%% Choice of modal time step
    
     ##############################################################################
     if modal_dt == True:
 #        rate_dt,ILC_a_cst,pchol_cov_noises = fct_cut_frequency_2_full_sto(bt_tot,ILC_a_cst,param,pchol_cov_noises,modal_dt)
         rate_dt, ILC_a_cst,pchol_cov_noises = fct_cut_frequency_2_full_sto(bt_tot,ILC_a_cst,param,pchol_cov_noises,modal_dt)
+        ILC_a_cst = ILC_a_cst['modal_dt']
     else:
-        ILC_a_cst['modal_dt'] = ILC_a_cst['tot']
+        ILC_a_cst = ILC_a_cst['tot']
+#        ILC_a_cst['modal_dt'] = ILC_a_cst['tot']
     
     
     #%% Do not temporally subsample, in order to prevent aliasing in the results
-    
+    N_tot_max = int(SECONDS_OF_SIMU/param['dt'])+1
+    N_tot = param['N_tot']
+    param['N_tot'] = N_tot
+    param['N_test'] = param['N_tot'] - 1
+    if N_tot > N_tot_max:
+        N_tot = N_tot_max
     if not reconstruction:
         if assimilate == 'fake_real_data':
     #        if exists: 
             current_pwd = Path(__file__).parents[1]
-            if param['nb_period_test'] is math.nan:
-                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
-                                                   '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
-            else:
-                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
-                                                   '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
-            
-               
+#            if param['nb_period_test'] is math.nan:
+#                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+#                                                   '_nb_period_test_' + 'NaN' + '_Chronos_test_basis.mat')
+#            else:
+#                name_file_data = current_pwd.parents[1].joinpath('data').joinpath( type_data + '_' + str(nb_modes) + '_modes' + '_threshold_' + str(param['decor_by_subsampl']['spectrum_threshold']) + \
+#                                                   '_nb_period_test_' + str(param['nb_period_test']) + '_Chronos_test_basis.mat')
+            name_file_data = current_pwd.parents[1].joinpath('data').\
+            joinpath( type_data + '_' + str(nb_modes) + '_modes' + \
+                     '_subsample_1_nb_period_test_NaN_Chronos_test_basis.mat')               
            
                 
             if name_file_data.exists():
@@ -1466,6 +1590,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 bt_tot = mat['bt']
                 truncated_error2 = mat['truncated_error2']
                 param['truncated_error2'] = truncated_error2
+                dt_bt_tot = param['dt']/param['decor_by_subsampl']['n_subsampl_decor']
                 
                 
                 
@@ -1478,34 +1603,41 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             
             #Test basis creation
             
-            param['N_tot'] = bt_tot.shape[0]
+#            param['N_tot'] = bt_tot.shape[0]
+            param['N_tot'] = N_tot
             param['N_test'] = param['N_tot'] - 1
-            bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
-    
+            bt_tot = bt_tot[:int(param['N_test']\
+                    *param['decor_by_subsampl']['n_subsampl_decor'] + 1),:]                # Ref. Chronos in the DNS cas
+#            bt_tot = bt_tot[:(param['N_test'] + 1),:]                # Ref. Chronos in the DNS cas
+            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_bt_tot
+            if len(time_bt_tot.shape)>1:
+                time_bt_tot = time_bt_tot[0,:]
+#            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
+#            bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
+            quantiles_PIV = np.zeros((2,bt_tot.shape[0],bt_tot.shape[1]))
         else:
-            bt_tot = float('nan')
+            file = (Path(__file__).parents[3]).joinpath('data_PIV').\
+            joinpath('bt_tot_PIV_Re'+str(int(Re))+'.mat')
+            print(file)
+            dict_python = hdf5storage.loadmat(str(file))
+            bt_tot = dict_python['bt_tot_PIV']
+            quantiles_PIV = dict_python['quantiles_PIV']
+            dt_PIV = dict_python['dt_PIV']
+            N_tot_PIV_max = int(SECONDS_OF_SIMU/dt_PIV)+1
+            if bt_tot.shape[0] > N_tot_PIV_max-1:
+                bt_tot = bt_tot[:N_tot_PIV_max,:]
+                quantiles_PIV = quantiles_PIV[:,:N_tot_PIV_max,:]
+            time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_PIV
+            time_bt_tot = time_bt_tot[0,:]
+#            bt_tot = float('nan')
             truncated_error2 = float('nan')
             param['truncated_error2'] = truncated_error2
-            bt_tronc = float('nan')
-            
+#            bt_tronc = float('nan')
+    
+    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
         
     
     #%% Time integration of the reconstructed Chronos b(t)
-    
-    param['folder_results'] = param_ref['folder_results']
-    param['N_particules'] = param_ref['N_particules']
-    n_simu = param_ref['n_simu']
-#    param['N_tot'] = bt_tot.shape[0]
-#    param['N_test'] = param['N_tot'] - 1
-#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
-    
-    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
-    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
-    
     
 #    Reconstruction in the deterministic case
 #    bt_forecast_deter = bt_tronc
@@ -1517,11 +1649,15 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    for index in range(param['N_test']):
 #        bt_forecast_sto = np.vstack((bt_forecast_sto,evol_forward_bt_RK4(ILC_a_cst['modal_dt']['I'],ILC_a_cst['modal_dt']['L'],ILC_a_cst['modal_dt']['C'],param['dt'],bt_forecast_sto)))
     
+    param['dt'] = param['dt']/n_simu                       # The simulation time step is dependent of the number of time evolution steps between the param['dt'],therefore the new param['dt'] is divided by the number of evolution steps 
+    param['N_test'] = param['N_test'] * n_simu             # Number of model integration steps is now the number of steps before times the number of integration steps between two old steps
+    
     
     
     
 #    Reconstruction in the stochastic case
-    lambda_values = param['lambda'][:,0] # Define the constant lambda (The integral in one period of the square temporal modes )
+    lambda_values = param['lambda'] # Define the constant lambda (The integral in one period of the square temporal modes )
+#    lambda_values = param['lambda'][:,0] # Define the constant lambda (The integral in one period of the square temporal modes )
     
 #    lambda_values = lambda_values[0]*np.ones(lambda_values.shape)
     
@@ -1543,10 +1679,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #        beta_2*np.tile(np.sqrt(lambda_values)[...,np.newaxis],(1,1,bt_MCMC[:,:,:].shape[2]))*np.random.normal(0,1,size=shape)
     # Initialise the chronos particles randomly and dependent of the lambda values 
 
-    bt_fv = bt_MCMC.copy()                                              # Define bt_fv 
-    bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))   # Define bt_m
+#    bt_fv = bt_MCMC.copy()                                              # Define bt_fv 
+#    bt_m = np.zeros((1,int(param['nb_modes']),param['N_particules']))   # Define bt_m
     iii_realization = np.zeros((param['N_particules'],1))               # Define iii_realization that is necessary if any explosion in the simulation
-    
+    if EV:
+        bt_forecast_EV = bt_MCMC.copy()
+        iii_realization_EV = iii_realization.copy()
     
         
    #%%  Loading matrices H_PivTopos calculated before, select the data in the new PIV grid and load sigma_inverse in the PIV space
@@ -1554,7 +1692,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
    
 #      LOAD TOPOS
     print('Loading H_PIV @ Topos...')
-    path_topos = Path(folder_data).parents[1].joinpath('data_PIV').\
+    path_topos = Path(folder_data).parents[0].joinpath('data_PIV').\
             joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes_PIV') # Topos path 
     topos_data = hdf5storage.loadmat(str(path_topos))                                                                 # Load topos
     topos = topos_data['phi_m_U']   
@@ -1582,8 +1720,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     topos = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
 #    topos_l = np.transpose(topos,(0,2,1))                                                              # Rearrange dimensions 
 #    topos_l = np.reshape(topos_l,(int(topos_l.shape[0]*topos_l.shape[1]),topos_l.shape[2]),order='F')  # Reshape the topos, the last dimensions being the number of resolved modes plus one and the first dimensions is (Nx * Ny * dim)
-    grid = param['MX'][0]                                                                              # Define the DNS grid
-    distance = param['dX'][0,0]                                                                        # Define the spatial space between 2 samples in DNS grid 
+
+    grid = param['MX']                                                                     # Define the DNS grid
+    distance = param['dX']                                                                     # Define the spatial space between 2 samples in DNS grid 
+#    grid = param['MX'][0]                                                                              # Define the DNS grid
+#    distance = param['dX'][0,0]                                                                        # Define the spatial space between 2 samples in DNS grid 
+
 #    matrix_H,number = calculate_H_PIV(topos_l,distance,grid,std_space,only_load,dim,slicing,slice_z)   # Apply spatial filter in the topos. The filtr was estimated before and is based in the PIV measures
 #    
 #    print('\nCalculating PIV mask and applying on the Topos...')
@@ -1612,8 +1754,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             - THE NOISE IS UNCORRELATED IN TIME AND IN SPACE. SUBSAMPLING SPATIALLY AND TEMPORALLY CAN INCREASE THE POSSIBILITY OF BE TRUE.
     
     '''
-    
-    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
+    threshold_ = str(threshold).replace('.', '_',)
+    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').\
+    joinpath('HSigSigH_PIV_'+type_data+'_'+str(nb_modes)\
+             +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
+#    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
     Sigma_inverse_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
     
     
@@ -1732,33 +1877,50 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     nb_dim = Sigma_inverse.shape[1]                                                         # Dimension
     
     
+    ######## Applying final mask after define observation window
+    Hpiv_Topos = Hpiv_Topos[Mask_final_bool,:].copy()        
+    
     
     '''
     The sigma inversed must be transformed in a matrix 
         - It contains the inversed matrix of correlations that is uncorrelated in space and in time. The correlation is between dimensions. 
         
     '''
-    Sigma_inverse_squared = np.zeros((int(nb_points*nb_dim),int(nb_points*nb_dim)))     # Create a matrix to stock the data     
+#    Sigma_inverse_squared = np.zeros((int(nb_points*nb_dim),int(nb_points*nb_dim)))     # Create a matrix to stock the data     
+##    print(nb_points)
+##    print(nb_dim)
+#    for line in range(int(nb_points)):                                                  # To all spatial samples we create the first part of the matrix that contains the correlation of Vx
+#        Sigma_inverse_squared[line,line] = Sigma_inverse[line,0,0]                      # Correlation of Vx with Vx
+#        Sigma_inverse_squared[line,line+nb_points] =  Sigma_inverse[line,0,1]           # Correlation of Vx with Vy 
+#       
+#    for line in range(int(nb_points)):                                                  # Now the second part of the matrix with Vy
+#        Sigma_inverse_squared[line+nb_points,line] = Sigma_inverse[line,1,0]            # Correlation of Vy with Vx
+#        Sigma_inverse_squared[line+nb_points,line+nb_points] =  Sigma_inverse[line,1,1] # Correlation of Vy with Vy
+#    K = Sigma_inverse_squared @ Hpiv_Topos   # We define K as the sigma inversed matrix times the Hpiv_Topos matrix
     
-    for line in range(int(nb_points)):                                                  # To all spatial samples we create the first part of the matrix that contains the correlation of Vx
-        Sigma_inverse_squared[line,line] = Sigma_inverse[line,0,0]                      # Correlation of Vx with Vx
-        Sigma_inverse_squared[line,line+nb_points] =  Sigma_inverse[line,0,1]           # Correlation of Vx with Vy 
-       
-    for line in range(int(nb_points)):                                                  # Now the second part of the matrix with Vy
-        Sigma_inverse_squared[line+nb_points,line] = Sigma_inverse[line,1,0]            # Correlation of Vy with Vx
-        Sigma_inverse_squared[line+nb_points,line+nb_points] =  Sigma_inverse[line,1,1] # Correlation of Vy with Vy
-    
-    
-  
-    ######## Applying final mask after define observation window
-    Hpiv_Topos = Hpiv_Topos[Mask_final_bool,:].copy()                   
+                
 
     
     
     # Calculating necessary matrices
-    K = Sigma_inverse_squared @ Hpiv_Topos   # We define K as the sigma inversed matrix times the Hpiv_Topos matrix
+    K= np.zeros((int(nb_dim),int(nb_modes+1),int(nb_points)))
+    Sigma_inverse = np.transpose(Sigma_inverse,(1,2,0))
+    Hpiv_Topos = np.reshape(Hpiv_Topos,(int(nb_points),int(nb_dim),int(nb_modes+1)),order='F') 
+    Hpiv_Topos = np.transpose(Hpiv_Topos,(1,2,0))
+    for line in range(int(nb_points)):                                                  # To all spatial samples we create the first part of the matrix that contains the correlation of Vx
+        K[:,:,line] = Sigma_inverse[:,:,line] @ Hpiv_Topos[:,:,line]
+    K = np.transpose(K,(2,0,1)) # ((nb_points),(nb_dim),(nb_modes+1),)
+    K = np.reshape(K,(int(nb_points*nb_dim),int(nb_modes+1)),order='F') 
+    Hpiv_Topos = np.transpose(Hpiv_Topos,(2,0,1)) # ((nb_points),(nb_dim),(nb_modes+1),)
+    Hpiv_Topos = np.reshape(Hpiv_Topos,(int(nb_points*nb_dim),int(nb_modes+1)),order='F') 
+    Sigma_inverse = np.transpose(Sigma_inverse,(2,0,1))  # ((nb_points),(nb_dim),(nb_dim),)
+    
+#    K = Sigma_inverse_squared @ Hpiv_Topos   # We define K as the sigma inversed matrix times the Hpiv_Topos matrix
+    
     Hpiv_Topos_K = Hpiv_Topos.T @ K          # The Hpiv_Topos times K is necessary too
     
+    
+    print('Likelihood matrices computed')
     
 #%%
     
@@ -1968,16 +2130,30 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         The case of assimilate fake_real_data is choosen when it should be assimilated the DNS smoothed and with noise. Hence, 
         a fake PIV(real data).
         '''
-        index_final = SECONDS_OF_SIMU/dt_PIV
         i=1
-        file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)+'_fake').joinpath('strat'+str(80+i)+'_U_temp_PIV')   # The path to load PIV data
+        file = (Path(__file__).parents[3]).joinpath('data_PIV')\
+        .joinpath('wake_Re'+str(Re)+'_fake')\
+        .joinpath('strat'+str(nb_file_learning_basis+i)+'_U_temp_PIV')   # The path to load PIV data
         data = hdf5storage.loadmat(str(file)) 
         vector_of_assimilation_time = np.array(data['interval_time_local'][0,:])
+        
+        dt_PIV = np.array(data['dt'][0,:])
+        index_final = SECONDS_OF_SIMU/dt_PIV
         vector_flow = data['U'].copy()
+        
+        nb_snapshots_each_file = vector_flow.shape[1]
+        time_per_file = (nb_snapshots_each_file)*dt_PIV
+        if SECONDS_OF_SIMU%time_per_file == 0:
+            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+        else:
+            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
+        
         print('Loading Fake PIV data:'+str(number_of_FAKE_PIV_files)+' files ...')
         if number_of_FAKE_PIV_files>1:
             for i in range(1,number_of_FAKE_PIV_files+1,1)[1:]:
-                file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)+'_fake').joinpath('strat'+str(80+i)+'_U_temp_PIV')   # The path to load PIV data
+                file = (Path(__file__).parents[3]).joinpath('data_PIV')\
+                .joinpath('wake_Re'+str(Re)+'_fake')\
+                .joinpath('strat'+str(nb_file_learning_basis+i)+'_U_temp_PIV')   # The path to load PIV data
                 data = hdf5storage.loadmat(str(file)) 
                 vector_flow = np.concatenate((vector_flow,data['U']),axis=1)
                 vector_of_assimilation_time = np.concatenate((vector_of_assimilation_time,np.array(data['interval_time_local'][0,:])))
@@ -2007,19 +2183,41 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             fig.colorbar(imgplot)
             plt.pause(1) 
         
-        if len(vector_of_assimilation_time) > 0:
-            if vector_of_assimilation_time[0] == 0:
-                matrix_data_PIV_all_data[1:,:,:]
-                vector_of_assimilation_time = vector_of_assimilation_time[1:]
-        else:
-            vector_of_assimilation_time = np.full((1, 1), np.inf)
+#        if len(vector_of_assimilation_time) > 0:
+#            if vector_of_assimilation_time[0] == 0:
+#                matrix_data_PIV_all_data[1:,:,:]
+##                vector_of_assimilation_time = vector_of_assimilation_time[1:]
+#        else:
+#            vector_of_assimilation_time = np.full((1, 1), np.inf)
+            
+#        if len(vector_of_assimilation_time) == 0:
+#            vector_of_assimilation_time = np.full((1, 1), np.inf)
         
     else:
         print('Error: Data to assimilate is not known.')
         sys.exit()
+#    vector_of_assimilation_time = vector_of_assimilation_time[2:]
+        
+    
+    if len(vector_of_assimilation_time) > 0:
+        if vector_of_assimilation_time[0] == 0:
+            matrix_data_PIV_all_data=matrix_data_PIV_all_data[1:,:,:]
+            vector_of_assimilation_time = vector_of_assimilation_time[1:]
+    else:
+        vector_of_assimilation_time = np.full((1, 1), np.inf)
+        
+    #%% Pre-processing for plotting Q cirterion
+    if plot_Q_crit:
+        file = 'tensor_mode_' + type_data + '_'+str(nb_modes)+'_modes'
+        name_file_data = Path(__file__).parents[3].joinpath('data').joinpath(file)
+        mat = hdf5storage.loadmat(str(name_file_data))
+        Omega_phi_m_U = mat['Omega_phi_m_U']
+        S_phi_m_U = mat['S_phi_m_U']
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
+    if EV:
+        ILC_EV['pchol_cov_noises'] = beta_3*ILC_EV['pchol_cov_noises']
     original_dt_simu = param['dt']                                       # Time simulation step  
     assimilate_PIV = False                                               # Flag to control assimilation moments
     nb_assim = 0                                                         # Flag to count the assimilation steps 
@@ -2027,11 +2225,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     index_of_filtering = []                                              # Control de index of assimilation
     time = [0]                                                           # The time of assimilation
     index_pf = [0]                                                       # Flag to control de noise in the past until now to mutation steps in Metropolis-Hastings
+#    time_bt_tot = time_bt_tot + next_time_of_assimilation
     
     # Defining figure to plot if real data is True 
     if plt_real_time==True:
         plt.ion()
-        fig = plt.figure(0)
+        fig = plt.figure(0,figsize =[fig_width,fig_height])
         plt.rcParams['axes.grid'] = True
         
         
@@ -2053,38 +2252,73 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         ax_6 = fig.add_subplot(2,4,8)
         ax_6.set_ylim([-10, 10])
         
-        
-        
         quantiles_now = np.quantile(bt_MCMC[-1,:,:],q=[0.025,0.975],axis=1)
         particles_mean_now = np.mean(bt_MCMC[-1,:,:],axis=1)
+        if EV:
+            quantiles_now_EV = np.quantile(bt_forecast_EV[-1,:,:],q=[0.025,0.975],axis=1)
+            particles_mean_now_EV = np.mean(bt_forecast_EV[-1,:,:],axis=1)
         
-        line11, = ax_1.plot(time[-1], particles_mean_now[0], 'b-',label = 'Particles mean')
+        line11, = ax_1.plot(time[-1], particles_mean_now[0], 'b-',label = 'Red LUM particles mean')
         line12  = ax_1.fill_between([0], quantiles_now[0:1,0],quantiles_now[1:2,0], color='gray')
-        line13,  = ax_1.plot([0],[-2*1],'r.',label = 'Assimilate True')
+        if EV:
+            line11EV, = ax_1.plot(time[-1], particles_mean_now_EV[0], '-', \
+                                    color=color_mean_EV,label = 'EV particles mean')
+            line12EV  = ax_1.fill_between([0], quantiles_now_EV[0:1,0],quantiles_now[1:2,0], color=color_quantile_EV)
+        line13,  = ax_1.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
         
         
-        line21, = ax_2.plot(time[-1], particles_mean_now[1], 'b-',label = 'Particles mean')
-#        line22 = ax_2.fill_between([0], quantiles_now[0:1,1],quantiles_now[1:2,1], color='gray')
-        line23,  = ax_2.plot([0],[-2*1],'r.',label = 'Assimilate True')
+        line21, = ax_2.plot(time[-1], particles_mean_now[1], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line22 = ax_2.fill_between([0], quantiles_now[0:1,1],quantiles_now[1:2,1], color='gray')
+        if EV:
+            line21EV, = ax_2.plot(time[-1], particles_mean_now_EV[1], '-', \
+                                    color=color_mean_EV,label = 'EV particles mean')
+            if heavy_real_time_plot:
+                line22EV  = ax_2.fill_between([0], quantiles_now_EV[0:1,1],quantiles_now[1:2,1], color=color_quantile_EV)
+        line23,  = ax_2.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
        
         
         
-        line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Particles mean')
-#        line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
-        line33,  = ax_3.plot([0],[-2*1],'r.',label = 'Assimilate True')
+        line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
+        if EV:
+            line31EV, = ax_3.plot(time[-1], particles_mean_now_EV[2], '-', \
+                                    color=color_mean_EV,label = 'EV particles mean')
+            if heavy_real_time_plot:
+                line32EV  = ax_3.fill_between([0], quantiles_now_EV[0:1,2],quantiles_now[1:2,2], color=color_quantile_EV)
+        line33,  = ax_3.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
-        line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Particles mean')
-#        line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
-        line43,  = ax_4.plot([0],[-2*1],'r.',label = 'Assimilate True')
+        line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
+        if EV:
+            line41EV, = ax_4.plot(time[-1], particles_mean_now_EV[3], '-', \
+                                    color=color_mean_EV,label = 'EV particles mean')
+            if heavy_real_time_plot:
+                line42EV  = ax_4.fill_between([0], quantiles_now_EV[0:1,3],quantiles_now[1:2,3], color=color_quantile_EV)
+        line43,  = ax_4.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
     
-        line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Particles mean')
-#        line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
-        line53,  = ax_5.plot([0],[-2*1],'r.',label = 'Assimilate True')
+        line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
+        if EV:
+            line51EV, = ax_5.plot(time[-1], particles_mean_now_EV[4], '-', \
+                                    color=color_mean_EV,label = 'EV particles mean')
+            if heavy_real_time_plot:
+                line52EV  = ax_5.fill_between([0], quantiles_now_EV[0:1,4],quantiles_now[1:2,4], color=color_quantile_EV)
+        line53,  = ax_5.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
        
-        line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Particles mean')
-#        line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
-        line63,  = ax_6.plot([0],[-2*1],'r.',label = 'Assimilate True')
+        line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Red LUM particles mean')
+        if heavy_real_time_plot:
+            line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
+        if EV:
+            line61EV, = ax_6.plot(time[-1], particles_mean_now_EV[5], '-', \
+                                    color=color_mean_EV,label = 'EV particles mean')
+            if heavy_real_time_plot:
+                line6EV2  = ax_6.fill_between([0], quantiles_now_EV[0:1,5],quantiles_now[1:2,5], color=color_quantile_EV)
+        line63,  = ax_6.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
         
         if plot_ref==True:
@@ -2111,19 +2345,48 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
 
     
-    
+    N_tot_max = int(SECONDS_OF_SIMU/param['dt'])+1
+    N_tot = param['N_tot']*n_simu
+    if N_tot > N_tot_max:
+        N_tot = N_tot_max
+    param['N_tot'] = N_tot
+    param['N_test'] = param['N_tot'] - 1
+    time_exe = 0
+    if EV:
+        time_exe_EV = 0
+    n_frame_plots = int(plot_period/param['dt'])
     
                    
     ################################ Start temporal integration ###################################
     for index in range(param['N_test']): # Set the number of integration steps
 
         ##### Model integration of all particles
-        val0,val1,val2,noises_centered = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
-                                                        ILC_a_cst['modal_dt']['L'],\
-                                                        ILC_a_cst['modal_dt']['C'],\
+#        val0,val1,val2,noises_centered = evol_forward_bt_MCMC(ILC_a_cst['modal_dt']['I'],\
+#                                                        ILC_a_cst['modal_dt']['L'],\
+#                                                        ILC_a_cst['modal_dt']['C'],\
+#                                                        pchol_cov_noises,param['dt'],\
+#                                                        bt_MCMC[-1,:,:],float('Nan'),\
+#                                                        float('Nan'),mutation=False,noise_past=0,pho=0)
+        start = t_exe.time()
+        val0,val1,val2,noises_centered = evol_forward_bt_MCMC(ILC_a_cst['I'],\
+                                                        ILC_a_cst['L'],\
+                                                        ILC_a_cst['C'],\
                                                         pchol_cov_noises,param['dt'],\
-                                                        bt_MCMC[-1,:,:],bt_fv[-1,:,:],\
-                                                        bt_m[-1,:,:],mutation=False,noise_past=0,pho=0)
+                                                        bt_MCMC[-1,:,:],float('Nan'),\
+                                                        float('Nan'),mutation=False,noise_past=0,pho=0)
+        end = t_exe.time()
+        time_exe = time_exe + end - start
+        if EV:
+            start = t_exe.time()
+            val0_EV,val1_EV,val2_EV,noises_centered_EV = evol_forward_bt_MCMC(ILC_EV['I'],\
+                                                            ILC_EV['L'],\
+                                                            ILC_EV['C'],\
+                                                            ILC_EV['pchol_cov_noises'],param['dt'],\
+                                                            bt_forecast_EV[-1,:,:],float('Nan'),\
+                                                            float('Nan'),mutation=False,noise_past=0,pho=0)
+            end = t_exe.time()
+            time_exe_EV = time_exe_EV + end - start
+        
         time.append(param['dt']+time[-1])
         #########################################----------------------#############################################
         #########################################--PARTICLE FILTERING--#############################################
@@ -2161,18 +2424,32 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             
             particles = val0[0,:,:]                     # Define the particles now
             particles_past = bt_MCMC[index_pf[-2],...]  # Define the particles after the last filter step
+            if EV:
+                particles_EV = val0_EV[0,:,:]                     # Define the particles now
+                particles_past_EV = bt_forecast_EV[index_pf[-2],...]  # Define the particles after the last filter step
             delta_t = index_pf[-1] - index_pf[-2]       # Define the delta t as the number of integrations(IMPORTANT: In the case of real time assimilation the dt is variable.....)
             
             # Call particle filter 
+            start = t_exe.time()
             particles = particle_filter(ILC_a_cst,obs,K,Hpiv_Topos_K,particles,N_threshold,\
                                         np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
                                         particles_past,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,pchol_cov_noises,time[-1]) 
-                                        
+            end = t_exe.time()
+            time_exe = time_exe + end - start
+            if EV:
+                start = t_exe.time()
+                particles_EV = particle_filter(ILC_EV,obs,K,Hpiv_Topos_K,particles_EV,N_threshold,\
+                                        np.concatenate((noises_EV,noises_centered_EV[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
+                                        particles_past_EV,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,ILC_EV['pchol_cov_noises'],time[-1]) 
+                end = t_exe.time()
+                time_exe_EV = time_exe_EV + end - start
                                         
                                         
             
  
             val0 = particles[np.newaxis,...]                                         # Define the particles 
+            if EV:
+                val0_EV = particles_EV[np.newaxis,...]                                         # Define the particles 
             param['dt'] = original_dt_simu                                           # Set the integration step as the original one 
             if (nb_assim ) == len(vector_of_assimilation_time)-1:                    # Set the next time of assimilation in the inf if there is no more data in the vecor
                 next_time_of_assimilation = np.inf
@@ -2189,16 +2466,22 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             noises = noises_centered[np.newaxis,...]                                    # Set the noises
         elif (next_time_of_assimilation != np.inf):                                     # If the next time of integration is not at inf, it saves the noise now
             noises = np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0) 
-            
+        if EV:
+            if index==0:                                                                    # If the first time step integration
+                noises_EV = noises_centered_EV[np.newaxis,...]                                    # Set the noises
+            elif (next_time_of_assimilation != np.inf):                                     # If the next time of integration is not at inf, it saves the noise now
+                noises_EV = np.concatenate((noises_EV,noises_centered_EV[np.newaxis,...]),axis=0)
             
         bt_MCMC = np.concatenate((bt_MCMC,val0),axis=0)    # Concatenate the particles in this time step with the particles before
-        bt_fv   = np.concatenate((bt_fv,val1),axis=0)
-        bt_m    = np.concatenate((bt_m,val2),axis=0)
-        
-        
+#        bt_fv   = np.concatenate((bt_fv,val1),axis=0)
+#        bt_m    = np.concatenate((bt_m,val2),axis=0)
         iii_realization = np.any(np.logical_or(np.isnan(bt_MCMC[index+1,:,:]),np.isinf(bt_MCMC[index+1,:,:])),axis = 0)[...,np.newaxis]  # Control if any realization has explosed
         
-        
+        if EV:
+            bt_forecast_EV = np.concatenate((bt_forecast_EV,val0_EV),axis=0)    # Concatenate the particles in this time step with the particles before
+            iii_realization_EV = np.any(np.logical_or(np.isnan(bt_forecast_EV[index+1,:,:]),np.isinf(bt_forecast_EV[index+1,:,:])),axis = 0)[...,np.newaxis]  # Control if any realization has explosed
+
+
         if (time[-1]+param['dt'])>=(next_time_of_assimilation):  # If the next time integration will end after the time of assimilation, hence we need to change the time step 'dt' to end exactly in the same time of the observation
             param['dt'] = next_time_of_assimilation - time[-1]   # Therefore, the next time integration step will be the difference between the future and the present.
             assimilate_PIV = True                                # Set the Flag True
@@ -2212,8 +2495,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 if index < param['N_test']:
                     val_nan = np.full([int(param['N_test']-index), param['nb_modes'], param['N_particules']], np.nan)
                     bt_MCMC = np.concatenate((bt_MCMC,val_nan),axis=0)    
-                    bt_fv   = np.concatenate((bt_fv,val_nan),axis=0)
-                    bt_m    = np.concatenate((bt_m,val_nan),axis=0)
+#                    bt_fv   = np.concatenate((bt_fv,val_nan),axis=0)
+#                    bt_m    = np.concatenate((bt_m,val_nan),axis=0)
                 
                 break 
             
@@ -2223,13 +2506,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             print('WARNING: '+ str(nb_blown_up)+' realizations have blown up and will be replaced.')
             good_indexes = np.where((np.logical_not(iii_realization) == True))[0]
             bt_MCMC_good = bt_MCMC[-1,:, good_indexes].T
-            bt_fv_good = bt_fv[-1,:, good_indexes].T
-            bt_m_good = bt_m[-1,:, good_indexes].T
+#            bt_fv_good = bt_fv[-1,:, good_indexes].T
+#            bt_m_good = bt_m[-1,:, good_indexes].T
             
             
             bt_MCMC_good = bt_MCMC_good[np.newaxis,...]
-            bt_fv_good = bt_fv_good[np.newaxis,...]
-            bt_m_good = bt_m_good[np.newaxis,...]
+#            bt_fv_good = bt_fv_good[np.newaxis,...]
+#            bt_m_good = bt_m_good[np.newaxis,...]
                 
             
             rand_index =  np.random.randint(0, param['N_particules'] - nb_blown_up, size=(nb_blown_up))
@@ -2240,20 +2523,93 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 
             bad_indexes = np.where((iii_realization == True))[0]
             bt_MCMC[-1,:, bad_indexes] = bt_MCMC_good[0,:, rand_index]  
-            bt_fv[-1,:, bad_indexes] = bt_fv_good[0,:, rand_index]
-            bt_m[-1,:, bad_indexes] = bt_m_good[0,:, rand_index]
+#            bt_fv[-1,:, bad_indexes] = bt_fv_good[0,:, rand_index]
+#            bt_m[-1,:, bad_indexes] = bt_m_good[0,:, rand_index]
     
             del bt_MCMC_good 
             del rand_index 
             del nb_blown_up 
             del iii_realization     
+        
+        if EV:
+                        ############################ Solve possible explosions in the integration
+            if np.any(iii_realization_EV):
+                if np.all(iii_realization_EV):
+                    print('WARNING: All realization of the simulation have blown up.')
+                    if index < param['N_test']:
+                        val_nan_EV = np.full([int(param['N_test']-index), param['nb_modes'], param['N_particules']], np.nan)
+                        bt_forecast_EV = np.concatenate((bt_forecast_EV,val_nan),axis=0)    
+                    break 
+
+                nb_blown_up_EV = np.sum(iii_realization_EV)
+                print('WARNING: '+ str(nb_blown_up_EV)+' realizations have blown up and will be replaced.')
+                good_indexes_EV = np.where((np.logical_not(iii_realization_EV) == True))[0]
+                bt_forecast_EV_good = bt_forecast_EV[-1,:, good_indexes_EV].T
+                
+                
+                bt_forecast_EV_good = bt_forecast_EV_good[np.newaxis,...]
+#                bt_fv_good = bt_fv_good[np.newaxis,...]
+#                bt_m_good = bt_m_good[np.newaxis,...]
+                    
+                
+                rand_index_EV =  np.random.randint(0, param['N_particules'] - nb_blown_up_EV, size=(nb_blown_up_EV))
+                
+    #            if rand_index.shape == (1,1):
+    #                rand_index = rand_index[0,0]
+                    
+                    
+                bad_indexes_EV = np.where((iii_realization_EV == True))[0]
+                bt_forecast_EV_good[-1,:, bad_indexes_EV] = bt_forecast_EV_good[0,:, rand_index_EV]  
+#                bt_fv[-1,:, bad_indexes] = bt_fv_good[0,:, rand_index]
+#                bt_m[-1,:, bad_indexes] = bt_m_good[0,:, rand_index]
+        
+                del bt_forecast_EV_good 
+                del rand_index_EV 
+                del nb_blown_up_EV 
+                del iii_realization_EV   
     
         
+        #%% Plots
+        
+            
         ######################### Testing real time plot #######################
         
-        if (index%20)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
+        if (index%n_frame_plots)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
+#        if (index%20)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
             particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
+            
+            ########################## Plotting Q cirterion ########################
+            if plot_Q_crit:
+#                particles_mean = mat['particles_mean']
+                particles_mean_ = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[i,:]
+                particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
+                particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
+                
+                Omega = np.multiply(particles_mean_,Omega_phi_m_U)
+                Omega = np.sum(Omega,axis=1)
+                Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
+                
+                S = np.multiply(particles_mean_,S_phi_m_U)
+                S = np.sum(S,axis=1)
+                S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
+                
+                Q = 0.5 * ( Omega - S )
+                del Omega
+                del S
+                
+                MX = param['MX'].astype(int)
+                Q = np.reshape(Q,(MX))
+                
+#                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                name_file_data = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'.json')
+                
+                with open(str(name_file_data), 'w') as f:
+                    json.dump(Q.tolist(), f)
+            
             quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
+            if EV:
+                particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
+                quantiles_EV = np.quantile(bt_forecast_EV[:,:,:],q=[0.025,0.975],axis=2)
     
             ax_1.set_xlim([0, time[-1]+10])
             ax_2.set_xlim([0, time[-1]+10])
@@ -2262,38 +2618,71 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             ax_5.set_xlim([0, time[-1]+10])
             ax_6.set_xlim([0, time[-1]+10])
     
-            lim = np.where((time_bt_tot<=time[-1]))[0][-1]
+            lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
             
-            line11.set_data(time,particles_mean[:,0])
             ax_1.collections.clear()
+            if EV:
+                line11EV.set_data(time,particles_mean_EV[:,0])
+#                line11.set_data(time,particles_mean_EV[:,0], color=color_mean_EV)
+                ax_1.fill_between(time, quantiles_EV[0,:,0],quantiles_EV[1,:,0], color=color_quantile_EV)
+            line11.set_data(time,particles_mean[:,0])
             ax_1.fill_between(time, quantiles[0,:,0],quantiles[1,:,0], color='gray')
-            line13.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            line13.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
-            
+            ax_2.collections.clear()
+            if EV:
+                line21EV.set_data(time,particles_mean_EV[:,1])
+#                line21EV.set_data(time,particles_mean_EV[:,1], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_2.fill_between(time, quantiles_EV[0,:,1],quantiles_EV[1,:,1], color=color_quantile_EV)
             line21.set_data(time,particles_mean[:,1])
-#            ax_2.collections.clear()
-#            ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
-            line23.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
+            line23.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_3.collections.clear()
+            if EV:
+                line31EV.set_data(time,particles_mean_EV[:,2])
+#                line31EV.set_data(time,particles_mean_EV[:,2], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_3.fill_between(time, quantiles_EV[0,:,2],quantiles_EV[1,:,2], color=color_quantile_EV)
             line31.set_data(time,particles_mean[:,2])
-#            ax_3.collections.clear()
-#            ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
-            line33.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
+            line33.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_4.collections.clear()
+            if EV:
+                line41EV.set_data(time,particles_mean_EV[:,3])
+#                line41EV.set_data(time,particles_mean_EV[:,3], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_4.fill_between(time, quantiles_EV[0,:,3],quantiles_EV[1,:,3], color=color_quantile_EV)
             line41.set_data(time,particles_mean[:,3])
-#            ax_4.collections.clear()
-#            ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
-            line43.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
+            line43.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_5.collections.clear()
+            if EV:
+                line51EV.set_data(time,particles_mean_EV[:,4])
+#                line51EV.set_data(time,particles_mean_EV[:,4], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_5.fill_between(time, quantiles_EV[0,:,0],quantiles_EV[1,:,4], color=color_quantile_EV)
             line51.set_data(time,particles_mean[:,4])
-#            ax_5.collections.clear()
-#            ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
-            line53.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
+            line53.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
+            ax_6.collections.clear()
+            if EV:
+                line61EV.set_data(time,particles_mean_EV[:,5])
+#                line61EV.set_data(time,particles_mean_EV[:,5], color=color_mean_EV)
+                if heavy_real_time_plot:
+                    ax_6.fill_between(time, quantiles_EV[0,:,5],quantiles_EV[1,:,5], color=color_quantile_EV)
             line61.set_data(time,particles_mean[:,5])
-#            ax_6.collections.clear()
-#            ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
-            line63.set_data(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))))
+            if heavy_real_time_plot:
+                ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
+            line63.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
             
             if plot_ref==True:
@@ -2380,13 +2769,17 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         
         particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
         particles_median = np.median(bt_MCMC[:,:,:],axis=2)
+        quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
+        if EV:
+            particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
+            particles_median_EV = np.median(bt_forecast_EV[:,:,:],axis=2)
+            quantiles_EV = np.quantile(bt_forecast_EV[:,:,:],q=[0.025,0.975],axis=2)
         n_particles = bt_MCMC.shape[-1] 
     #    particles_std_estimate = np.std(bt_MCMC[:,:,1:],axis=2)
     #    erreur = np.abs(particles_mean-ref)
     
     
-        quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
-      
+        
         
     #    time_simu = np.arange(0,(bt_MCMC.shape[0])*dt_tot,dt_tot)
     #    time_bt_tot = np.arange(0,(bt_MCMC.shape[0])*dt_tot,n_simu*dt_tot*3)
@@ -2395,17 +2788,26 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.figure(index,figsize=(12, 9))
             plt.ylim(-10, 10)
             ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
+            if EV:
+                plt.fill_between(time,quantiles_EV[0,:,index],quantiles_EV[1,:,index],color=color_quantile_EV)
+                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
+                                    color=color_mean_EV, label = 'EV particles mean')
             if plot_ref==True:
                 plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
                 
                 
             plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
-            line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Particles mean')
+                
+            line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Red LUM particles mean')
+#            if EV:
+#                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
+#                                    color=color_mean_EV, label = 'EV particles mean')
+                
     #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
     #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
     #        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
     #        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
-            plt.plot(np.array(time)[np.array(index_pf)[1:]],-2*np.ones((len(index_pf[1:]))),'r.')
+            plt.plot(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))),'r.')
             plt.grid()
             plt.ylabel('Chronos '+r'$b'+str(index+1)+'$'+' amplitude',fontsize=20)
             plt.xlabel('Time',fontsize=20)
@@ -2418,7 +2820,52 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             plt.savefig(file_res_mode,dpi=200 )
 #            plt.savefig(file_res_mode,dpi=500 )
 #            plt.savefig(file_res_mode,quality = 95)
-            
+    
+        
+#        print(time_bt_tot.shape)
+#        print(time.shape)
+        
+        dict_python = {}
+        dict_python['param'] = param
+        dict_python['time_bt_tot'] = time_bt_tot
+        dict_python['bt_tot'] = bt_tot
+        dict_python['quantiles_bt_tot'] = quantiles_PIV
+        dict_python['dt_PIV'] = dt_PIV
+        dict_python['index_pf'] = index_pf
+        dict_python['time_DA'] = np.array(time)[np.array(index_pf)[1:]]
+        dict_python['Re'] = Re
+        dict_python['time'] = time
+        dict_python['particles_mean'] = particles_mean
+        dict_python['particles_median'] = particles_median
+        dict_python['bt_MCMC'] = bt_MCMC
+        dict_python['quantiles'] = quantiles
+        if EV:
+            dict_python['particles_mean_EV'] = particles_mean_EV
+            dict_python['particles_median_EV'] = particles_median_EV
+            dict_python['bt_forecast_EV'] = bt_forecast_EV
+            dict_python['quantiles_EV'] = quantiles_EV
+        file_res = file_plots_res / Path('chronos.mat')
+        sio.savemat(file_res,dict_python)
+        
+        
+        
+        if EV:
+            N_ = particles_mean.shape[0]
+            struct_bt_MCMC = {}
+            struct_bt_MCMC['mean'] = particles_mean\
+                .copy()[:N_:n_simu]
+            struct_bt_MCMC['var'] = np.var(bt_MCMC[:,:,:],axis=2)\
+                .copy()[:N_:n_simu]
+            struct_bt_MEV_noise = {}
+            struct_bt_MEV_noise['mean'] = particles_mean_EV\
+                .copy()[:N_:n_simu]
+            struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
+                .copy()[:N_:n_simu]
+            param['N_test']=int(param['N_test']/n_simu)
+            param['N_tot']=param['N_test']+1
+            param['dt'] = param['dt'] * n_simu
+            plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
+                    param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC)
         
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
     
@@ -2488,7 +2935,24 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
 #    name_file_data = Path(__file__).parents[3].joinpath('test').joinpath('data_to_benchmark'+str(nb_modes)+'_bruit_'+str(beta_1)+'reynolds300')
 #    sio.savemat(str(name_file_data),dict_python)
     
-    
+    # Time of execution
+    print(choice_n_subsample)
+    print('\n')
+    print('Time of execution of PF & Red LUM for ' + \
+          str(SECONDS_OF_SIMU) + ' s of simulation:')
+    print('\n')
+    print(str(time_exe) + ' s')
+    print('\n')
+    if EV:
+        print('Time of execution of PF & random EV for ' + \
+              str(SECONDS_OF_SIMU) + ' s of simulation:')
+        print('\n')
+        print(str(time_exe_EV) + ' s')
+        print('\n')
+        print('Ratio speed :')
+        print('\n')
+        print(str(100*time_exe_EV/time_exe) + ' %')
+        print('\n')
     
     
     del C_deter 

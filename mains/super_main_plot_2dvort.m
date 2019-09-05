@@ -11,6 +11,9 @@ close all
 
 if nargin == 0
     init;
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     % % figure;
     % nb_modes_min=2;
     % nb_modes_max=32;
@@ -46,9 +49,14 @@ if nargin == 0
     % type_data = 'incompact3d_wake_episode3_cut';
     %             type_data = 'incompact3d_wake_episode3_cut_truncated';
     % type_data = 'inc3D_Re3900_blocks_truncated';
-    %     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     %         type_data = 'turb2D_blocks_truncated'
+    choice_n_subsample = 'auto_shanon'
+    stochastic_integration = 'Ito'
+    estim_rmv_fv = false
+    svd_pchol = 1
+    eq_proj_div_free = 1
     
     no_subampl_in_forecast = false;
     % reconstruction = false;
@@ -59,8 +67,29 @@ if nargin == 0
     %     vect_adv_corrected = [true false]
     %                 vect_adv_corrected = [true ]
     
-    vect_DA = [ true ]
-    vect_coef_bruit_obs = [0.1 0.8]
+    vect_data_assimilation = [ 2 ]
+    % vect_data_assimilation = [ true ]
+%     vect_fake_PIV = [ true false ]
+    if vect_data_assimilation == 2
+        vect_coef_bruit_obs = nan
+%         vect_coef_bruit_obs = 0.06
+%         param_obs.fake_PIV = True;
+        param_obs.assimilate = 'fake_real_data' %# The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+        param_obs.SECONDS_OF_SIMU = 70 % We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+        param_obs.sub_sampling_PIV_data_temporaly = true  % We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
+
+        param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
+        param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+        param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+        param_obs.nbPoints_x = 1;     %    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        param_obs.y0_index = 10;   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+        param_obs.nbPoints_y = 1;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        param_obs.assimilation_period = 5/10;
+        param_obs
+    else
+        vect_coef_bruit_obs = [0.1 0.8]
+        param_obs = nan
+    end
     %% With correctif coefficient
     
     % v_threshold=[1 10]/1000;
@@ -68,8 +97,8 @@ if nargin == 0
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-6 % BEST
-                        vect_modal_dt=1
-%             vect_modal_dt=0:1
+            vect_modal_dt=1
+            %             vect_modal_dt=0:1
             
             %             %             v_threshold=[1e-4]
             %             %             v_threshold=[1e-6]
@@ -97,7 +126,7 @@ if nargin == 0
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-4 % BEST
             %             vect_modal_dt=true % BEST
-            vect_modal_dt=0:1
+            vect_modal_dt=true
             
             %             v_threshold=[1e-1 1e-2]
             %             vect_modal_dt=0:2
@@ -141,6 +170,9 @@ if nargin == 0
             vect_modal_dt=false
     end
 else
+    global choice_n_subsample;
+    global stochastic_integration;
+    global estim_rmv_fv;
     vect_modal_dt = modal_dt;
 end
 nb_modes_max = max(vect_nb_modes);
@@ -148,21 +180,30 @@ nb_modes_max = max(vect_nb_modes);
 %% Compute topos vorticity and rate of strain tensors
 current_pwd = pwd; cd ..
 param.folder_data = [ pwd '/data/' ];
+param.folder_data_PIV = [ pwd '/data_PIV/' ];
 cd(current_pwd); clear current_pwd
-for k=vect_nb_modes
-    name_file_tensor_mode = [ param.folder_data ...
-        '2dvort_mode_' type_data '_' num2str(k) '_modes.mat'];
-    if ~ (exist(name_file_tensor_mode,'file') == 2)
-        % Compute topos gradients
-        [param_temp,dphi_m_U] = grad_topos(type_data,k);
-        % Compute topos vorticity and rate of strain tensors
-        vort_topos(param_temp,dphi_m_U);
+for data_assimilation = vect_data_assimilation
+    for k=vect_nb_modes
+        switch data_assimilation
+            case {0,1}
+                name_file_tensor_mode = [ param.folder_data ...
+                    '2dvort_mode_' type_data '_' num2str(k) '_modes.mat'];
+            case 2
+                name_file_tensor_mode = [ param.folder_data_PIV ...
+                    '2dvort_mode_PIV_' type_data '_' num2str(k) '_modes.mat'];
+        end
+        if ~ (exist(name_file_tensor_mode,'file') == 2)
+            % Compute topos gradients
+            [param_temp,dphi_m_U] = grad_topos(type_data,k,data_assimilation);
+            % Compute topos vorticity and rate of strain tensors
+            vort_topos(param_temp,dphi_m_U,data_assimilation);
+        end
     end
 end
 
 %% Compute instateneous Q criterion
 for coef_bruit_obs = vect_coef_bruit_obs
-    for DA = vect_DA
+    for data_assimilation = vect_data_assimilation
         for modal_dt=vect_modal_dt
             for adv_corrected=vect_adv_corrected
                 for reconstruction = vect_reconstruction
@@ -177,7 +218,8 @@ for coef_bruit_obs = vect_coef_bruit_obs
                                 v_threshold(q),...
                                 no_subampl_in_forecast,reconstruction,...
                                 adv_corrected,modal_dt,...
-                                DA,coef_bruit_obs)
+                                svd_pchol,eq_proj_div_free,...
+                                data_assimilation,coef_bruit_obs,param_obs)
                             
                             %                     switch type_data
                             %                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'

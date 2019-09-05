@@ -5,7 +5,7 @@ function [cmap,cax] = ...
 
 param.MX = param.MX(1:2);
 param.d=2;
-X0=[0 0];
+X0=[0 1];
 height = 2;
 taille_police=10;
 
@@ -15,7 +15,12 @@ param = fct_name_reconstruction_2dvort(...
 sizQ=size(Q);
 n1 = sizQ(end);
 
+%%
 init_caxis = ((big_T == first_big_T) && strcmp(name_simu,'ref'));
+% init_caxis = ((big_T == first_big_T) );
+% warning('DEBUG')
+%%
+
 if init_caxis
     boundcmap = [0.35 0.65];
 % %     boundcmap = [0.3 0.7];
@@ -29,22 +34,40 @@ factor_satur = 1.3;
 
 
 Q=reshape(Q,[param.MX n1]);
-x_cylinder=5;
-if strcmp(param.type_data,'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
-    x_cut = x_cylinder/2;
-    width = 9.5;
-    % width = 10;
+if param.data_assimilation == 2
+    x_cylinder=0;
+    %     param.name_file_omega_mode = [ param.folder_data_PIV ...
+    %         '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+    param.name_file_omega_mode = [ param.folder_data_PIV ...
+        '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+    load(param.name_file_omega_mode,'x_unique_PIV','y_unique_PIV');
+    X = x_unique_PIV; Y = y_unique_PIV;
+    x_cut = x_unique_PIV(1);
+    if strcmp(param.type_data,'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
+        width = 9.5;
+        % width = 10;
+    else
+        width = 8;
+        %     width = 4;
+    end
 else
-    x_cut=0;
-    width = 8;
-%     width = 4;
+    x_cylinder=5;
+    if strcmp(param.type_data,'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
+        x_cut = x_cylinder/2;
+        width = 9.5;
+        % width = 10;
+    else
+        x_cut=0;
+        width = 8;
+        %     width = 4;
+    end
+    
+    X=param.dX(1)*(0:(param.MX(1)-1));
+    X = X + x_cut;
+    Y=param.dX(2)*(0:(param.MX(2)-1));
+    Y=Y-mean(Y);
+    % [X,Y]=ndgrid(X,Y);
 end
-
-X=param.dX(1)*(0:(param.MX(1)-1));
-X = X + x_cut;
-Y=param.dX(2)*(0:(param.MX(2)-1));
-Y=Y-mean(Y);
-% [X,Y]=ndgrid(X,Y);
 
 
 
@@ -127,6 +150,36 @@ x_cyl=r.*c + x_cylinder;y_cyl=r.*s;
 
 Q_save=Q;
 
+
+if param.data_assimilation    
+    switch param.type_data
+        case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+            %             %             X_mes = x_unique_PIV(1+([10]));
+            %             %             Y_mes = y_unique_PIV(1+([10]));
+            %             %             X_mes = x_unique_PIV(1+([10 13 16]));
+            %             %             Y_mes = y_unique_PIV(1+([10 13 16]));
+            %             if (~isstruct(param.param_obs)) && isnan(param.param_obs)
+            %                 X_mes =[];Y_mes=[];
+            %             else
+            X_mes = x_unique_PIV( 1 + param.param_obs.x0_index + ...
+                param.param_obs.subsampling_PIV_grid_factor * ...
+                (1:param.param_obs.nbPoints_x) );
+            Y_mes = y_unique_PIV( 1 + param.param_obs.y0_index + ...
+                param.param_obs.subsampling_PIV_grid_factor * ...
+                (1:param.param_obs.nbPoints_y) );
+%             end
+            
+        otherwise
+            X_mes = nan;
+            Y_mes = nan;
+    end
+    [X_mes,Y_mes]=ndgrid(X_mes,Y_mes);
+    X_mes=X_mes(:);
+    Y_mes=Y_mes(:);
+else
+    X_mes=[];Y_mes=[];
+end
+
 % warning('only last snapshot of file plotted')
 % for q=n1
 for q=1:n1
@@ -160,11 +213,17 @@ for q=1:n1
         'FontUnits','points',...
         'FontWeight','normal',...
         'FontSize',taille_police,...
-        'FontName','Times',...
-        'xtick',[],...
-        'xticklabel',[],...
-        'ytick',[],...
-        'yticklabel',[])
+        'FontName','Times')
+%     set(gca,.....
+%         'Units','normalized',...
+%         'FontUnits','points',...
+%         'FontWeight','normal',...
+%         'FontSize',taille_police,...
+%         'FontName','Times',...
+%         'xtick',[],...
+%         'xticklabel',[],...
+%         'ytick',[],...
+%         'yticklabel',[])
     colorbar;
     axis equal; axis xy;
     %%
@@ -226,8 +285,13 @@ for q=1:n1
     %         name_file = [ name_file '_smooth'];
     %     end
     
+    hold on;
+    plot(X_mes,Y_mes,'.r','MarkerSize',10)
+    %         plot(X_mes,Y_mes,'.r')
+    hold off;
     
     drawnow
+    pause(0.2)
     eval( ['print -loose -djpeg ' name_file '.jpg']);
     
     close all
