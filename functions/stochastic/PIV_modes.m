@@ -97,7 +97,7 @@ end
 load(param.name_file_mode,'phi_m_U')
 
 param.name_file_mode_PIV = [ param.name_file_mode(1:end-4) '_PIV.mat'];
-param.name_file_mode_PIV = replace(param.name_file_mode_PIV,'data','data_PIV')
+param.name_file_mode_PIV = replace(param.name_file_mode_PIV,'data','data_PIV');
 % mkdir(param.name_file_mode_PIV);
 
 param_temp = param;
