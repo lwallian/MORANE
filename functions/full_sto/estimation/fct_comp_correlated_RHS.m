@@ -349,8 +349,8 @@ else
     div_U = permute(div_U, [5, 6, 7, 1, 2, 3, 4]);
     dU = permute(dU, [5, 6, 7, 1, 2, 3, 4]);
     dU_del_dU = bsxfun(@times, dU, div_U);
-    dU_del_dU = sum(dU_del_dU, 3);
-    dU_del_dU = permute(dU_del_dU, [1, 2, 4 : ndims(dU_del_dU), 3]); % [1, 1, Mx, My, Mz, d]
+    dU_del_dU = sum(dU_del_dU, 4);
+    dU_del_dU = permute(dU_del_dU, [1, 2, 3, 5 : ndims(dU_del_dU), 4]); % [1, 1, Mx, My, Mz, d]
 end
 
 end
