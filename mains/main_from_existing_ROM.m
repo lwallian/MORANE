@@ -589,16 +589,16 @@ elseif correlated_model
     % Initialization of model's stochastic variables
     eta_0 = permute(eta_0, [3, 1, 2, 4]);
     eta = repmat(eta_0, [1, 1, 1, param.N_particules]);
-    Gr = randn(param.N_test, param.nb_modes, param.nb_modes, param.N_particules);
+    spiral = randn(1, 1, param.N_particules);
     Mi_ss_0 = permute(Mi_ss_0, [3, 1, 2, 4]);
     Mi_ss = repmat(Mi_ss_0, [1, 1, 1, param.N_particules]);
     
     for l = 1 : param.N_test
         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
-            eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), Gr(l + 1, : ,: ,:)] = ...
+            eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), spiral(l + 1, :, :)] = ...
             evol_forward_correlated_centered(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
             pchol_cov_noises, tau_ss * param.dt, param.dt, bt_MCMC(l, :, :), ...
-            eta(l, :, :, :), Gr(l, :, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
+            eta(l, :, :, :), spiral(l, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
     
@@ -608,7 +608,7 @@ elseif correlated_model
     bt_fv = bt_fv(1 : n_simu : end, :, :);
     bt_m = bt_m(1 : n_simu : end, :, :);
     eta = eta(1 : n_simu : end, :, :, :);
-    Gr = Gr(1 : n_simu : end, :, :, :);
+    spiral = spiral(1 : n_simu : end, :, :);
     Mi_ss = Mi_ss(1: n_simu : end, :, :);
     bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
     bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
