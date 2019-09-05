@@ -9,7 +9,7 @@ Created on Mon Mar 25 17:17:08 2019
 ######################################----PARAMETERS TO CHOOSE----############################################
 # Parameters choice
 param_ref = {}
-param_ref['n_simu'] = 30   # 100            # Number of simulations steps in time
+param_ref['n_simu'] = 100   # 100      # Number of simulations steps in time
 #param_ref['N_particules'] = n_particles # Number of particles to select  
 #    beta_1 = 0.1                            # beta_1 is the parameter that controls the noise to create virtual observation beta_1 * np.diag(np.sqrt(lambda))
 beta_2 = 1.        # 1                    # beta_2 is the parameter that controls the  noise in the initialization of the filter
