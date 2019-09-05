@@ -132,7 +132,7 @@ end
 % Projection on the free-divergence-function space
 % 0 : no projection / 1 : projection of deterministic terms
 %  / 2 :projection of noise terms
-eq_proj_div_free = 2
+eq_proj_div_free = 1
 
 % Compute the variance tensor in the PIV space
 % (if yes do not run the main code until the end)
