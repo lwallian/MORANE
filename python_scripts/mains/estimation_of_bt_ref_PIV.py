@@ -50,6 +50,7 @@ test_fct = 'b'
 choice_n_subsample = 'auto_shanon'
 adv_corrected = [False]
 u_inf_measured = 0.388 
+#number_of_PIV_files = 300
 number_of_PIV_files = 4082
 
 
@@ -120,37 +121,53 @@ print('Loading H_PIV @ Topos...')
 path_topos = Path(folder_data).parents[1].joinpath('data_PIV').\
         joinpath('mode_'+type_data+'_'+str(nb_modes)+'_modes_PIV') # Topos path 
 topos_data = hdf5storage.loadmat(str(path_topos))                                                                 # Load topos
-topos = topos_data['phi_m_U']   
+Hpiv_Topos = topos_data['phi_m_U']  
+#topos = topos_data['phi_m_U']   
 MX_PIV = topos_data['MX_PIV'].astype(int)
 MX_PIV = tuple(map(tuple,MX_PIV))[0]
+M_PIV = MX_PIV[0]*MX_PIV[1]
 coordinates_x_PIV= topos_data['x_PIV_after_crop']
 coordinates_y_PIV= topos_data['y_PIV_after_crop']
 coordinates_x_PIV= np.reshape(coordinates_x_PIV,MX_PIV,order='F') 
 coordinates_y_PIV= np.reshape(coordinates_y_PIV,MX_PIV,order='F') 
 coordinates_x_PIV =  np.transpose(coordinates_x_PIV[:,0])  
 coordinates_y_PIV = coordinates_y_PIV[0,:]   
-topos_new_coordinates = np.reshape(topos,\
-                          MX_PIV + tuple(np.array([data_assimilate_dim,(nb_modes+1)])),order='F') 
-Hpiv_Topos = np.reshape(topos_new_coordinates,(int(topos_new_coordinates.shape[0]*topos_new_coordinates.shape[1]*topos_new_coordinates.shape[2]),topos_new_coordinates.shape[3]),order='F') # The topos that we have estimated reshaped to posterior matrix multiplications
+Hpiv_Topos = np.transpose(Hpiv_Topos,(0,2,1))
+#Hpiv_Topos = np.reshape(Hpiv_Topos,\
+#                MX_PIV + tuple(np.array([data_assimilate_dim,(nb_modes+1)])),\
+#                order='F') 
+Hpiv_Topos = np.reshape(Hpiv_Topos,\
+                tuple(np.array([M_PIV*data_assimilate_dim,(nb_modes+1)])),\
+                order='F') 
+##topos_new_coordinates = np.reshape(topos,\
+##                          MX_PIV + tuple(np.array([data_assimilate_dim,(nb_modes+1)])),order='F') 
+#Hpiv_Topos = np.reshape(topos_new_coordinates,\
+#            (int(topos_new_coordinates.shape[0]*topos_new_coordinates.shape[1]*topos_new_coordinates.shape[2]),\
+#             topos_new_coordinates.shape[3]),order='F') # The topos that we have estimated reshaped to posterior matrix multiplications
 
-
+##mU=topos[:,-1,:]
+#plt.figure(48)
+##plt.imshow((np.reshape(mU,(202,74,2),order='F')[:,:,0]).T)
+#plt.imshow((np.reshape(Hpiv_Topos[:,-1],(202,74,2),order='F')[:,:,0]).T)
+#plt.colorbar()
 
 #%%   Calculate Sigma for LS variance estimation
-if Plot_error_bar:
-    print('Loading Sigma')
-    threshold_ = str(threshold).replace('.', '_',)
-    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
-    joinpath('diffusion_mode_PIV_'+type_data+'_'+str(param['nb_modes'])\
-             +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
-    #    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
-    Sigma_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
-    Sigma = Sigma_data['z_on_tau'][:,0,:,:]                             # Load Sigma inverse 
-    ##### Transform this matrix in a square matrix
-    nb_points = Sigma.shape[0]                                                      # Number of points in the grid
-    nb_dim = Sigma.shape[1]            
+#if Plot_error_bar:
+print('Loading Sigma')
+threshold_ = str(threshold).replace('.', '_',)
+path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
+joinpath('diffusion_mode_PIV_'+type_data+'_'+str(param['nb_modes'])\
+         +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
+#    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
+Sigma_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
+Sigma = Sigma_data['z_on_tau'][:,0,:,:]                             # Load Sigma inverse 
+##### Transform this matrix in a square matrix
+nb_points = Sigma.shape[0]                                                      # Number of points in the grid
+nb_dim = Sigma.shape[1]            
 
 #%% Load PIV
     
+
 file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(1).zfill(4)+'.dat')   # The path to load PIV data
 data = open(str(file))                                                                                                     # Open the PIV data  
 datContent = [i.strip().split() for i in data.readlines()]                                                                 # Reading the data 
@@ -167,7 +184,7 @@ for i,line in enumerate(data):  # Select the data in the first PIV file
     for j,number in enumerate(line[2:4]):
         matrix[i,j] = number
 
-matrix_data_PIV_all_data = matrix.copy()[np.newaxis,...] # Select the PIV data in the first mask calculated (The mask inside PIV and DNS)    
+matrix_data_PIV_all_data = matrix[Sigma_data['mask'][:,0],:].copy()[np.newaxis,...] # Select the PIV data in the first mask calculated (The mask inside PIV and DNS)    
 print('Loading PIV data: '+str(number_of_PIV_files)+' files...')
 
 if number_of_PIV_files>1:
@@ -179,20 +196,62 @@ if number_of_PIV_files>1:
         datContent = [i.strip().split() for i in data.readlines()]                                                                     # Read the data                                                                                                                                                                              
         data = datContent[4:]                                                                                                          # Getting the data PIV 
         
-        
         matrix = np.zeros(shape=(nb_lines,nb_collums)) # Define the matrix to stock the data  
         for i,line in enumerate(data):                 # Decode the information and save it as a matrix
             for j,number in enumerate(line[2:4]):
                 matrix[i,j] = number
         
-    
         matrix_data_PIV_all_data = np.concatenate((matrix_data_PIV_all_data,\
-                                                   matrix.copy()[np.newaxis,...]),\
-        axis=0)  # Save the matrix inside the matrix of all the PIV data
+            matrix[Sigma_data['mask'][:,0],:].copy()[np.newaxis,...]),\
+            axis=0)  # Save the matrix inside the matrix of all the PIV data
+
+    
+#file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('wake_Re'+str(Re)).joinpath('B'+str(1).zfill(4)+'.dat')   # The path to load PIV data
+#data = open(str(file))                                                                                                     # Open the PIV data  
+#datContent = [i.strip().split() for i in data.readlines()]                                                                 # Reading the data 
+#data = datContent[4:]                                                                                                      # Getting the data PIV
+#
+#nb_lines = len(data)                           # lines amount
+#nb_collums = len(data[0][2:4])                 # Commumns amount 
+#matrix = np.zeros(shape=(nb_lines,nb_collums)) # Creating matrix to stock data 
+#
+#'''
+#We will select the first data in 0.080833 and after we will load the files taking in account the factor of subsampling and the amount of files. 
+#'''
+#for i,line in enumerate(data):  # Select the data in the first PIV file 
+#    for j,number in enumerate(line[2:4]):
+#        matrix[i,j] = number
+#
+#matrix_data_PIV_all_data = matrix.copy()[np.newaxis,...] # Select the PIV data in the first mask calculated (The mask inside PIV and DNS)    
+#print('Loading PIV data: '+str(number_of_PIV_files)+' files...')
+#
+#if number_of_PIV_files>1:
+#    for nb_file in range(1,(number_of_PIV_files+1),1)[1:]:                                                    # Loading the other files as defined in the start of this function
+#        print(nb_file)
+#        file = (Path(__file__).parents[3]).joinpath('data_PIV').\
+#        joinpath('wake_Re'+str(Re)).joinpath('B'+str(nb_file).zfill(4)+'.dat') # Path to file
+#        data = open(str(file))                                                                                                         # Open the file       
+#        datContent = [i.strip().split() for i in data.readlines()]                                                                     # Read the data                                                                                                                                                                              
+#        data = datContent[4:]                                                                                                          # Getting the data PIV 
+#        
+#        
+#        matrix = np.zeros(shape=(nb_lines,nb_collums)) # Define the matrix to stock the data  
+#        for i,line in enumerate(data):                 # Decode the information and save it as a matrix
+#            for j,number in enumerate(line[2:4]):
+#                matrix[i,j] = number
+#        
+#    
+#        matrix_data_PIV_all_data = np.concatenate((matrix_data_PIV_all_data,\
+#                                                   matrix.copy()[np.newaxis,...]),\
+#        axis=0)  # Save the matrix inside the matrix of all the PIV data
 
 
 # Normalizing  measured data
 matrix_data_PIV_all_data = matrix_data_PIV_all_data/u_inf_measured  # Normalizing the PIV data to compare with DNS 
+np.save('Data_piv.npy',matrix_data_PIV_all_data)                   # If necessary to save(This will be saved as numpy array in this folder.)
+
+
+
 y = matrix_data_PIV_all_data
 
 '''
@@ -211,7 +270,7 @@ y = np.reshape(y,(y.shape[0],int(y.shape[1]*y.shape[2])),order='F')
 '''
 get error from PIV with average velocity
 '''
-y_less_average = y - Hpiv_Topos[...,-1]
+y_less_average = y.copy() - Hpiv_Topos[...,-1].copy()
 
 
 '''
@@ -230,8 +289,10 @@ Find the best chronos in all piv data in this inverse problem.
 valeurs = np.zeros((y_less_average.shape[0],Hpiv_Topos_otimization.shape[1]))
 for time in range(y.shape[0]):
     print(time)
-    reg = linear_model.RidgeCV(alphas=np.logspace(-2.5, 2.5, 30))
-    reg.fit(Hpiv_Topos_otimization,y[time,...].T)       
+    reg = linear_model.LinearRegression()
+#    reg = linear_model.RidgeCV()
+#    reg = linear_model.RidgeCV(alphas=np.logspace(-2.5, 2.5, 30))
+    reg.fit(Hpiv_Topos_otimization,y_less_average[time,...].T)       
 #    reg.fit(Hpiv_Topos_otimization,y[time:time+1,...].T)       
     valeurs[time,:] = reg.coef_
 for j in range(int(nb_modes)): 
@@ -240,7 +301,7 @@ for j in range(int(nb_modes)):
 
 #%%   Calculate Sigma for LS variance estimation
 if Plot_error_bar:
-    pinv_Hpiv = np.linalg.pinv(Hpiv_Topos_otimization)
+    pinv_Hpiv = np.linalg.pinv(Hpiv_Topos_otimization.copy())
     cov = np.zeros((int(nb_modes),int(nb_modes)))
     # Calculating necessary matrices
     #K = np.zeros((int(nb_dim),int(nb_modes+1),int(nb_points)))
@@ -284,27 +345,33 @@ for i in range(valeurs.shape[1]):
 Compare the error in the time average PIV flow with the average topos(-> Hpiv[-1])
 '''
 average_time_value_PIV = np.mean(y,axis=0)
-error = Hpiv_Topos[:,-1] - average_time_value_PIV
+error = Hpiv_Topos[:,-1].copy() - average_time_value_PIV.copy()
 error_reshaped = np.reshape(error,(202,74,2),order='F')
 
 # PLOT
-plt.figure()
-plt.imshow(error_reshaped[:,:,0].T)
-plt.colorbar()
-plt.figure()
-plt.imshow(error_reshaped[:,:,1].T)
-plt.colorbar()
 
 
 #Plot of the average flow for both
-plt.figure()
+plt.figure(21)
 plt.imshow((np.reshape(Hpiv_Topos[:,-1],(202,74,2),order='F')[:,:,0]).T)
 plt.colorbar()
-plt.figure()
+plt.figure(22)
+plt.imshow((np.reshape(Hpiv_Topos[:,-1],(202,74,2),order='F')[:,:,1]).T)
+plt.colorbar()
+plt.figure(23)
 plt.imshow((np.reshape(average_time_value_PIV,(202,74,2),order='F')[:,:,0]).T)
+plt.colorbar()
+plt.figure(24)
+plt.imshow((np.reshape(average_time_value_PIV,(202,74,2),order='F')[:,:,1]).T)
 plt.colorbar()
 
 
+plt.figure(31)
+plt.imshow(error_reshaped[:,:,0].T)
+plt.colorbar()
+plt.figure(32)
+plt.imshow(error_reshaped[:,:,1].T)
+plt.colorbar()
 
 '''
 The Chronos found here need to be saved and will be necessary to evaluate the particle filterning
