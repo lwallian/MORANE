@@ -1,4 +1,4 @@
-function [param,dphi_m_U] = grad_topos(type_data,nb_modes)
+function [param,dphi_m_U] = grad_topos(type_data,nb_modes,data_assimilation)
 % Compute the gradient of topos
 %
 % m is the number of modes
@@ -11,43 +11,74 @@ function [param,dphi_m_U] = grad_topos(type_data,nb_modes)
 % repetitions, which define the grid. There are M point
 %
 
+if nargin < 3
+    data_assimilation = false;
+end
+
 %% Get Param
-param.folder_results = [ pwd '/resultats/current_results/'];
+% param.folder_results = [ pwd '/resultats/current_results/'];
 current_pwd = pwd; cd ..
 param.folder_data = [ pwd '/data/' ];
 cd(current_pwd); clear current_pwd
 param.type_data = type_data;
 
-trun='_truncated';
-if (length(param.type_data)>= 10) ...
-        && strcmp(param.type_data(end-9:end),trun)
-    param.data_in_blocks.bool = true;
-    param.data_in_blocks.type_whole_data = param.type_data(1:(end-10));
-    param.type_data_temp = [ param.data_in_blocks.type_whole_data '1'];
-    param=read_param_data(param.type_data_temp,param.folder_data, ...
-        param.data_in_blocks.type_whole_data);
-%     param=read_param_data(param.type_data,param.folder_data, ...
-%         param.data_in_blocks.type_whole_data);
-else
-    param.data_in_blocks.bool = false;
-    param.data_in_blocks.type_whole_data = nan;
-    param=read_param_data(param.type_data,param.folder_data);
+switch data_assimilation
+    case {0,1}
+        trun='_truncated';
+        if (length(param.type_data)>= 10) ...
+                && strcmp(param.type_data(end-9:end),trun)
+            param.data_in_blocks.bool = true;
+            param.data_in_blocks.type_whole_data = param.type_data(1:(end-10));
+            param.type_data_temp = [ param.data_in_blocks.type_whole_data '1'];
+            param=read_param_data(param.type_data_temp,param.folder_data, ...
+                param.data_in_blocks.type_whole_data);
+            %     param=read_param_data(param.type_data,param.folder_data, ...
+            %         param.data_in_blocks.type_whole_data);
+        else
+            param.data_in_blocks.bool = false;
+            param.data_in_blocks.type_whole_data = nan;
+            param=read_param_data(param.type_data,param.folder_data);
+        end
 end
 % keyboard;
+current_pwd = pwd; cd ..
+param.folder_data_PIV = [ pwd '/data_PIV/' ];
+cd(current_pwd); clear current_pwd
 
 %% Pre-treatement
 
 % Spatial modes
 param.type_data = type_data; clear type_data
 param.nb_modes = nb_modes; clear nb_modes
-param.name_file_mode = [ param.folder_data ...
-    'mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
-% file_phi=param.name_file_mode;
-load(param.name_file_mode,'phi_m_U');
+
+switch data_assimilation
+    case {0,1}
+        param.name_file_mode = [ param.folder_data ...
+            'mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
+        load(param.name_file_mode,'phi_m_U');
+    case 2
+        param.name_file_mode = [ param.folder_data_PIV ...
+            'mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+        load(param.name_file_mode,'phi_m_U','MX_PIV',...
+            'x_PIV_after_crop','y_PIV_after_crop');
+end
+% param.name_file_mode = [ param.folder_data ...
+%     'mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
+% % file_phi=param.name_file_mode;
 
 % Get size
 [~,m,d]=size(phi_m_U);
 m=m-1;
+param.d = d;
+
+if data_assimilation == 2
+    param.MX = MX_PIV;
+    x_unique_PIV = unique(x_PIV_after_crop);
+    y_unique_PIV = unique(y_PIV_after_crop);
+    dX_PIV = [ x_unique_PIV(2)-x_unique_PIV(1) ...
+        y_unique_PIV(2)-y_unique_PIV(1) ];
+    param.dX = dX_PIV;
+end
 
 % Get data about the grid
 dX=param.dX; % Space steps
@@ -72,7 +103,18 @@ dphi_m_U = gradient_mat(phi_m_U,dX);
     
 %% Save
 param_from_file = param;
-param.name_file_grad_mode = [ param.folder_data....
-    'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
-save(param.name_file_grad_mode,'param_from_file','dphi_m_U','-v7.3');
+
+switch data_assimilation
+    case {0,1}
+        param.name_file_grad_mode = [ param.folder_data....
+            'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
+        save(param.name_file_grad_mode,'param_from_file','dphi_m_U','-v7.3');
+    case 2
+        param.name_file_grad_mode = [ param.folder_data_PIV....
+            'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+        save(param.name_file_grad_mode,'param_from_file','dphi_m_U','MX_PIV',...
+            'x_unique_PIV','y_unique_PIV','-v7.3');
+end
+% param.name_file_grad_mode = [ param.folder_data....
+%     'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
 

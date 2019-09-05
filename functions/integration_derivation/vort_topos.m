@@ -1,9 +1,12 @@
-function vort_topos(param,dphi_m_U)
+function vort_topos(param,dphi_m_U,data_assimilation)
 % Compute topos vorticity and rate-of-strain tensors
 %
-
+if nargin < 3
+    data_assimilation = false;
+end
 % Load
-load(param.name_file_grad_mode,'param_from_file','dphi_m_U');
+load(param.name_file_grad_mode);
+% load(param.name_file_grad_mode,'param_from_file','dphi_m_U');
 
 % Topos vorticity tensors
 if param.d == 2
@@ -20,8 +23,20 @@ omega_phi_m_U = permute(omega_phi_m_U, [3 1 2 4]);
     
 %% Save
 param_from_file = param;
-param.name_file_omega_mode = [ param.folder_data ...
-    '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
-save(param.name_file_omega_mode,'param_from_file',...
-    'omega_phi_m_U','-v7.3');
+
+switch data_assimilation
+    case {0,1}
+        param.name_file_omega_mode = [ param.folder_data ...
+            '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
+        save(param.name_file_omega_mode,'param_from_file',...
+            'omega_phi_m_U','-v7.3');
+    case 2
+        param.name_file_omega_mode = [ param.folder_data_PIV ...
+            '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+        save(param.name_file_omega_mode,'param_from_file','MX_PIV',...
+            'x_unique_PIV','y_unique_PIV',...
+            'omega_phi_m_U','-v7.3');
+end
+% param.name_file_omega_mode = [ param.folder_data ...
+%     '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
 

@@ -2,6 +2,11 @@ function param = ref_2dvort(param,reconstruction)
 % Reconstruct velocity field and save it
 %
 
+global stochastic_integration;
+global estim_rmv_fv;
+global choice_n_subsample;
+global correlated_model;
+
 %%
 n_subsampl = param.decor_by_subsampl.n_subsampl_decor;
 
@@ -41,11 +46,24 @@ else
     %     siz = size(U);
     %     N_tot= floor(siz(end-1)/n_subsampl);
 end
+if param.data_assimilation ==2
+    param.folder_file_U_fake_PIV = ...
+        [ param.folder_data_PIV '/wake_Re' num2str(1/param.viscosity) ...
+        '_fake/'];
+    %     param.folder_file_U_fake_PIV = ...
+    %         [ param.folder_file_U_temp(1:end-1) '_fake_PIV/'];
+    if param.param_obs.no_noise
+        param.folder_file_U_fake_PIV = [ param.folder_file_U_fake_PIV(1:end-1) ...
+            '_noNoise/'];
+    end
+end
 
 
 % Initialization
 param = fct_name_reconstruction_2dvort(...
     param, nan, reconstruction,'ref');
+% param.param_obs = nan;
+
 % param = fct_name_ref_Q(...
 %     param,reconstruction);
 t_local=1; % index of the snapshot in a file
@@ -64,6 +82,23 @@ v_threshold= nan;
 big_T = double(param.data_in_blocks.nb_blocks); % index of the file
 first_big_T = big_T+1;
 index_time = 0;
+param.d = double(param.d);
+
+
+if param.data_assimilation == 2
+    name_file_U_fake_PIV=[param.folder_file_U_fake_PIV 'strat' ...
+        num2str(big_T+1) '_U_temp'];
+    param.name_file_U_fake_PIV{1} = ...
+        [ name_file_U_fake_PIV '_PIV'];
+    load(param.name_file_U_fake_PIV{1},...
+        'mask','x_PIV_after_crop','y_PIV_after_crop','MX_PIV',...
+        'interval_time_local','dt');
+    param.MX = MX_PIV;
+    param.d = 2;
+    param.dt = dt;
+    n_subsampl = 1;
+%     n_subsampl = ceil( dt/param.dt);
+end
 
 for t=1:n_subsampl*param.N_test % loop for all time
     if param.data_in_blocks.bool && ...
@@ -75,15 +110,25 @@ for t=1:n_subsampl*param.N_test % loop for all time
         v_index_time = [];
         % Incrementation of the file index
         big_T = big_T+1
-        %         % Name of the new file
-        param_temp.type_data=[param.data_in_blocks.type_whole_data num2str(big_T)];
         
         % Initialize U
         omega= [];
         
         % Load new file
-        U=read_data(param_temp.type_data,param.folder_data, ...
-            param.data_in_blocks.type_whole_data,param.modified_Re);
+        if param.data_assimilation == 2
+            name_file_U_fake_PIV=[param.folder_file_U_fake_PIV 'strat' ...
+                num2str(big_T) '_U_temp'];
+            param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks} = ...
+                [ name_file_U_fake_PIV '_PIV'];
+            load(param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks},...
+                'U')
+        else
+            %         % Name of the new file
+            param_temp.type_data=[param.data_in_blocks.type_whole_data num2str(big_T)];
+            
+            U=read_data(param_temp.type_data,param.folder_data, ...
+                param.data_in_blocks.type_whole_data,param.modified_Re);
+        end
         
         %         U = bsxfun(@minus, U , m_U);
         %
@@ -126,7 +171,11 @@ for t=1:n_subsampl*param.N_test % loop for all time
         if param.d == 2
             omega_U_temp = dU_temp(:,2,:,:,1) - dU_temp(:,1,:,:,2);
         elseif param.d == 3
-            z_ref = floor(param.MX(3)/2);
+            if param.data_assimilation == 2
+                z_ref = 30;
+            else
+                z_ref = floor(param.MX(3)/2);
+            end
             omega_U_temp = dU_temp(:,2,:,:,z_ref,1) - dU_temp(:,1,:,:,z_ref,2);
         else
             error('The dimension should be 2 or 3');
@@ -176,7 +225,7 @@ for t=1:n_subsampl*param.N_test % loop for all time
         name_file_temp =[ param.name_file_Reconstruction_omega ...
             num2str(big_T) '.mat'];
         param_from_file = param;
-        save(name_file_temp,'param_from_file','omega','-v7.3')
+%         save(name_file_temp,'param_from_file','omega','-v7.3')
         
         clear omega
         
@@ -211,10 +260,10 @@ if ~ ( param.data_in_blocks.bool && ...
     name_file_temp =[ param.name_file_Reconstruction_omega ...
         num2str(big_T) '.mat'];
     param_from_file = param;
-    save(name_file_temp,'param_from_file','omega','-v7.3')
+%     save(name_file_temp,'param_from_file','omega','-v7.3')
     
-    % omega_ref=omega;
-    % save('ref_omega.mat','omega_ref');
+%     % omega_ref=omega;
+%     % save('ref_omega.mat','omega_ref');
     
     clear omega
 end

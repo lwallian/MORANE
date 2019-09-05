@@ -3,6 +3,11 @@ function param = reconstruction_Q(param,bt,...
 % Reconstruct velocity field and save it
 %
 
+global stochastic_integration;
+global estim_rmv_fv;
+global choice_n_subsample;
+global correlated_model;
+
 %% Load
 param.name_file_tensor_mode = [ param.folder_data ...
     'tensor_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];

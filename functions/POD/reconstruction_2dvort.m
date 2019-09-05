@@ -3,11 +3,34 @@ function param = reconstruction_2dvort(param,bt,...
 % Reconstruct velocity field and save it
 %
 
+global stochastic_integration;
+global estim_rmv_fv;
+global choice_n_subsample;
+global correlated_model;
+
 %% Load
-param.name_file_omega_mode = [ param.folder_data ...
-    '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
-load(param.name_file_omega_mode,'param_from_file',...
-    'omega_phi_m_U');
+% if nargin < 6
+%     param_obs = nan;
+% end
+switch param.data_assimilation
+    case {0,1}
+        param.name_file_omega_mode = [ param.folder_data ...
+            '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
+        load(param.name_file_omega_mode,'param_from_file',...
+            'omega_phi_m_U');
+        param_obs = nan;
+    case 2
+        param.name_file_omega_mode = [ param.folder_data_PIV ...
+            '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+        load(param.name_file_omega_mode,'param_from_file',...
+            'omega_phi_m_U','MX_PIV');
+        param.MX = MX_PIV;
+        param.d = 2;
+%         param.param_obs = param_obs;
+end
+% param.name_file_omega_mode = [ param.folder_data ...
+%     '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
+
 % % Remove the time average value m_U
 % mU = phi_m_U(:,param.nb_modes+1,:);
 % phi_m_U(:,param.nb_modes+1,:)=[];
