@@ -4,7 +4,7 @@
 %
 clear all, close all, clc;
 
-data = load('C_DNS100_16Modes.mat');
+data = load('C_DNS100_8Modes.mat');
 dt = 0.05;
 % data = load('C_DNS300_16Modes.mat');
 % dt = 0.25;
@@ -197,3 +197,35 @@ maxLag = 5 * period;
 [filteredCorrelation, taps] = minimalVarianceLMS(correlation, 500, d);
 tau = (1 + 2 * sum(filteredCorrelation)) * dt
 tau_cut = (1 + 2 * sum(filteredCorrelation(1 : maxLag))) * dt
+
+%% Separation of periodic and aperiodic parts
+
+d = 1 * period;
+maxLag = 5 * period;
+
+[filteredCorrelation, taps] = minimalVarianceLMS(correlation, 500, d);
+refSignal = correlation;
+N = length(refSignal);
+
+% Initialize filter
+h = zeros(taps, 1);
+inputSignal = [zeros(d, 1)', refSignal'];
+inputSignal = inputSignal(1 : N);
+
+outSignal = zeros(N, 1);
+periodic = zeros(N, 1);
+for i = 1 : N - taps - 1
+    inputSlice = inputSignal(i : i + taps - 1)';
+    outSignal(i) = refSignal(i) - h' * inputSlice;
+    h = h + (2 / (norm(inputSlice).^2 + 1e-4 * taps * refSignal(1).^2)) * outSignal(i) * inputSlice;
+    periodic(i) = h' * inputSlice; % for test
+%     h = h + 0.01 * outSignal(i) * inputSlice; % another step size
+end
+
+figure;
+subplot(3, 1, 1), plot(0 : dt : (length(correlation) - 1) * dt, correlation);
+title('Original signal'), grid minor;
+subplot(3, 1, 2), plot(0 : dt : (length(outSignal) - 1) * dt, outSignal);
+title('Aperiodic part'), grid minor;
+subplot(3, 1, 3), plot(0 : dt : (length(periodic) - 1) * dt, periodic);
+title('Periodic part'), grid minor;

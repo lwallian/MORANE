@@ -207,6 +207,11 @@ plot(t, Xt_EM_mean(1 : end - 1));
 grid minor, title('Geometric brownian motion''s mean realization - Euler-Maruyama vs SSPRK3');
 
 figure, hold on;
+plot(t, theo_mean - Xt_RK_mean(1 : end - 1));
+plot(t, theo_mean - Xt_EM_mean(1 : end - 1));
+grid minor, title('Geometric brownian motion''s error to mean');
+
+figure, hold on;
 plot(t, theo_var);
 plot(t, Xt_RK_var(1 : end - 1));
 plot(t, Xt_EM_var(1 : end - 1));
@@ -275,9 +280,17 @@ for n_r = floor(n_realizations)
     clear Xt_EM_mean Xt_RK_mean Xt_RK_var Xt_EM_var Xt_EM Xt_RK;
 end
 
+% Do the regression to fit the curve
 t = ti : dt : tf;
+% pinv_A = pinv([log10(n_realizations); ones(size(n_realizations))]');
+% ls_error = pinv_A * log10(error_RK)';
+ls_error = [log10(n_realizations); ones(size(n_realizations))]' \ log10(error_RK)';
+
 figure, hold on;
 ax = gca;
 ax.XScale = 'log';
-semilogx(n_realizations, error_RK);
-semilogx(n_realizations, error_EM);
+ax.YScale = 'log';
+loglog(n_realizations, error_RK);
+loglog(n_realizations, error_EM);
+grid minor;
+print('StratoRelError.png', '-dpng', '-r500');

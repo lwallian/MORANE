@@ -213,16 +213,19 @@ if param.decor_by_subsampl.bool
                 tau_ss = fct_cut_frequency(bt, lambda, param); % undo the theshold inside the function for this case
                 param.decor_by_subsampl.test_fct = 'db';
             case 'lms'
-                param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(dt_c, bt, param.dt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(dt_c, bt, param.dt)), 1);
+                dbt = diff(bt, 1, 1);
+                param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(dt_c, dbt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(dt_c, dbt, param.dt)), 1);
                 tau_ss = max(correlationTimeLMS(c, bt, param.dt), 1);
             case 'htgen'
-                param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(dt_c, bt, param.dt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(dt_c, bt, param.dt)), 1);
+                dbt = diff(bt, 1, 1);
+                param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(dt_c, dbt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(dt_c, dbt, param.dt)), 1);
                 tau_ss = max(simpleCorrelationTime(c, bt, param.dt), 1);
             case 'truncated'
-                param.decor_by_subsampl.tau_corr = max(correlationTimeCut(dt_c, bt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(dt_c, bt)), 1);
+                dbt = diff(bt, 1, 1);
+                param.decor_by_subsampl.tau_corr = max(correlationTimeCut(dt_c, dbt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(dt_c, dbt)), 1);
                 tau_ss = max(correlationTimeCut(c, bt), 1);
             otherwise
                 error('Invalid downsampling method.')
