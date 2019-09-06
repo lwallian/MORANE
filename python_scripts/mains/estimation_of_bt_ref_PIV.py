@@ -108,6 +108,7 @@ print(file)
 I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
 param['decor_by_subsampl']['no_subampl_in_forecast'] = no_subampl_in_forecast                                           # Define the constant
 diag_reg = np.sqrt(param['lambda'])
+diag_reg = np.ones((diag_reg.shape)) 
 #diag_reg = np.ones((nb_modes,1)) / diag_reg_inv
 
 
