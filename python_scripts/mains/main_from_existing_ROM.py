@@ -17,12 +17,19 @@ beta_3 = 1.                              # beta_3 is the parameter that controls
 #    beta_4 = 5                              # beta_4 is the parameter that controls the time when we will use the filter to correct the particles
 init_centred_on_ref = False              # If True, the initial condition is centered on the reference initial condiion
 N_threshold = 40                        # Effective sample size in the particle filter
-nb_mutation_steps = 30                  # Number of mutation steps in particle filter 
 pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
+
+
+#assimilate = 'real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+#nb_mutation_steps = 500  # 150 30                # Number of mutation steps in particle filter 
+##nb_mutation_steps = 300  # 150 30                # Number of mutation steps in particle filter 
+
+assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
+nb_mutation_steps = 30                # Number of mutation steps in particle filter 
+
 
 #    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
 std_space = 0.0065/(32*10**-3)          # Correlation distance in PIV measures
-assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
 only_load = False                       # If False Hpiv*Topos will be calculated, if True and calculated before it will be loaded 
 slicing = True                          # If True we will select one slice to assimilate data, because with 2d2c PIV we have only one slice.
 slice_z = 30                            # The slice that will be assimilated: It should be 30 because the Hpiv*topos calculated in matlab take in account the slice 30
@@ -41,13 +48,13 @@ sub_sampling_PIV_data_temporaly = True  # True                                  
 #factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
 
 
-plt_real_time = False                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+plt_real_time = True                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
 plot_period = float(5/10)/2
 heavy_real_time_plot = True
 #n_frame_plots = 20           
 fig_width= 18
 fig_height = 8
-plot_Q_crit = False
+plot_Q_crit = True
 
 
 mask_obs = True      # True            # Activate spatial mask in the observed data
@@ -69,6 +76,14 @@ assimilation_period = float(5/10)
 ##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
 #assimilation_period = float(5)
 
+#subsampling_PIV_grid_factor_gl = 10   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
+#x0_index_gl = 10  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+#nbPoints_x_gl = 3      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+#y0_index_gl = 10         # 10                                                                                   # Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+#nbPoints_y_gl = 3      # 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
+#assimilation_period = float(5/10) 
+        
 #subsampling_PIV_grid_factor_gl = 3   # 1     # Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3 
 #x0_index_gl = 0  # 10                                                                                           # Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
 #nbPoints_x_gl = 67      # 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
@@ -1516,7 +1531,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     if init_centred_on_ref:
         file_plots = file_plots + 'initOnRef_'
     file_plots = file_plots + 'beta_2_' + str(int(beta_2))
-    file_plots = file_plots + 'nSimu' + str(int(n_simu))
+    file_plots = file_plots + '_nSimu_' + str(int(n_simu))
+    file_plots = file_plots + '_nMut_' + str(int(nb_mutation_steps))
         
 #    file_plots = file_plots.replace(".", "_")
     folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
@@ -2793,7 +2809,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
                                     color=color_mean_EV, label = 'EV particles mean')
             if plot_ref==True:
-                plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
+                if assimilate == 'real_data':
+                    plt.plot(time_bt_tot,quantiles[0,:,index],'k--',label = 'True state')
+                    plt.plot(time_bt_tot,quantiles[1,:,index],'k--',label = 'True state')
+                else:
+                    plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
                 
                 
             plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
