@@ -188,10 +188,13 @@ if ~strcmp(name_simu,'ref')
     % %         name_simu '/'];
     % end
 end
-if param.param_obs.no_noise
-    name_simu = [name_simu '_noNoise'];
+if isfield(param,'param_obs')
+    if param.param_obs.no_noise
+        name_simu = [name_simu '_noNoise'];
+    end
+    param.name_file_Reconstruction_omega = [ param.name_file_Reconstruction_omega '/' ...
+        name_simu];
 end
-param.name_file_Reconstruction_omega = [ param.name_file_Reconstruction_omega '/' ...
-    name_simu '/'];
+param.name_file_Reconstruction_omega = [ param.name_file_Reconstruction_omega '/'];
 mkdir(param.name_file_Reconstruction_omega);
 

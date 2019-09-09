@@ -49,8 +49,8 @@ if nargin == 0
     %             type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     %         type_data = 'turb2D_blocks_truncated'
     
-    choice_n_subsample = 'htgen'
-%     choice_n_subsample = 'auto_shanon'
+%     choice_n_subsample = 'htgen'
+    choice_n_subsample = 'auto_shanon'
     stochastic_integration = 'Ito'
     estim_rmv_fv = false
     svd_pchol = 1

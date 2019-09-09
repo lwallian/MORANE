@@ -255,8 +255,12 @@ for q=1:n1
 %         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
 
     time = param.dt * index_time;
-    bool_assimilation_step = ...
-        any(index_time == param.DA.index_of_filtering);
+    if isfield(param,'DA')
+        bool_assimilation_step = ...
+            any(index_time == param.DA.index_of_filtering);
+    else
+        bool_assimilation_step = false;
+    end
     
     hold on;
     ax=axis;

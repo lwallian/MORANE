@@ -78,6 +78,8 @@ t_subsample=1;
 big_T = double( param.data_in_blocks.nb_blocks); % index of the file
 first_big_T = big_T + 1;
 index_time = 0;
+param.MX = double(param.MX);
+param.d = double(param.d); 
 
 for t=1:n_subsampl*param.N_test % loop for all time
     % for t=1:n_subsampl*N_tot % loop for all time
