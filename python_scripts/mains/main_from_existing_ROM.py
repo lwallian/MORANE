@@ -2777,115 +2777,115 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
     ##############################################################################################################
     #################################---TEST PLOTS---#############################################################
-    if plt_real_time == False:
-        dt_tot = param['dt']
-        N_test = param['N_test'] 
-    #    time = np.arange(1,int(int(N_test)+2),1)*float(dt_tot)
-    #    ref = bt_MCMC[:,:,0]
-        
-        particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
-        particles_median = np.median(bt_MCMC[:,:,:],axis=2)
-        quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
+#    if plt_real_time == False:
+    dt_tot = param['dt']
+    N_test = param['N_test'] 
+#    time = np.arange(1,int(int(N_test)+2),1)*float(dt_tot)
+#    ref = bt_MCMC[:,:,0]
+    
+    particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
+    particles_median = np.median(bt_MCMC[:,:,:],axis=2)
+    quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
+    if EV:
+        particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
+        particles_median_EV = np.median(bt_forecast_EV[:,:,:],axis=2)
+        quantiles_EV = np.quantile(bt_forecast_EV[:,:,:],q=[0.025,0.975],axis=2)
+    n_particles = bt_MCMC.shape[-1] 
+#    particles_std_estimate = np.std(bt_MCMC[:,:,1:],axis=2)
+#    erreur = np.abs(particles_mean-ref)
+
+
+    
+    
+#    time_simu = np.arange(0,(bt_MCMC.shape[0])*dt_tot,dt_tot)
+#    time_bt_tot = np.arange(0,(bt_MCMC.shape[0])*dt_tot,n_simu*dt_tot*3)
+#    ref = bt_tot[:int(len(time_bt_tot)),:]
+    for index in range(particles_mean.shape[1]):
+        plt.figure(index,figsize=(12, 9))
+        plt.ylim(-10, 10)
+        ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
         if EV:
-            particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
-            particles_median_EV = np.median(bt_forecast_EV[:,:,:],axis=2)
-            quantiles_EV = np.quantile(bt_forecast_EV[:,:,:],q=[0.025,0.975],axis=2)
-        n_particles = bt_MCMC.shape[-1] 
-    #    particles_std_estimate = np.std(bt_MCMC[:,:,1:],axis=2)
-    #    erreur = np.abs(particles_mean-ref)
-    
-    
-        
-        
-    #    time_simu = np.arange(0,(bt_MCMC.shape[0])*dt_tot,dt_tot)
-    #    time_bt_tot = np.arange(0,(bt_MCMC.shape[0])*dt_tot,n_simu*dt_tot*3)
-    #    ref = bt_tot[:int(len(time_bt_tot)),:]
-        for index in range(particles_mean.shape[1]):
-            plt.figure(index,figsize=(12, 9))
-            plt.ylim(-10, 10)
-            ####        delta = 1.96*particles_std_estimate[:,index]/np.sqrt(n_particles)
-            if EV:
-                plt.fill_between(time,quantiles_EV[0,:,index],quantiles_EV[1,:,index],color=color_quantile_EV)
-                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
-                                    color=color_mean_EV, label = 'EV particles mean')
-            if plot_ref==True:
-                if assimilate == 'real_data':
-                    plt.plot(time_bt_tot,quantiles[0,:,index],'k--',label = 'True state')
-                    plt.plot(time_bt_tot,quantiles[1,:,index],'k--',label = 'True state')
-                else:
-                    plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
-                
-                
-            plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
-                
-            line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Red LUM particles mean')
+            plt.fill_between(time,quantiles_EV[0,:,index],quantiles_EV[1,:,index],color=color_quantile_EV)
+            line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
+                                color=color_mean_EV, label = 'EV particles mean')
+        if plot_ref==True:
+            if assimilate == 'real_data':
+                plt.plot(time_bt_tot,quantiles[0,:,index],'k--',label = 'True state')
+                plt.plot(time_bt_tot,quantiles[1,:,index],'k--',label = 'True state')
+            else:
+                plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
+            
+            
+        plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
+            
+        line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Red LUM particles mean')
 #            if EV:
 #                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
 #                                    color=color_mean_EV, label = 'EV particles mean')
-                
-    #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
-    #        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
-    #        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
-    #        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
-            plt.plot(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))),'r.')
-            plt.grid()
-            plt.ylabel('Chronos '+r'$b'+str(index+1)+'$'+' amplitude',fontsize=20)
-            plt.xlabel('Time',fontsize=20)
-            plt.legend(fontsize=15)
-            file_res_mode = file_plots_res / Path(str(index+1) + '.pdf')
+            
+#        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
+#        line2 = plt.plot(time_bt_tot,ref[:,index],'k--',label = 'True state')
+#        line3 = plt.plot(time_simu,particles_median[:,index],'g.',label = 'particles median')
+#        line4 = plt.plot(dt_tot*np.concatenate((np.zeros((1)),np.array(time_pf))),particles_estimate[:,index],'m.',label = 'PF mean estimation')
+        plt.plot(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))),'r.')
+        plt.grid()
+        plt.ylabel('Chronos '+r'$b'+str(index+1)+'$'+' amplitude',fontsize=20)
+        plt.xlabel('Time',fontsize=20)
+        plt.legend(fontsize=15)
+        file_res_mode = file_plots_res / Path(str(index+1) + '.pdf')
 #            file_res_mode = file_plots_res / Path(str(index+1) + '.png')
 #            file_res_mode = file_plots_res / Path(str(index+1) + '.jpg')
 #            file_res_mode = file_plots_res / str(index) + '.png'
 #            plt.savefig(file_res_mode)
-            plt.savefig(file_res_mode,dpi=200 )
+        plt.savefig(file_res_mode,dpi=200 )
 #            plt.savefig(file_res_mode,dpi=500 )
 #            plt.savefig(file_res_mode,quality = 95)
+
     
-        
 #        print(time_bt_tot.shape)
 #        print(time.shape)
-        
-        dict_python = {}
-        dict_python['param'] = param
-        dict_python['time_bt_tot'] = time_bt_tot
-        dict_python['bt_tot'] = bt_tot
-        dict_python['quantiles_bt_tot'] = quantiles_PIV
-        dict_python['dt_PIV'] = dt_PIV
-        dict_python['index_pf'] = index_pf
-        dict_python['time_DA'] = np.array(time)[np.array(index_pf)[1:]]
-        dict_python['Re'] = Re
-        dict_python['time'] = time
-        dict_python['particles_mean'] = particles_mean
-        dict_python['particles_median'] = particles_median
-        dict_python['bt_MCMC'] = bt_MCMC
-        dict_python['quantiles'] = quantiles
-        if EV:
-            dict_python['particles_mean_EV'] = particles_mean_EV
-            dict_python['particles_median_EV'] = particles_median_EV
-            dict_python['bt_forecast_EV'] = bt_forecast_EV
-            dict_python['quantiles_EV'] = quantiles_EV
-        file_res = file_plots_res / Path('chronos.mat')
-        sio.savemat(file_res,dict_python)
-        
-        
-        
-        if EV:
-            N_ = particles_mean.shape[0]
-            struct_bt_MCMC = {}
-            struct_bt_MCMC['mean'] = particles_mean\
-                .copy()[:N_:n_simu]
-            struct_bt_MCMC['var'] = np.var(bt_MCMC[:,:,:],axis=2)\
-                .copy()[:N_:n_simu]
-            struct_bt_MEV_noise = {}
-            struct_bt_MEV_noise['mean'] = particles_mean_EV\
-                .copy()[:N_:n_simu]
-            struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
-                .copy()[:N_:n_simu]
-            param['N_test']=int(param['N_test']/n_simu)
-            param['N_tot']=param['N_test']+1
-            param['dt'] = param['dt'] * n_simu
-            plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
-                    param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC)
+    
+    dict_python = {}
+    dict_python['param'] = param
+    dict_python['time_bt_tot'] = time_bt_tot
+    dict_python['bt_tot'] = bt_tot
+    dict_python['quantiles_bt_tot'] = quantiles_PIV
+    dict_python['dt_PIV'] = dt_PIV
+    dict_python['index_pf'] = index_pf
+    dict_python['time_DA'] = np.array(time)[np.array(index_pf)[1:]]
+    dict_python['Re'] = Re
+    dict_python['time'] = time
+    dict_python['particles_mean'] = particles_mean
+    dict_python['particles_median'] = particles_median
+    dict_python['bt_MCMC'] = bt_MCMC
+    dict_python['quantiles'] = quantiles
+    if EV:
+        dict_python['particles_mean_EV'] = particles_mean_EV
+        dict_python['particles_median_EV'] = particles_median_EV
+        dict_python['bt_forecast_EV'] = bt_forecast_EV
+        dict_python['quantiles_EV'] = quantiles_EV
+    file_res = file_plots_res / Path('chronos.mat')
+    sio.savemat(file_res,dict_python)
+    
+    
+    
+    if EV:
+        N_ = particles_mean.shape[0]
+        struct_bt_MCMC = {}
+        struct_bt_MCMC['mean'] = particles_mean\
+            .copy()[:N_:n_simu]
+        struct_bt_MCMC['var'] = np.var(bt_MCMC[:,:,:],axis=2)\
+            .copy()[:N_:n_simu]
+        struct_bt_MEV_noise = {}
+        struct_bt_MEV_noise['mean'] = particles_mean_EV\
+            .copy()[:N_:n_simu]
+        struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
+            .copy()[:N_:n_simu]
+        param['N_test']=int(param['N_test']/n_simu)
+        param['N_tot']=param['N_test']+1
+        param['dt'] = param['dt'] * n_simu
+        plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
+                param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC)
         
     ############################ Construct the path to select the model constants I,L,C,pchol and etc.
     
