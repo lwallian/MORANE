@@ -24,28 +24,27 @@ else
     % The last two time steps are not used
     T = T - 2 * dt;
     
-    dbt = bt(2:end,:) - bt(1:end-1,:);
-    d2bt = dbt(2:end,:) - dbt(1:end-1,:);
-    
     %% compute the RHS of equation
     % R1 is proportional to theta_theta
     % R2 is proportional to Mi_sigma
     % R3 is proportional to xi_xi_inf
     
-    [R1, R2, R3, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt, d2bt);
+    [R1, R2, R3, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt);
     % To test that the estimation formulas give a reasonable estimation of
     % the noise terms (uncomment to test)
 %     sigma_ss = 1e8 * generate_sigma_ss(0.1, [MX, d], 100, dX);
 %     [R1t, R2t, R3t] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss);
     
     % Compute theta_theta
-    theta_theta = bsxfun(@times, 1 ./ (N_tot), R1);
+%     theta_theta = bsxfun(@times, 1 ./ (N_tot), R1);
+    theta_theta = R1;
     
     % Compute Mi_sigma
     Mi_sigma = R2 ./ N_tot;
     
     % Compute xi_xi_inf
-    xi_xi_inf = R3 ./ N_tot;
+%     xi_xi_inf = R3 ./ N_tot;
+    xi_xi_inf = R3;
     
     clear R1 R2 R3;
     

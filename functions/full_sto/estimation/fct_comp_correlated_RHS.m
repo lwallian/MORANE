@@ -1,11 +1,9 @@
-function [R1, R2, R3, C1, C2] = fct_comp_correlated_RHS(param, bt, d2bt)
+function [R1, R2, R3, C1, C2] = fct_comp_correlated_RHS(param, bt)
 %FCT_COMP_CORRELATED_RHS Estimates the noise statistics in the correlated
 %non resolved modes scheme given the PCA residual and the chronos functions
 %   @param param: structure with lots of parameters concerning the current
 %   simulation
 %   @param bt: chronos function of the current model
-%   @param d2bt: second derivative (wrt time) of the aforementioned chronos
-%   function
 %   @return R1: value proportional to the theta_theta term (theta_theta * T)
 %   @return R2: value proportional to the Mi_sigma_sigma term (Mi_sigma_sigma * T)
 %   @return R3: value proportional to the xi_xi_inf term (xi_xi_inf * T)
@@ -31,6 +29,10 @@ lambda = param.lambda;
 N_tot = N_tot - 2;
 T = T - 2 * dt;
 
+% Estimate the second wrt time of the chronos
+dbt = bt(2:end,:) - bt(1:end-1,:);
+d2bt = dbt(2:end,:) - dbt(1:end-1,:);
+
 %% load U
 
 % Initialization
@@ -50,8 +52,8 @@ Mi_sigma = zeros(M, d);
 %compute the sum(b_p * d2bt_i * dX_res)
 del_pi = zeros(M, m + 1, m, d); % (M,m(p),m(i),d)
 % add the constant term to bt
-bt = cat(2, bt, ones(size(bt,1), 1));
-lambda(m + 1) = T.^3 / 3 / T;
+bt = cat(2, bt, ones(N_tot + 2, 1));
+lambda(m + 1) = 1;
 
 if iscell(param.name_file_U_temp)
     N_final = 2 * length(param.name_file_U_temp);
@@ -76,7 +78,6 @@ for t = 1 : N_tot - N_final % loop in time
     end
     % Calculate (dw_ss * del) * dw_ss
     dU_del_dU = calculate_dU_del_dU(dU(:, t_local, :), d, MX, dX); % [1, 1, Mx, My(, Mz), d]
-    dU_del_dU = squeeze(dU_del_dU);
     dU_del_dU = reshape(dU_del_dU, [M, d]);
     for k = 1 : d
         Mi_sigma(:, k) = Mi_sigma(:, k) + dU_del_dU(:, k);
@@ -230,13 +231,12 @@ for i = 1 : m
             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j) * lambda(k);
 %             lambda_theta_theta = lambda_theta_theta + R1(k, i, k, j);
         end
-        R3(i, j) = d2bt(:, i)' * d2bt(:, j) - lambda_theta_theta;
+        R3(i, j) = d2bt(:, i)' * d2bt(:, j) * dt / N_tot - lambda_theta_theta;
     end
 end
 
-R1 = R1 * dt;
+R1 = R1 * dt / N_tot;
 R2 = R2 * dt;
-R3 = R3 * dt;
 
 % Compute the initial condition for eta
 C1 = zeros(m + 1, m);
