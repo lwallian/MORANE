@@ -6,7 +6,7 @@ n = 2; % number of modes
 T = 10000; % number of simulation steps
 T_cov = floor(T / 2);
 % dt = 1e-7; % dt = 0.08;
-dt = 0.008;
+dt = 0.0008;
 n_particles = 100;
 
 load('noises_test.mat', 'xi_xi_inf', 'theta_theta');
@@ -14,31 +14,58 @@ load('noises_test.mat', 'xi_xi_inf', 'theta_theta');
 % Generate some ROM parameters randomly
 tau = 20 * dt;
 alpha_d = 100 * tau;
-alpha_m = 1e-6;
-% theta_theta = zeros((n + 1) * n, (n + 1) * n);
-% chol_theta_theta = zeros((n + 1) * n, (n + 1) * n);
-% theta_theta = alpha_m .* rand((n + 1) * n, (n + 1) * n);
+alpha_m = 5e-7;
+theta_theta = tau / n * 1000 .* eye(n * (n + 1));
+theta_theta(n + 1, n + 1) = 0; theta_theta(end, end) = 0;
+theta_theta = reshape(theta_theta, [n + 1, n, n + 1, n]);
+theta_theta()
+theta_theta_c = theta_theta;
+for p = 1 : n
+    for i = 1 : n
+        for q = 1 : n
+            for j = 1 : n
+                theta_theta(p, i, q, j) = 0.5 * (theta_theta_c(p, i, q, j) - theta_theta_c(i, p, q, j));
+            end
+        end
+    end
+end
+theta_theta_c = theta_theta;
+for p = 1 : n
+    for i = 1 : n
+        for q = 1 : n
+            for j = 1 : n
+                theta_theta(p, i, q, j) = 0.5 * (theta_theta_c(p, i, q, j) - theta_theta_c(p, i, j, q));
+            end
+        end
+    end
+end
 theta_theta = reshape(theta_theta, [n * (n + 1), n * (n + 1)]);
-theta_theta = 0.5 .* (theta_theta + theta_theta');
-theta_theta = theta_theta + n * (n + 1) * alpha_m * eye(n * (n + 1));
-chol_theta_theta = chol(theta_theta);
-% xi_xi = zeros(n, n);
-% chol_xi_xi = zeros(n, n);
+theta_theta = 0.5 * (theta_theta + theta_theta');
+[V, D] = eig(theta_theta);
+D = diag(D);
+D(D < 0) = 0;
+D = diag(D);
+theta_theta = V * D * V';
+chol_theta_theta = V * sqrt(D);
+xi_xi = zeros(n, n);
+chol_xi_xi = zeros(n, n);
 % xi_xi = alpha_m .* rand(n, n);
-xi_xi = xi_xi_inf;
-xi_xi = 0.5 .* (xi_xi + xi_xi');
-xi_xi = xi_xi + n * alpha_m * eye(n);
-chol_xi_xi = chol(xi_xi);
+% xi_xi = xi_xi_inf;
+% xi_xi = 0.5 .* (xi_xi + xi_xi');
+% xi_xi = xi_xi + n * alpha_m * eye(n);
+% [V, D] = eig(xi_xi);
+% xi_xi = V * sqrt(D) * V';
+% chol_xi_xi = chol(xi_xi);
 theta_xi = zeros(n * (n + 1), n);
 
 % Start the chronos at zero
 bt_m = zeros(T, n, n_particles);
 eta = zeros(T, n + 1, n, n_particles);
-eta(1, :, :, :) = randn(1, n + 1, n, n_particles);
+% eta(1, :, :, :) = randn(1, n + 1, n, n_particles);
 Mi_ss = zeros(T, n, n_particles);
-Mi_ss(1, :, :) = randn(1, 1, n, n_particles);
+% Mi_ss(1, :, :) = randn(1, 1, n, n_particles);
 spiral = zeros(T, 1, n_particles);
-spiral(1, :, :) = randn(1, 1, n_particles);
+% spiral(1, :, :) = randn(1, 1, n_particles);
 
 % Simulate the evolution of the Chronos equations
 

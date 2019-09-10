@@ -6,8 +6,8 @@ n = 2; % number of modes
 T = 10000; % number of simulation steps
 T_cov = floor(T / 2);
 % dt = 1e-7; % dt = 0.08;
-dt = 0.08;
-n_particles = 100;
+dt = 0.008;
+n_particles = 1;
 
 load('ILC_test.mat', 'ILC');
 load('noises_test.mat', 'xi_xi_inf', 'theta_theta');
@@ -25,38 +25,63 @@ L = zeros(n, n);
 % C = ILC.tot.C;
 % C = alpha_d .* randn(n, n, n);
 C = zeros(n, n, n);
-% theta_theta = zeros((n + 1) * n, (n + 1) * n);
+theta_theta = tau / n * 1000 .* eye(n * (n + 1));
+theta_theta(n + 1, n + 1) = 0; theta_theta(end, end) = 0;
+theta_theta = reshape(theta_theta, [n + 1, n, n + 1, n]);
+theta_theta()
+theta_theta_c = theta_theta;
+for p = 1 : n
+    for i = 1 : n
+        for q = 1 : n
+            for j = 1 : n
+                theta_theta(p, i, q, j) = 0.5 * (theta_theta_c(p, i, q, j) - theta_theta_c(i, p, q, j));
+            end
+        end
+    end
+end
+theta_theta_c = theta_theta;
+for p = 1 : n
+    for i = 1 : n
+        for q = 1 : n
+            for j = 1 : n
+                theta_theta(p, i, q, j) = 0.5 * (theta_theta_c(p, i, q, j) - theta_theta_c(p, i, j, q));
+            end
+        end
+    end
+end
 theta_theta = reshape(theta_theta, [n * (n + 1), n * (n + 1)]);
+% theta_theta = zeros((n + 1) * n, (n + 1) * n);
+% theta_theta = reshape(theta_theta, [n * (n + 1), n * (n + 1)]);
 % theta_theta = alpha_m .* rand((n + 1) * n, (n + 1) * n);
-theta_theta = 0.5 .* (theta_theta + theta_theta');
-theta_theta = theta_theta + n * (n + 1) * alpha_m * eye(n * (n + 1));
-% [V, D] = eig(theta_theta);
-% D = diag(D);
-% D = 10 .* D;
-% D(D < 0) = 0;
-% theta_theta = V * diag(D) * V';
-chol_theta_theta = chol(theta_theta);
-% xi_xi = zeros(n, n);
-xi_xi = xi_xi_inf;
+% theta_theta = 0.5 .* (theta_theta + theta_theta');
+% theta_theta = theta_theta + n * (n + 1) * alpha_m * eye(n * (n + 1));
+theta_theta = 0.5 * (theta_theta + theta_theta');
+[V, D] = eig(theta_theta);
+D = diag(D);
+D(D < 0) = 0;
+D = diag(D);
+theta_theta = V * D * V';
+chol_theta_theta = V * sqrt(D);
+% chol_theta_theta = chol(theta_theta);
+xi_xi = zeros(n, n);
+% xi_xi = xi_xi_inf;
 % xi_xi = alpha_m .* rand(n, n);
-xi_xi = 0.5 .* (xi_xi + xi_xi');
-xi_xi = xi_xi + n * alpha_m * eye(n);
-% [V, D] = eig(xi_xi);
-% D = diag(D);
-% D = 10 .* D;
-% D(D < 0) = 0;
-% xi_xi = V * diag(D) * V';
-chol_xi_xi = chol(xi_xi);
+% xi_xi = 0.5 .* (xi_xi + xi_xi');
+% xi_xi = xi_xi + n * alpha_m * eye(n);
+[V, D] = eig(xi_xi);
+% xi_xi = V * sqrt(D) * V';
+chol_xi_xi = V * sqrt(D);
 theta_xi = zeros(n * (n + 1), n);
 
 % Start the chronos at zero
 bt = zeros(T, n, n_particles);
 bt_fv = zeros(T, n, n_particles);
 bt_m = zeros(T, n, n_particles);
+bt_m(1, :, :) = randn(n, n_particles);
 eta = zeros(T, n + 1, n, n_particles);
-eta(1, :, :, :) = randn(1, n + 1, n, n_particles);
+% eta(1, :, :, :) = randn(1, n + 1, n, n_particles);
 Mi_ss = zeros(T, n, n_particles);
-Mi_ss(1, :, :) = randn(1, 1, n, n_particles);
+% Mi_ss(1, :, :) = randn(1, 1, n, n_particles);
 spiral = zeros(T, 1, n_particles);
 spiral(1, :, :) = randn(1, 1, n_particles);
 
@@ -81,70 +106,21 @@ mean_Mi_ss = mean(Mi_ss, 3);
 mean_eta = mean(eta, 4);
 figure, plot(mean_spiral), title('spiral'), grid minor;
 figure, plot(mean_Mi_ss), title('Mi_{ss}'), grid minor;
+figure, plot(reshape(mean_eta, T, [])), grid minor, title('eta')
 
 t = 0 : dt : dt * (T_cov - 1);
 
-% Verify the spiral's moments 1 and 2
-spiral_mean = mean(mean(spiral, 3), 1)
-spiral_cov = zeros(T_cov, 1);
-for k = 1 : T_cov - 1
-    for j = T_cov : T - 1 - k + 1
-        spiral_cov(k) = spiral_cov(k) + ...
-            mean_spiral(j) * mean_spiral(k + j);
-    end
-    spiral_cov(k) = spiral_cov(k) / (T_cov - k);
+% Verify that eta is effectively a frequency
+eta_t = mean_eta(:, 1 : end - 1, :);
+eta_t = permute(eta_t, [2 3 1]);
+eig_eta = zeros(T, n);
+for k = 1 : T
+    eig_eta(k, :) = eig(eta_t(:, :, k));
 end
-theo_spiral_cov = dt .* exp(- t / tau);
-figure, hold on;
-plot(spiral_cov), title('Spiral correlation'), grid minor;
-plot(theo_spiral_cov);
+any(isreal(eig_eta))
 
-% Verify Mi_ss' moments 1 and 2
-Mi_ss_mean = mean(mean_Mi_ss, 1)
-Mi_ss_cov = zeros(T_cov, n);
-for i = 1 : n
-    for k = 1 : T_cov - 1
-        for j = T_cov : T - 1 - k + 1
-            Mi_ss_cov(k, i) = Mi_ss_cov(k, i) + ...
-                mean_Mi_ss(j, i) * mean_Mi_ss(k + j, i);
-        end
-        Mi_ss_cov(k, i) = Mi_ss_cov(k, i) / (T_cov - k);
-    end
-end
-theo_Mi_ss_cov = tau ./ 4 .* xi_xi(1, 1) .* dt .* exp(- 2 * t / tau);
-figure, hold on;
-plot(Mi_ss_cov(:, 1)), title('Mi_{ss} correlation'), grid minor;
-plot(theo_Mi_ss_cov);
-
-
-% Verify eta's moments 1 and 2
-eta_mean = mean(mean_eta, 1)
-eta_cov = zeros(T_cov, n + 1, n);
-for i = 1 : n + 1
-    for j = 1 : n
-        for k = 1 : T_cov - 1
-            for l = T_cov : T - 1 - k + 1
-                eta_cov(k, i, j) = eta_cov(k, i, j) + ...
-                    (mean_eta(l, i, j) - eta_mean(:, i, j)) * (mean_eta(l + k, i, j) - eta_mean(:, i, j));
-            end
-            eta_cov(k, i, j) = eta_cov(k, i, j) / (T_cov - k);
-        end
-    end
-end
-theo_eta_cov = theta_theta(1, 1) * tau / 2 * dt .* exp(- t / tau);
-figure, hold on;
-plot(eta_cov(:, 1, 1)), title('Eta correlation'), grid minor;
-plot(theo_eta_cov);
-
-% Theoretical variance values
-theo_var_eta = theta_theta * tau / 2 * dt;
-theo_var_Mi_ss = tau / 4 * (chol_xi_xi * chol_xi_xi') * dt * dt;
-theo_var_spiral = 1 * dt;
-
-% Empirical variance values
-emp_var_eta = var(mean_eta, 0, 1);
-emp_var_Mi_ss = var(mean_Mi_ss, 0, 1);
-emp_var_spiral = var(mean_spiral, 0, 1);
+% Plot the modes in the complex plane
+figure, hold on, plot(eig_eta(:, 1), 'or'), plot(eig_eta(:, 2), 'xb'), grid minor, hold off;
 
 % Do the pertinent estimations
 d2bt = diff(bt, 2, 1);
@@ -152,14 +128,12 @@ deta = diff(eta, 1, 1);
 bt_x = cat(2, bt, ones(T, 1, n_particles));
 G_pq = zeros(n + 1, n + 1, n_particles);
 for k = 1 : T
-    for i = 1 : n + 1
-        for j = 1 : n + 1
-            G_pq(i, j, :) = G_pq(i, j, :) + bt_x(k, i, :) .* bt_x(k, j, :);
+    for p = 1 : n + 1
+        for q = 1 : n + 1
+            G_pq(p, q, :) = G_pq(p, q, :) + bt_x(k, p, :) .* bt_x(k, q, :);
         end
     end
 end
-% G_pq = bsxfun(@times, bt_x, bt_x);
-% G_pq = sum(G_pq, 1);
 G_pq = G_pq ./ T;
 % G_pq = bt_x' * bt_x ./ T;
 

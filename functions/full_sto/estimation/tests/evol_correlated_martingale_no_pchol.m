@@ -23,9 +23,10 @@ db_spiral = spiral + dt * db_deter_spiral + db_sto_spiral;
 
 % Evolve Mi_ss
 db_deter_Mi = - 2 .* Mi_ss ./ tau;
-db_sto_Mi = bsxfun(@times, db_spiral, noises_xi);
-db_sto_Mi = sum(db_sto_Mi, 3);
-db_sto_Mi = reshape(db_sto_Mi, [1, n, nb_pcl]);
+db_sto_Mi = reshape(noises_xi, [1, n, nb_pcl]);
+% db_sto_Mi = bsxfun(@times, db_spiral, noises_xi);
+% db_sto_Mi = sum(db_sto_Mi, 3);
+% db_sto_Mi = reshape(db_sto_Mi, [1, n, nb_pcl]);
 db_Mi_ss = Mi_ss + dt * db_deter_Mi + db_sto_Mi;
 
 clear noise_xi noise_theta;
