@@ -7,7 +7,7 @@ T = 10000; % number of simulation steps
 T_cov = floor(T / 2);
 % dt = 1e-7; % dt = 0.08;
 dt = 0.008;
-n_particles = 1;
+n_particles = 100;
 
 load('ILC_test.mat', 'ILC');
 load('noises_test.mat', 'xi_xi_inf', 'theta_theta');
@@ -28,7 +28,6 @@ C = zeros(n, n, n);
 theta_theta = tau / n * 1000 .* eye(n * (n + 1));
 theta_theta(n + 1, n + 1) = 0; theta_theta(end, end) = 0;
 theta_theta = reshape(theta_theta, [n + 1, n, n + 1, n]);
-theta_theta()
 theta_theta_c = theta_theta;
 for p = 1 : n
     for i = 1 : n
@@ -63,10 +62,10 @@ D = diag(D);
 theta_theta = V * D * V';
 chol_theta_theta = V * sqrt(D);
 % chol_theta_theta = chol(theta_theta);
-xi_xi = zeros(n, n);
-% xi_xi = xi_xi_inf;
+% xi_xi = zeros(n, n);
+xi_xi = xi_xi_inf;
 % xi_xi = alpha_m .* rand(n, n);
-% xi_xi = 0.5 .* (xi_xi + xi_xi');
+xi_xi = 0.5 .* (xi_xi + xi_xi');
 % xi_xi = xi_xi + n * alpha_m * eye(n);
 [V, D] = eig(xi_xi);
 % xi_xi = V * sqrt(D) * V';
@@ -138,14 +137,16 @@ G_pq = G_pq ./ T;
 % G_pq = bt_x' * bt_x ./ T;
 
 % Beta
-beta = zeros(n + 1, n, n + 1, n);
-for p = 1 : n + 1
-    for i = 1 : n
-        for q = 1 : n + 1
-            for j = 1 : n
-                for k = 1 : T - 2
-                    beta(p, i, q, j) = beta(p, i, q, j) + ...
-                        bt_x(k, p) * d2bt(k, i) * deta(k, q, j) / G_pq(p, p);
+beta = zeros(n + 1, n, n + 1, n, n_particles);
+for l = 1 : n_particles
+    for p = 1 : n + 1
+        for i = 1 : n
+            for q = 1 : n + 1
+                for j = 1 : n
+                    for k = 1 : T - 2
+                        beta(p, i, q, j, l) = beta(p, i, q, j, l) + ...
+                            bt_x(k, p, l) * d2bt(k, i, l) * deta(k, q, j, l) / G_pq(p, p, l);
+                    end
                 end
             end
         end
@@ -155,13 +156,13 @@ beta = beta .* dt ./ (T - 2);
 
 % theta_theta_est
 theta_theta_est = zeros(n + 1, n, n + 1, n, n_particles);
-% pinv_G = pinv(G_pq);
 for k = 1 : n_particles
+    pinv_G = pinv(G_pq(:, :, k));
     for i = 1 : n
         for q = 1 : n + 1
             for j = 1 : n
-                theta_theta_est(:, i, q, j, k) = linsolve(G_pq(:, :, k), beta(:, i, q, j));
-                %             theta_theta_est(:, i, q, j) = pinv_G * beta(:, i, q, j);
+                theta_theta_est(:, i, q, j, k) = linsolve(G_pq(:, :, k), beta(:, i, q, j, k));
+%                 theta_theta_est(:, i, q, j, k) = pinv_G * beta(:, i, q, j);
             end
         end
     end

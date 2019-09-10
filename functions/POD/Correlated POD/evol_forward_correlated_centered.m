@@ -20,7 +20,7 @@ noises = generate_noises(pchol_cov_noises, n, nb_pcl, dt);
 clear noises;
 
 % Evolve the equation with Euler-Maruyama
-db_m = evolve_sto(bt, Mi_ss, eta, n, nb_pcl);
+db_m = evolve_sto(bt, Mi_ss, eta, n, nb_pcl, dt);
 db_fv = evolve_deter(bt, I, L ,C, dt);
 db_fv = permute(db_fv , [2 1 4 3]);
 
@@ -54,12 +54,12 @@ db_fv = - bsxfun(@plus, I, L + C ) * dt ; % m x 1 x 1
 end
 
 
-function db_m = evolve_sto(bt, Mi_ss, eta, n, nb_pcl)
+function db_m = evolve_sto(bt, Mi_ss, eta, n, nb_pcl, dt)
 
 bt_x = permute(cat(2, bt, ones(1, 1, nb_pcl)), [1 2 4 3]);
 eta_bt = bsxfun(@times, eta, bt_x);
 eta_bt = sum(eta_bt, 2);
-db_m = reshape(eta_bt, [1, n, nb_pcl]) + Mi_ss;
+db_m = dt * reshape(eta_bt, [1, n, nb_pcl]) + dt * Mi_ss;
 
 end
 
