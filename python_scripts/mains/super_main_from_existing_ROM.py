@@ -31,8 +31,8 @@ def switch_type_data(argument):
        
     }
     return switcher.get(argument,[[0.0005],[False]])
-    
-    
+
+
 if __name__ == '__main__':
 
 #    vect_nb_modes = [16,8,6,4,2]
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     vect_adv_corrected = [False]
     test_fct = 'b'
     svd_pchol = True
-    choice_n_subsample = 'htgen'
-#    choice_n_subsample = 'auto_shanon'
+#    choice_n_subsample = 'htgen'
+    choice_n_subsample = 'auto_shanon'
     EV = True
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug

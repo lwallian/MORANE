@@ -213,7 +213,9 @@ switch data_assimilation
         
     case 2
         n_simu = 100
+        nb_mutation_steps = 30
         param.n_simu = n_simu;
+        param.nb_mutation_steps = nb_mutation_steps;
         current_pwd = pwd; cd ..
         param.folder_results = [ pwd '/3rdresult/'];
         cd(current_pwd); clear current_pwd
@@ -255,7 +257,8 @@ switch data_assimilation
     otherwise
         error('Unknown DA type')
 end
-
+param.data_assimilation = data_assimilation;
+        
 % if data_assimilation
 %     if param.nb_modes == 6
 %         param.name_file_2nd_result = [ param.folder_results ...
@@ -330,6 +333,7 @@ plot_bts=true;
 % coef_correctif_estim=coef_correctif_estim_ref;
 
 param.folder_data = folder_data;
+param.folder_data_PIV = folder_data_PIV;
 param.folder_results = folder_results;
 param.big_data=big_data;
 param.plot_bts=plot_bts;
