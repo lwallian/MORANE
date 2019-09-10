@@ -127,18 +127,14 @@ for i = 1 : m
 end
 for i = 1 : m
     for j = 1 : m
-        R3(i, j) = d2bt(:, i)' * d2bt(:, j) - zeta(i, j);
+        R3(i, j) = d2bt(:, i)' * d2bt(:, j) * dt / N_tot - zeta(i, j);
     end
 end
-
-R3 = R3 * dt;
 
 end
 
 function R = operator_R(xi, psi, param)
 
-dt = param.dt;
-N_tot = param.N_tot;
 m = param.nb_modes;
 M = param.M;
 dX = param.dX;
@@ -278,7 +274,7 @@ for q = 1 : m + 1
     end
     
     % projection on phi_j
-    for j = 1 : m + 1
+    for j = 1 : m
         phi_j = phi(:, j, :);
         phi_j = permute(phi_j, [4, 2, 1, 3]);%(1,1,M,d)
         phi_j = reshape(phi_j, [1, 1, MX, d]);%(1,1,Mx,My,(Mz),d)
