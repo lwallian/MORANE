@@ -1,4 +1,4 @@
-function [bt_evol, db_fv, db_m, deta, dMi_ss, dspiral] = evol_correlated_no_pchol(I, L, C, ...
+function [bt_evol, b_fv, b_m, deta, dMi_ss, dspiral] = evol_correlated_no_pchol(I, L, C, ...
                         xi_xi, theta_theta, tau, dt, bt, eta, spiral, Mi_ss, bt_fv, bt_m)
 %EVOL_CORRELATED_NO_PCHOL FOR DEBUGGING PURPOSES ONLY.
 % Evolves the correlated centered chronos using an Euler-Maruyama 
@@ -26,12 +26,13 @@ db_fv = evolve_deter(bt, I, L ,C, dt);
 db_fv = permute(db_fv , [2 1 4 3]);
 
 if nargin > 10
-    db_fv = bt_fv + db_fv;
-    db_m = bt_m + db_m;
-    bt_evol = db_fv + db_m;
-else
-    bt_evol = bt + db_fv + db_m;
+    b_fv = bt_fv + db_fv;
+    b_m = bt_m + db_m;
+%     bt_evol = db_fv + db_m;
+% else
+%     bt_evol = bt + db_fv + db_m;
 end
+bt_evol = bt + db_fv + db_m;
 
 end
 
@@ -91,9 +92,10 @@ function [db_Mi_ss, db_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_
 mi_ss_noise = noises;
 db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl);
 db_deter = - 2 .* Mi_ss ./ tau;
-db_sto = mi_ss_noise; % for testing purposes
-% db_sto = bsxfun(@times, db_spiral, mi_ss_noise);
-% db_sto = sum(db_sto, 3);
+% db_sto = mi_ss_noise; % for testing purposes
+% warning('DEBUG');
+db_sto = bsxfun(@times, db_spiral, mi_ss_noise);
+db_sto = sum(db_sto, 3);
 db_sto = reshape(db_sto, [1, n, nb_pcl]);
 
 db_Mi_ss = Mi_ss + dt * db_deter + db_sto;

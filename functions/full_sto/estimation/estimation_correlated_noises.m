@@ -29,24 +29,10 @@ else
     % R2 is proportional to Mi_sigma
     % R3 is proportional to xi_xi_inf
     
-    [R1, R2, R3, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt);
-    % To test that the estimation formulas give a reasonable estimation of
-    % the noise terms (uncomment to test)
-%     sigma_ss = 1e8 * generate_sigma_ss(0.1, [MX, d], 100, dX);
-%     [R1t, R2t, R3t] = fct_general_correlated_RHS(param, bt, d2bt, sigma_ss);
-    
-    % Compute theta_theta
-%     theta_theta = bsxfun(@times, 1 ./ (N_tot), R1);
-    theta_theta = R1;
+    [theta_theta, R2, xi_xi_inf, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt);
     
     % Compute Mi_sigma
-    Mi_sigma = R2 ./ N_tot;
-    
-    % Compute xi_xi_inf
-%     xi_xi_inf = R3 ./ N_tot;
-    xi_xi_inf = R3;
-    
-    clear R1 R2 R3;
+    Mi_sigma = R2 ./ N_tot; clear R2;
     
     theta_theta = reshape(theta_theta, [m * (m + 1), m * (m + 1)]);
     xi_xi_inf = reshape(xi_xi_inf, [m, m]);
@@ -70,7 +56,7 @@ else
     
     % %% Remove temporary files
     % rmdir(param.folder_file_U_temp,'s')
-    save(param.name_file_noise_cov, 'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0','-v7.3');
+%     save(param.name_file_noise_cov, 'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0','-v7.3');
     
 end
 
