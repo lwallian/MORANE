@@ -34,8 +34,8 @@ del_pi = zeros(M,m,m,d);% (M,m(p),m(i),d)
 
 for t=1:N_tot % loop on time
     if t_local > size(U,2) % A new file needs to be loaded
-        % Save previous file with residual velocity
-        save(name_file_U_temp,'U','-v7.3');
+%         % Save previous file with residual velocity
+%         save(name_file_U_temp,'U','-v7.3');
         % initialization of the index of the snapshot in the file
         t_local=1;
         % Incrementation of the file index
@@ -47,11 +47,19 @@ for t=1:N_tot % loop on time
     end
     for k =1:d
         for i = 1:m
-            del(:,i,k) = del(:,i,k) + U(:,t_local,k)*d_bt(t_local,i);
+            %%
+%             del(:,i,k) = del(:,i,k) + U(:,t_local,k)*d_bt(t_local,i);
+%             for p = 1:m
+%                 del_pi(:,p,i,k) = del_pi(:,p,i,k) ...
+%                     + U(:,t_local,k)*d_bt(t_local,i)*bt(t_local,p);
+%             end
+            %%
+            del(:,i,k) = del(:,i,k) + U(:,t_local,k)*d_bt(t,i);
             for p = 1:m
                 del_pi(:,p,i,k) = del_pi(:,p,i,k) ...
-                    + U(:,t_local,k)*d_bt(t_local,i)*bt(t_local,p);
+                    + U(:,t_local,k)*d_bt(t,i)*bt(t,p);
             end
+            %%
         end
     end
     % Incrementation of the index of the snapshot in the file

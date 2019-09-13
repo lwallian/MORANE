@@ -53,11 +53,19 @@ for i=1:m
         end
         for k =1:d
             %         for i = 1:m
-            del(:,1,k) = del(:,1,k) + U(:,t_local,k)*d_bt(t_local,i);
+            %%
+            del(:,1,k) = del(:,1,k) + U(:,t_local,k)*d_bt(t,i);
             for p = 1:m
                 del_pi(:,p,1,k) = del_pi(:,p,1,k) ...
-                    + U(:,t_local,k)*d_bt(t_local,i)*bt(t_local,p);
+                    + U(:,t_local,k)*d_bt(t,i)*bt(t,p);
             end
+            %%
+%             del(:,1,k) = del(:,1,k) + U(:,t_local,k)*d_bt(t_local,i);
+%             for p = 1:m
+%                 del_pi(:,p,1,k) = del_pi(:,p,1,k) ...
+%                     + U(:,t_local,k)*d_bt(t_local,i)*bt(t_local,p);
+            end
+            %%
             %         end
         end
         % Incrementation of the index of the snapshot in the file
