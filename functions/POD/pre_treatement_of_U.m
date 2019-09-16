@@ -16,6 +16,9 @@ end
 % Gather the structures param_ref and param
 param_ref=rmfield(param_ref,'type_data');
 param_ref=rmfield(param_ref,'folder_data');
+if isfield(param_ref,'N_tot')
+    param=rmfield(param,'N_tot');    
+end
 param = mergestruct(param,param_ref);
 % Path for the file which will contain residual velocity of U
 % param.name_file_U_temp=[param.folder_data param.type_data '_U_temp'];
