@@ -1014,6 +1014,7 @@ if modified_Re
     viscosity = 1/Re_modif;
     param.viscosity_true = 1/Re_true;
 end
+% param.modified_Re = modified_Re;
 param.dX=dX;
 param.MX=MX;
 param.dt=dt;

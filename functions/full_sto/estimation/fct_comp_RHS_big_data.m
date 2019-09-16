@@ -64,7 +64,7 @@ for i=1:m
 %             for p = 1:m
 %                 del_pi(:,p,1,k) = del_pi(:,p,1,k) ...
 %                     + U(:,t_local,k)*d_bt(t_local,i)*bt(t_local,p);
-            end
+%             end
             %%
             %         end
         end

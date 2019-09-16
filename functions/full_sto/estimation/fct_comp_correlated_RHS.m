@@ -41,10 +41,20 @@ d2bt_c = d2bt - mean(d2bt, 1);
 % Initialization
 t_local = 1; % index of the snapshot in a file
 if param.data_in_blocks.bool % if data are saved in several files
+    
+    big_T = param.data_in_blocks.nb_blocks;
+    name_file_U_temp=param.name_file_U_temp{big_T}; % Name of the next file
+    % Load new file
+    load(name_file_U_temp, 'U');
+    U_last = U(:, end-1, :); clear U;    
+    
     big_T = 1; % index of the file
     name_file_U_temp=param.name_file_U_temp{big_T}; % Name of the next file
     % Load new file
     load(name_file_U_temp, 'U');
+    
+    U_first = U(:,2, :);
+    mean_dU = (1/(N_tot*dt)) * ( U_last - U_first) ;
     
     len_local = size(U, 2)-2;
     % Differentiate it wrt time
@@ -52,15 +62,15 @@ if param.data_in_blocks.bool % if data are saved in several files
     %         U(:, end, :) = [];
     
     dU = (U(:, 2 : end, :) - U(:, 1 : end - 1, :)) ./ dt;
+    dU = dU - mean_dU;
 else
     name_file_U_temp=param.name_file_U_temp; % Name of the next file
+    load(name_file_U_temp, 'U');
+    U(:, 1, :) = [];
+    U(:, end, :) = [];
+    dU = (U(:, 2 : end, :) - U(:, 1 : end - 1, :)) ./ dt;
+    dU = dU - mean(dU, 2);
 end
-
-load(name_file_U_temp, 'U');
-U(:, 1, :) = [];
-U(:, end, :) = [];
-dU = (U(:, 2 : end, :) - U(:, 1 : end - 1, :)) ./ dt;
-dU = dU - mean(dU, 2);
 
 % compute the sum((dw_ss * del) * dw_ss)
 Mi_sigma = zeros(M, d);
@@ -71,12 +81,17 @@ bt = cat(2, bt, ones(N_tot, 1));
 lambda(m + 1) = 1;
 
 if iscell(param.name_file_U_temp)
-    N_final = 2 * length(param.name_file_U_temp);
-else
     N_final = 2;
+else
+    N_final = 1;
 end
-for t = 1 : N_tot - 1 % loop in time
-% for t = 1 : N_tot - N_final % loop in time
+% if iscell(param.name_file_U_temp)
+%     N_final = 2 * length(param.name_file_U_temp);
+% else
+%     N_final = 2;
+% end
+% for t = 1 : N_tot - 1 % loop in time
+for t = 1 : N_tot - N_final % loop in time
     if iscell(param.name_file_U_temp) && ...
             (t_local > len_local) % A new file needs to be loaded
 %             t_local > size(U, 2)-1 % A new file needs to be loaded
@@ -100,6 +115,7 @@ for t = 1 : N_tot - 1 % loop in time
         U = cat(2, U_last, U);
         
         dU = (U(:, 2 : end, :) - U(:, 1 : end - 1, :)) ./ dt;
+        dU = dU - mean_dU;
     end
     % Calculate (dw_ss * del) * dw_ss
     dU_del_dU = calculate_dU_del_dU(dU(:, t_local, :), d, MX, dX); % [1, 1, Mx, My(, Mz), d]
@@ -109,8 +125,8 @@ for t = 1 : N_tot - 1 % loop in time
         for i = 1 : m
             for p = 1 : m + 1
                 del_pi(:, p, i, k) = del_pi(:, p, i, k) ...
-                    + dU(:, t_local, k) * d2bt_c(t_local, i) ...
-                    * bt(t_local, p) / lambda(p);
+                    + dU(:, t_local, k) * d2bt_c(t, i) ...
+                    * bt(t, p) / lambda(p);
             end
         end
     end
