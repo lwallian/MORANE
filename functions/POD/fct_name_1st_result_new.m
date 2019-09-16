@@ -4,6 +4,7 @@ function param = fct_name_1st_result_new(param)
 global stochastic_integration;
 global estim_rmv_fv;
 global choice_n_subsample;
+global correlated_model;
 
 if param.decor_by_subsampl.bool
     switch choice_n_subsample
@@ -34,6 +35,9 @@ param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_inte
 if estim_rmv_fv
     param.name_file_1st_result=[param.name_file_1st_result '_estim_rmv_fv'];
     param.estim_rmv_fv = true;
+end
+if correlated_model
+    param.name_file_1st_result=[param.name_file_1st_result '_correlated'];
 end
 if param.eq_proj_div_free == 2
     param.name_file_1st_result = [param.name_file_1st_result '_DFSPN'];    
