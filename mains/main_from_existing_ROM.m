@@ -429,6 +429,17 @@ param.N_test=param.N_test*n_simu;
 param.dt = param.dt/param.decor_by_subsampl.n_subsampl_decor;
 % param.N_test=param.N_test*param.decor_by_subsampl.n_subsampl_decor;
 
+%% Noise time scale
+matcov = pchol_cov_noises * pchol_cov_noises';
+matcov = reshape(matcov,[param.nb_modes+1,param.nb_modes,param.nb_modes+1,param.nb_modes]);
+matcov(end,:,:,:)=[];
+matcov(:,:,end,:)=[];
+matcov = reshape(matcov,[param.nb_modes^2,param.nb_modes^2]);
+tau_noise = 1/trace(matcov);
+if tau_noise/(5e2) < param.dt
+     error('n_simu should be larger')
+end
+
 % % BETA only for test2D
 % if strcmp(param.type_data , 'test2D_blocks_truncated')
 %     param.N_test = 6e4-1;
