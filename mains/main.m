@@ -19,9 +19,11 @@ tic;
 
 % igrida = true if the script is run on the computing grid IGRIDA
 % igrida = false if the script is run on a local computer
-if nargin < 2
-    igrida = false; % do not modify this line
-end
+% if nargin < 2
+%     igrida = false; % do not modify this line
+% end
+igrida = false; % do not modify this line
+
 
 %% Parameters choice
 
@@ -341,10 +343,10 @@ clear plot_modal_dt
 param = fct_name_1st_result_new(param);
 save(param.name_file_1st_result,'-v7.3');
 clear coef_correctif_estim
-if param.igrida
+% if param.igrida
     toc;tic;
     disp('1st result saved');
-end
+% end
 %%
 
 % if param.a_time_dependant
@@ -387,7 +389,7 @@ end
 % end
 
 %% Time integration of the reconstructed C hronos b(t)
-if ~param.igrida && reconstruct_chronos
+if reconstruct_chronos && ~param.igrida
     bt_tot=bt_tot(1:(param.N_test+1),:); % reference Chronos
     bt_tronc=bt_tot(1,:); % Initial condition
 

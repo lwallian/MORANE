@@ -14,6 +14,7 @@ if nargin == 0
     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
+    global correlated_model;
     
     %% Number of modes for the the ROM
 %     vect_nb_modes = [2 4 6 8]
@@ -32,6 +33,7 @@ if nargin == 0
     estim_rmv_fv = false;
     test_fct ='b';
     vect_svd_pchol = true
+    correlated_model = false
     
     % Projection on the free-divergence-function space
     % 0 : no projection / 1 : projection of deterministic terms
@@ -108,6 +110,7 @@ else
     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
+    global correlated_model;
 end
 nb_modes_max = max(vect_nb_modes);
 
@@ -186,6 +189,8 @@ for modal_dt=vect_modal_dt
                 if eq_proj_div_free == 2
                     str=[str '_DFSPN'];                    
                 end
+                if correlated_model
+                    str = [str '_correlated']
                 str =[ str '.png'];
                 str
                 drawnow
@@ -194,5 +199,6 @@ for modal_dt=vect_modal_dt
             end
         end
     end
+end
 end
 end

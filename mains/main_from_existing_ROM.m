@@ -582,7 +582,6 @@ elseif correlated_model
     global tau_ss;
     bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
     bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
-    bt_MCMC=repmat(bt_tronc,[1 1 param.N_particules]);
     bt_fv = bt_MCMC;
     bt_m = zeros(1, param.nb_modes, param.N_particules);
     
@@ -645,6 +644,8 @@ clear C_deter C_sto L_deter L_sto I_deter I_sto
 if param.igrida
     toc;tic;
     disp('2nd result saved');
+end
+
 end
 %
 % if param.decor_by_subsampl.bool
