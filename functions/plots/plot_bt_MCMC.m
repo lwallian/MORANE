@@ -36,7 +36,8 @@ switch param.type_data
         width=2.5;
         height=1.5;
     case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-       param.N_test = ceil(20/param.dt);
+       param.N_test = ceil(80/param.dt);
+%        param.N_test = ceil(20/param.dt);
 end
 
 
