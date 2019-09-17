@@ -435,8 +435,9 @@ matcov = reshape(matcov,[param.nb_modes+1,param.nb_modes,param.nb_modes+1,param.
 matcov(end,:,:,:)=[];
 matcov(:,:,end,:)=[];
 matcov = reshape(matcov,[param.nb_modes^2,param.nb_modes^2]);
-tau_noise = 1/trace(matcov);
-if tau_noise/(5e2) < param.dt
+tau_noise = param.nb_modes / trace(matcov);
+if tau_noise/(1e3) < param.dt
+% if tau_noise/(5e2) < param.dt
      error('n_simu should be larger')
 end
 
