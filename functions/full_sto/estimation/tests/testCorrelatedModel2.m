@@ -1,3 +1,7 @@
+%% Test to verify that the correlated model is indeed calculating correctly
+% each of the noise terms. ILC and noise matrices generated synthetically
+% and the reestimated to make sure its working correctly
+
 %% Test the function for estimating the correlated model's noises
 clear all, close all, clc;
 s = RandStream('mt19937ar','Seed',0);
