@@ -62,8 +62,9 @@ if ~strcmp(name_simu,'ref')
     if param.eq_proj_div_free == 2
         param.name_file_Reconstruction_Q = [param.name_file_Reconstruction_Q '_DFSPN'];
     end
+    param.name_file_Reconstruction_Q = [ param.name_file_Reconstruction_Q '/'];
 end
-param.name_file_Reconstruction_Q = [ param.name_file_Reconstruction_Q '/' ...
+param.name_file_Reconstruction_Q = [ param.name_file_Reconstruction_Q ...
     name_simu '/'];
 mkdir(param.name_file_Reconstruction_Q);
 

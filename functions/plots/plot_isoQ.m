@@ -3,6 +3,15 @@ function [v_threshold] = ...
     big_T,first_big_T,Q,v_index_time)
 %
 
+
+zoom=false;
+% zoom=true;
+
+v_threshold = [ 0  1.4907 0.3 ]
+% v_threshold = [ 0  1.4907 0.2 ]
+% % v_threshold = [ 0  1.4907 0.5 ]
+% % % v_threshold = [ 0    1.4907 ]
+
 % % big_T=81
 % % warning('big_T=81 for now')
 % init_threshold = ((big_T == first_big_T) && strcmp(name_simu,'ref'));
@@ -54,8 +63,6 @@ if nargin == 0
 end
 
 smooth=false;
-% zoom=false;
-zoom=true;
 
 clear width2
 % height2=1.1;
@@ -128,8 +135,6 @@ Z=dX(3)*(-((param.MX(3)-1)/2):((param.MX(3)-1)/2));
 %     v_threshold = param.plot.Q.v_threshold;
 % end
 
-v_threshold = [ 0    1.4907 ]
-
 
 if zoom
     idx_x=(X<15)&(X>4.5);
@@ -186,6 +191,12 @@ Z_save = Z;
 % V_save = V;
 vol_cyl=reshape(vol_cyl,param.MX );
 
+if zoom
+    param.name_file_Reconstruction_Q = ...
+        [ param.name_file_Reconstruction_Q 'zoom/'];
+    mkdir(param.name_file_Reconstruction_Q);
+end
+
 % for q=1:1
 for q=1:n1
     Q=Q_save(:,q);
@@ -227,6 +238,13 @@ for q=1:n1
         'FaceColor','interp', ...
         'edgecolor', 'interp');
     set(pp,'FaceColor','red','EdgeColor','none');
+    
+    [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(3),Z);
+    pp=patch('Vertices', verts, 'Faces', faces, ...
+        'FaceVertexCData', colors, ...
+        'FaceColor','interp', ...
+        'edgecolor', 'interp');
+    set(pp,'FaceColor','yellow','EdgeColor','none');
     
 %     %     threshold=3;
 %     [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
@@ -314,13 +332,6 @@ for q=1:n1
     
     index_time = v_index_time(q);
     
-    if zoom
-        name_file =[ param.name_file_Reconstruction_Q 'zoom_'  ...
-            num2str(index_time)];
-    else
-        name_file =[ param.name_file_Reconstruction_Q ...
-            num2str(index_time)];
-    end
 %     name_file =[ param.name_file_Reconstruction_Q ...
 
 %         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
@@ -362,6 +373,9 @@ for q=1:n1
         t2(1).FontSize = 10;
     end
     hold off
+    
+    name_file =[ param.name_file_Reconstruction_Q ...
+        num2str(index_time)];
     
     drawnow
     eval( ['print -loose -djpeg ' name_file '.jpg']);
