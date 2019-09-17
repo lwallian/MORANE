@@ -116,7 +116,8 @@ end
 
 function noises = generate_noises(pchol_cov_noises, n, nb_pcl, dt)
 
-noises = pchol_cov_noises * randn((n + 2) * n, nb_pcl) * sqrt(dt); % (n + 1) * n for theta_theta and n for xi_xi
+noises = pchol_cov_noises * randn( size(pchol_cov_noises,2), nb_pcl) * sqrt(dt); % (n + 1) * n for theta_theta and n for xi_xi
+% noises = pchol_cov_noises * randn((n + 2) * n, nb_pcl) * sqrt(dt); % (n + 1) * n for theta_theta and n for xi_xi
 noises = permute(noises, [1 3 4 2]); % (n + (n+1)*n) x 1 x 1 x nb_pcl
 
 end
