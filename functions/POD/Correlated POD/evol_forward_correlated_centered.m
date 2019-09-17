@@ -1,4 +1,4 @@
-function [bt_evol, db_fv, db_m, eta, Mi_ss, spiral] = evol_forward_correlated_centered(I, L, C, ...
+function [bt_evol, b_fv, b_m, eta, Mi_ss, spiral] = evol_forward_correlated_centered(I, L, C, ...
                         pchol_cov_noises, tau, dt, bt, eta, spiral, Mi_ss, bt_fv, bt_m)
 %EVOL_FORWARD_CORRELATED_CENTERED Evolves the correlated centered chronos using
 %an Euler-Maruyama integration scheme
@@ -16,7 +16,8 @@ function [bt_evol, db_fv, db_m, eta, Mi_ss, spiral] = evol_forward_correlated_ce
 
 [~ , n , nb_pcl ] = size(bt);
 noises = generate_noises(pchol_cov_noises, n, nb_pcl, dt);
-[eta, Mi_ss, spiral] = evolve_sto_coeff(noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt);
+[eta, Mi_ss, spiral] = evolve_sto_coeff(noises, ...
+    tau, eta, Mi_ss, spiral, n, nb_pcl, dt);
 clear noises;
 
 % Evolve the equation with Euler-Maruyama
@@ -25,12 +26,13 @@ db_fv = evolve_deter(bt, I, L ,C, dt);
 db_fv = permute(db_fv , [2 1 4 3]);
 
 if nargin > 10
-    db_fv = bt_fv + db_fv;
-    db_m = bt_m + db_m;
-    bt_evol = db_fv + db_m;
-else
-    bt_evol = bt + db_fv + db_m;
+    b_fv = bt_fv + db_fv;
+    b_m = bt_m + db_m;
+%     bt_evol = db_fv + db_m;
+% else
+%     bt_evol = bt + db_fv + db_m;
 end
+bt_evol = bt + db_fv + db_m;
 
 end
 
@@ -64,7 +66,8 @@ db_m = dt * reshape(eta_bt, [1, n, nb_pcl]) + dt * Mi_ss;
 end
 
 
-function [db_eta, db_Mi_ss, db_Gr] = evolve_sto_coeff(noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt)
+function [db_eta, db_Mi_ss, db_Gr] = evolve_sto_coeff(...
+    noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve both eta_i and M_i_ss
 db_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt);
@@ -76,7 +79,8 @@ end
 function db_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt)
 
 % Evolve eta with Euler-Maruyama
-db_sto = reshape(noises(n + 1 : end, 1, 1, :), [1, n + 1, n, nb_pcl]);
+db_sto = reshape(noises(n + 1 : end, :, :, :), [1, n + 1, n, nb_pcl]);
+% db_sto = reshape(noises(n + 1 : end, 1, 1, :), [1, n + 1, n, nb_pcl]);
 db_deter = -eta / tau;
 
 db_eta = eta + dt * db_deter + db_sto;
@@ -87,7 +91,8 @@ end
 function [db_Mi_ss, db_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve Mi_ss with Euler-Maruyama
-mi_ss_noise = noises(1 : n, :);
+mi_ss_noise = noises(1 : n, :, :, :);
+% mi_ss_noise = noises(1 : n, :);
 db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl);
 db_deter = - 2 * Mi_ss / tau;
 db_sto = bsxfun(@times, db_spiral, mi_ss_noise);
