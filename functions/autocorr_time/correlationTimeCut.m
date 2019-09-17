@@ -9,10 +9,12 @@ function [tau] = correlationTimeCut(covMatrix, chronos)
 % supervisor
 %
 
+% Estimate the autocorrelation and its periodicity
 cov_s = smallScaleVelocityCov(covMatrix, chronos);
 correlation = estimateAutocorrelation(cov_s);
 period = periodicityFromAutocorrelation(covMatrix);
 
+% Apply the estimator
 tau = 1 + 2 * sum(correlation(1 : 5 * period));
 
 end

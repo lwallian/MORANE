@@ -1,4 +1,4 @@
-%% 
+%% Just plots the correlation functions and their respective downsampled versions
 clear all, close all, clc;
 
 %% DNS100

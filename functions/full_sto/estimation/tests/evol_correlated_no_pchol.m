@@ -28,10 +28,8 @@ db_fv = permute(db_fv , [2 1 4 3]);
 if nargin > 10
     b_fv = bt_fv + db_fv;
     b_m = bt_m + db_m;
-%     bt_evol = db_fv + db_m;
-% else
-%     bt_evol = bt + db_fv + db_m;
 end
+
 bt_evol = bt + db_fv + db_m;
 
 end
@@ -120,7 +118,5 @@ noises_xi = xi_xi * randn(n, nb_pcl) * sqrt(dt);
 noises_xi = permute(noises_xi, [1, 3, 4, 2]); % [n x 1 x 1 x nb_pcl]
 noises_theta = theta_theta * randn((n + 1) * n, nb_pcl) * sqrt(dt);
 noises_theta = permute(noises_theta, [1, 3, 4, 2]); % [n * (n + 1) x 1 x 1 x nb_pcl]
-% noises = pchol_cov_noises * randn((n + 2) * n, nb_pcl) * sqrt(dt);
-% noises = permute(noises, [1 3 4 2]); % (n + (n+1)*n) x 1 x 1 x nb_pcl
 
 end

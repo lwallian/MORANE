@@ -7,6 +7,7 @@ function [filtered_field] = volumetric_gaussian_filter(field, MX)
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
 %
+% NOT YET DEBUGGED!
 
 [M, T, d] = size(field);
 

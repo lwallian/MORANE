@@ -11,6 +11,7 @@ function [param] = field_periodicity_filter(param, delay, order)
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
 %
+% NOT YET DEBUGGED!
 
 assert(isinteger(delay), 'Delay must be an integer');
 assert(isinteger(order), 'Filter order must be an integer');

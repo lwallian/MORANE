@@ -2,7 +2,7 @@
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
 %
-
+% First tests of the correlation estimator
 %% Test with real data
 clear all, close all, clc;
 
@@ -63,7 +63,7 @@ figure, plot(cov_x), title('cov reel');
 
 autocorr_time(c, bt_test) / (N / durationT)
 
-%% Var autocorr time test
+%% Variation of the autocorr time with different parameters
 clear all, close all, clc;
 
 N = 1000;
@@ -99,7 +99,7 @@ figure, plot(tau, abs(error));
 title('Estimator bias'), grid minor;
 xlabel('\tau [s]'), ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'latex');
 
-%% var delta t
+%% Variation of the correlation time estimator with delta t
 clear all, close all, clc;
 
 N = 10 : 100 : 10000;
@@ -149,7 +149,7 @@ xlabel('N [samples]'), grid minor;
 ylabel('$\log\left(||\tau - \hat{\tau}||_2^2\right)$ [s]', 'Interpreter', 'latex');
 title('Error logplot');
 
-%% heterogenous test amplitude
+%% Test with heterogeneous correlation matrix to test for robustness (amplitude)
 clear all, close all, clc;
 
 alin = linspace(0.1, 3.0, 100);
@@ -202,7 +202,7 @@ xlabel('Non-linearity modulation amplitude [$\frac{m^2}{s^2}$]', 'Interpreter', 
 ylabel('$||\tau - \hat{\tau}||_2^2$ [s]', 'Interpreter', 'latex');
 title('Normalized error'), grid minor;
 
-%% heterogenous test period
+%% Test with heterogeneous correlation matrix to test for robustness (period)
 clear all, close all, clc;
 
 alin = 0.5;

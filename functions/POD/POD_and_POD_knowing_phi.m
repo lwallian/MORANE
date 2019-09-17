@@ -7,6 +7,8 @@ function [param, bt]=POD_and_POD_knowing_phi(param_ref)
 % Instantiation of global config
 global correlated_model;
 % Set warning to error to be able to try catch it
+% This is to be able to modify the precomputed c matrix file if there is
+% no information about its derivative inside the file
 s = warning('error', 'MATLAB:LOAD:VariableNotFound');
 
 %% Calculation of c
@@ -14,6 +16,8 @@ s = warning('error', 'MATLAB:LOAD:VariableNotFound');
 if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
     param_ref.name_file_pre_c_blurred = [param_ref.folder_data ...
         param_ref.type_data '_pre_c'];
+    % Test whether the correlation matrix file has the one corresponding to
+    % the derivative
     if correlated_model
         try
             load(param_ref.name_file_pre_c_blurred, 'c', 'dt_c', 'param');
@@ -21,7 +25,7 @@ if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
             warning('Old pre_c file, recalculating the matrices');
             [c, dt_c, param] = estimateCovarianceMatrices(param_ref);
             param.name_file_pre_c_blurred = [param.folder_data param.type_data '_pre_c'];
-            save(param.name_file_pre_c_blurred,'c', 'dt_c','param');
+            save(param.name_file_pre_c_blurred, 'c', 'dt_c', 'param');
             dt_c = dt_c * prod(param.dX) / param.N_tot;
         end
     else
@@ -169,7 +173,7 @@ for k=1:nn
         = fct_cut_frequency(bt,lambda,param_temp);
 end
 figure333=figure(333);
-semilogx(vect_threshold,vect_n_subsampl_decor,'--o');
+semilogx(vect_threshold, vect_n_subsampl_decor, '--o');
 ax=axis;axnew=ax;
 axnew(3)=ax(3)-0.1*(ax(4)-ax(3));axnew(4)=ax(4)+0.1*(ax(4)-ax(3));
 axis(axnew);
@@ -186,7 +190,8 @@ toc
 
 
 tic
-% Choice of the subsampling rate
+% Choice of the subsampling rate for the correlated and non correlated
+% models
 if param.decor_by_subsampl.bool
     if ~correlated_model
         switch param.decor_by_subsampl.choice_n_subsample
@@ -196,8 +201,8 @@ if param.decor_by_subsampl.bool
                 param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1);
                 param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
             case 'htgen'
-                param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(c, bt, param.dt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(c, bt, param.dt)), 1);
+                param.decor_by_subsampl.tau_corr = max(htgenCorrelationTime(c, bt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(htgenCorrelationTime(c, bt, param.dt)), 1);
             case 'truncated'
                 param.decor_by_subsampl.tau_corr = max(correlationTimeCut(c, bt), 1);
                 param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(c, bt)), 1);
@@ -213,17 +218,17 @@ if param.decor_by_subsampl.bool
                 tau_ss = fct_cut_frequency(bt, lambda, param); % undo the theshold inside the function for this case
                 param.decor_by_subsampl.test_fct = 'db';
             case 'lms'
-                dbt = diff(bt, 1, 1);
+                dbt = diff(bt, 1, 1) ./ param.dt;
                 param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(dt_c, dbt, param.dt), 1);
                 param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(dt_c, dbt, param.dt)), 1);
                 tau_ss = max(correlationTimeLMS(c, bt, param.dt), 1);
             case 'htgen'
-                dbt = diff(bt, 1, 1);
-                param.decor_by_subsampl.tau_corr = max(simpleCorrelationTime(dt_c, dbt, param.dt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(simpleCorrelationTime(dt_c, dbt, param.dt)), 1);
-                tau_ss = max(simpleCorrelationTime(c, bt, param.dt), 1);
+                dbt = diff(bt, 1, 1) ./ param.dt;
+                param.decor_by_subsampl.tau_corr = max(htgenCorrelationTime(dt_c, dbt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(htgenCorrelationTime(dt_c, dbt, param.dt)), 1);
+                tau_ss = max(htgenCorrelationTime(c, bt, param.dt), 1);
             case 'truncated'
-                dbt = diff(bt, 1, 1);
+                dbt = diff(bt, 1, 1) ./ param.dt;
                 param.decor_by_subsampl.tau_corr = max(correlationTimeCut(dt_c, dbt), 1);
                 param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(dt_c, dbt)), 1);
                 tau_ss = max(correlationTimeCut(c, bt), 1);
@@ -234,13 +239,8 @@ if param.decor_by_subsampl.bool
 end
 clear c dt_c;
 
-% Subsampling
-% if param.decor_by_subsampl.bool && ...
-%         ( strcmp(param.decor_by_subsampl.meth,'a_estim_decor') || ...
-%         strcmp(param.decor_by_subsampl.meth,'bt_decor') )
 % Subsampling rate
 n_subsampl_decor = param.decor_by_subsampl.n_subsampl_decor
-
 
 %%  Test if the simulation with the same set of parameter
 %%% but with non-stationnary variance tensor has already been done

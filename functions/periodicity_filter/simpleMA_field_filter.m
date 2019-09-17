@@ -8,6 +8,7 @@ function [param] = simpleMA_field_filter(param, window_size)
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
 %
+% NOT YET DEBUGGED!
 
 assert(isinteger(window_size), 'Window size must be an integer');
 assert(isfield(param, 'folder_data'), 'Missing folder_data field in parameter structure');

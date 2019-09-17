@@ -13,6 +13,7 @@ function [filteredSignal, optimalTaps] = minimalVarianceLMS(refSignal, maxTaps, 
 % supervisor
 %
 
+% Apply the filter and check the variance
 filteredVariation = zeros(maxTaps, 1);
 for i = 1 : maxTaps
     filteredCorrelation = LMSFilter(refSignal, i, delay);
@@ -23,6 +24,7 @@ for i = 1 : maxTaps
     end
 end
 
+% Choose the one with the minimum variance and use that filter
 [~, optimalTaps] = min(filteredVariation);
 filteredSignal = LMSFilter(refSignal, optimalTaps, delay);
 
