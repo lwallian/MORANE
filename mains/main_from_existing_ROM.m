@@ -1,6 +1,6 @@
 function main_from_existing_ROM(nb_modes,threshold,type_data,...
     nb_period_test,...
-    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free, tau_ss)
+    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -609,9 +609,6 @@ elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
     % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 elseif correlated_model
-    if param.svd_pchol
-        error('not coded yet');
-    end
     bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
     bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
     bt_fv = bt_MCMC;

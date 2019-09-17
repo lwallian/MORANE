@@ -8,7 +8,7 @@ igrida=false;
 
 %% Number of modes for the the ROM
 vect_nb_modes = 2 % For debugging
-% vect_nb_modes = [ 16 8 6 4 2] % For a full test
+% vect_nb_modes = [ 8 6 4 2] % For a full test
  % vect_nb_modes = 2.^(4:-1:1)
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 vect_adv_corrected = [ false]
@@ -101,15 +101,15 @@ decor_by_subsampl.meth='bt_decor';
 % ('lms' = correlation time estimation of the unresolved chronos through an lms filtered correlation function)
 % ('truncated' = correlation time estimation of the unresolved chronos through a truncated correlation function)
 % ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
-decor_by_subsampl.choice_n_subsample = 'lms';
+decor_by_subsampl.choice_n_subsample = 'htgen';
 % 'auto_shanon' 'lms', 'truncated', 'htgen'
 % Stochastic integration path: 'Ito' or 'Str'
 global stochastic_integration;
-stochastic_integration = 'Str'
+stochastic_integration = 'Ito'
 
 % Choose the correlated model (if true)
 global correlated_model;
-correlated_model = false
+correlated_model = true
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;
@@ -152,6 +152,8 @@ global compute_PIV_modes
 compute_PIV_modes = false
 % DEFAULT : compute_PIV_modes = false
 
+svd_pchol = true
+
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis
 decor_by_subsampl.n_subsampl_decor=nan;
@@ -178,5 +180,5 @@ end
 super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected...
-    ,decor_by_subsampl,eq_proj_div_free)
+    ,decor_by_subsampl,eq_proj_div_free, svd_pchol)
 

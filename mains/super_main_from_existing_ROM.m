@@ -1,7 +1,7 @@
 function super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
-    decor_by_subsampl,eq_proj_div_free)
+    decor_by_subsampl,eq_proj_div_free, svd_pchol)
 % Launch a set of simulations with a several set of parameters
 % Especially several number of modes
 %
@@ -23,7 +23,7 @@ if nargin == 0
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
     vect_adv_corrected = [ false]
-    vect_svd_pchol = [true  ]
+    vect_svd_pchol = svd_pchol
     
     %% Type of data
     % Other datasets (do not use)
@@ -122,7 +122,7 @@ else
     global stochastic_integration;
     global estim_rmv_fv;
     global correlated_model
-    vect_svd_pchol = true;
+    vect_svd_pchol = svd_pchol;
 end
 
 % % v_threshold=[1 10]/1000;
