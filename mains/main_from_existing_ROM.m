@@ -1,6 +1,6 @@
 function main_from_existing_ROM(nb_modes,threshold,type_data,...
     nb_period_test,...
-    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
+    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free, tau_ss)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -438,7 +438,6 @@ if ~correlated_model
     matcov = reshape(matcov,[param.nb_modes^2,param.nb_modes^2]);
     tau_noise = param.nb_modes / trace(matcov);
 else
-    global tau_ss;
     matov = pchol_cov_noises * pchol_cov_noises' ;
     xi_xi= matov(1:param.nb_modes,1:param.nb_modes);
     eta_eta= matov((param.nb_modes+1):end,(param.nb_modes+1):end);
@@ -448,18 +447,18 @@ else
     eta_eta0 = squeeze(eta_eta((param.nb_modes+1),:,(param.nb_modes+1),:));
     eta_eta_mult = squeeze(eta_eta(1:param.nb_modes,:,1:param.nb_modes,:));
     eta_eta_mult = reshape(eta_eta_mult,...
-        [param.nb_modes,param.nb_modes,...
-        param.nb_modes,param.nb_modes]);
-    tau_xixi = (2*mean(abs(bt_tronc(:)))/ (tau_ss*param.dt) )^2 / ...
+        [param.nb_modes*param.nb_modes,...
+        param.nb_modes*param.nb_modes]);
+    tau_xixi = (2*mean(abs(bt_tronc(:)))/ (param.tau_ss) )^2 / ...
         ( trace(xi_xi) /param.nb_modes ) ;
-    tau_eta_eta0 = (1*mean(abs(bt_tronc(:)))/ (tau_ss*param.dt) )^2 / ...
+    tau_eta_eta0 = (1*mean(abs(bt_tronc(:)))/ (param.tau_ss) )^2 / ...
         ( trace(eta_eta0) /param.nb_modes ) ;
     tau_eta_eta_mult = param.nb_modes / ...
-        sqrt( (tau_ss*param.dt/2) * trace(eta_eta_mult)  ) ;
-    tau_noise = min([ tau_ss*param.dt tau_xixi tau_eta_eta0 tau_eta_eta_mult ]);
+        sqrt( (param.tau_ss/2) * trace(eta_eta_mult)  ) ;
+    tau_noise = min([ param.tau_ss tau_xixi tau_eta_eta0 tau_eta_eta_mult ]);
 end
-if tau_noise/(1e3) < param.dt
-% if tau_noise/(5e2) < param.dt
+% if tau_noise/(1e3) < param.dt
+if tau_noise/(5e2) < param.dt
      error('n_simu should be larger')
 end
 
@@ -629,7 +628,7 @@ elseif correlated_model
         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), spiral(l + 1, :, :)] = ...
             evol_forward_correlated_centered(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-            pchol_cov_noises, tau_ss * param.dt, param.dt, bt_MCMC(l, :, :), ...
+            pchol_cov_noises, param.tau_ss, param.dt, bt_MCMC(l, :, :), ...
             eta(l, :, :, :), spiral(l, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
     end
     clear bt_tronc
