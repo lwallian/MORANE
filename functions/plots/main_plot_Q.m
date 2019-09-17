@@ -207,6 +207,8 @@ switch data_assimilation
                 double(param.decor_by_subsampl.n_subsampl_decor);
             %         index_of_filtering
             param.DA.index_of_filtering = [1 (index_of_filtering+1)/n_simu];
+            
+            param.svd_pchol=false;
         else
             error('Not available')
         end
