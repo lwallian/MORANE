@@ -3,16 +3,16 @@ function [v_threshold] = ...
     big_T,first_big_T,Q,v_index_time)
 %
 
-% big_T=81
-% warning('big_T=81 for now')
-init_threshold = ((big_T == first_big_T) && strcmp(name_simu,'ref'));
-if init_threshold
-% % %     v_threshold = [0.2 0.32 0.4];
-% % %     v_threshold = [0.25 0.32 0.4];
-% %     v_threshold = [0.27 0.32 0.4];
-%     v_threshold = [0.32 0.4];
-    v_threshold = [0.32 0.3];
-end
+% % big_T=81
+% % warning('big_T=81 for now')
+% init_threshold = ((big_T == first_big_T) && strcmp(name_simu,'ref'));
+% if init_threshold
+% % % %     v_threshold = [0.2 0.32 0.4];
+% % % %     v_threshold = [0.25 0.32 0.4];
+% % %     v_threshold = [0.27 0.32 0.4];
+% %     v_threshold = [0.32 0.4];
+%     v_threshold = [0.32 0.3];
+% end
 
 param = fct_name_reconstruction_Q(...
     param,modal_dt,reconstruction,name_simu);
@@ -54,8 +54,8 @@ if nargin == 0
 end
 
 smooth=false;
-zoom=false;
-% zoom=true;
+% zoom=false;
+zoom=true;
 
 clear width2
 % height2=1.1;
@@ -118,15 +118,17 @@ Y=dX(2)*(-floor((param.MX(2)-1)/2):floor((param.MX(2)-1)/2));
 Z=dX(3)*(-((param.MX(3)-1)/2):((param.MX(3)-1)/2));
 % coef=5*n1;
 
-if init_threshold
-    MQ=max(Q(:));
-    mQ=min(Q(:));
-    deltaQ = MQ - mQ ;
-    % v_threshold = 0;
-    v_threshold = mQ + deltaQ * v_threshold
-else
-    v_threshold = param.plot.Q.v_threshold;
-end
+% if init_threshold
+%     MQ=max(Q(:));
+%     mQ=min(Q(:));
+%     deltaQ = MQ - mQ ;
+%     % v_threshold = 0;
+%     v_threshold = mQ + deltaQ * v_threshold
+% else
+%     v_threshold = param.plot.Q.v_threshold;
+% end
+
+v_threshold = [ 0    1.4907 ]
 
 
 if zoom
@@ -204,8 +206,8 @@ for q=1:n1
 %     %         %     threshold=6;
 %     %         %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1));
 %     %         [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
-    [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
-%         [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
+%     [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
+        [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
 %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(2),Z);
     pp=patch('Vertices', verts, 'Faces', faces, ...
         'FaceVertexCData', colors, ...
@@ -312,8 +314,13 @@ for q=1:n1
     
     index_time = v_index_time(q);
     
-    name_file =[ param.name_file_Reconstruction_Q ...
-        num2str(index_time)];
+    if zoom
+        name_file =[ param.name_file_Reconstruction_Q 'zoom_'  ...
+            num2str(index_time)];
+    else
+        name_file =[ param.name_file_Reconstruction_Q ...
+            num2str(index_time)];
+    end
 %     name_file =[ param.name_file_Reconstruction_Q ...
 
 %         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
@@ -334,7 +341,7 @@ for q=1:n1
 %         double(param.data_in_blocks.len_blocks ) + q
 %     index_time = (big_T-1)*param.data_in_blocks.len_blocks + q;
     time = param.dt * index_time;
-    bool_assimilation_step = any(index_time == param.DA.index_of_filtering)
+    bool_assimilation_step = any(index_time == param.DA.index_of_filtering);
     
     hold on;
     ax=axis;

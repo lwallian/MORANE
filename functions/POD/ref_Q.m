@@ -68,6 +68,7 @@ v_threshold= nan;
 % U = zeros([param.M param_temp.data_in_blocks.len_blocks param.d]); % ???
 big_T = double(param.data_in_blocks.nb_blocks); % index of the file
 param.MX = double(param.MX);
+param.M = double(param.M);
 param.d = double(param.d); 
 first_big_T = big_T+1;
 index_time = 0;
