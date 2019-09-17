@@ -50,11 +50,13 @@ beta = beta .* dt ./ T;
 % theta_theta_est
 theta_theta_est = zeros(n + 1, n, n + 1, n, n_particles);
 for k = 1 : n_particles
+    weights_inv = diag(sqrt(diag(G_pq(:, :, k))).^(-1));
+    weighted_G_pq = weights_inv * G_pq(:, :, k) * weights_inv;
     for i = 1 : n
         for q = 1 : n + 1
             for j = 1 : n
-                weights_inv = diag(sqrt(diag(G_pq(:, :, k))).^(-1));
-                weighted_G_pq = weights_inv * G_pq(:, :, k) * weights_inv;
+%                 weights_inv = diag(sqrt(diag(G_pq(:, :, k))).^(-1));
+%                 weighted_G_pq = weights_inv * G_pq(:, :, k) * weights_inv;
                 weighted_beta = weights_inv * beta(:, i, q, j, k);
                 theta_theta_est(:, i, q, j, k) = weighted_G_pq \ weighted_beta;
                 theta_theta_est(:, i, q, j, k) = weights_inv * theta_theta_est(:, i, q, j, k);
