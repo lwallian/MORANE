@@ -430,12 +430,34 @@ param.dt = param.dt/param.decor_by_subsampl.n_subsampl_decor;
 % param.N_test=param.N_test*param.decor_by_subsampl.n_subsampl_decor;
 
 %% Noise time scale
-matcov = pchol_cov_noises * pchol_cov_noises';
-matcov = reshape(matcov,[param.nb_modes+1,param.nb_modes,param.nb_modes+1,param.nb_modes]);
-matcov(end,:,:,:)=[];
-matcov(:,:,end,:)=[];
-matcov = reshape(matcov,[param.nb_modes^2,param.nb_modes^2]);
-tau_noise = param.nb_modes / trace(matcov);
+if ~correlated_model
+    matcov = pchol_cov_noises * pchol_cov_noises';
+    matcov = reshape(matcov,[param.nb_modes+1,param.nb_modes,param.nb_modes+1,param.nb_modes]);
+    matcov(end,:,:,:)=[];
+    matcov(:,:,end,:)=[];
+    matcov = reshape(matcov,[param.nb_modes^2,param.nb_modes^2]);
+    tau_noise = param.nb_modes / trace(matcov);
+else
+    global tau_ss;
+    matov = pchol_cov_noises * pchol_cov_noises' ;
+    xi_xi= matov(1:param.nb_modes,1:param.nb_modes);
+    eta_eta= matov((param.nb_modes+1):end,(param.nb_modes+1):end);
+    eta_eta = reshape(eta_eta, ...
+        [(param.nb_modes+1),(param.nb_modes),...
+        (param.nb_modes+1),(param.nb_modes)]);
+    eta_eta0 = squeeze(eta_eta((param.nb_modes+1),:,(param.nb_modes+1),:));
+    eta_eta_mult = squeeze(eta_eta(1:param.nb_modes,:,1:param.nb_modes,:));
+    eta_eta_mult = reshape(eta_eta_mult,...
+        [param.nb_modes,param.nb_modes,...
+        param.nb_modes,param.nb_modes]);
+    tau_xixi = (2*mean(abs(bt_tronc(:)))/ (tau_ss*param.dt) )^2 / ...
+        ( trace(xi_xi) /param.nb_modes ) ;
+    tau_eta_eta0 = (1*mean(abs(bt_tronc(:)))/ (tau_ss*param.dt) )^2 / ...
+        ( trace(eta_eta0) /param.nb_modes ) ;
+    tau_eta_eta_mult = param.nb_modes / ...
+        sqrt( (tau_ss*param.dt/2) * trace(eta_eta_mult)  ) ;
+    tau_noise = min([ tau_ss*param.dt tau_xixi tau_eta_eta0 tau_eta_eta_mult ]);
+end
 if tau_noise/(1e3) < param.dt
 % if tau_noise/(5e2) < param.dt
      error('n_simu should be larger')
@@ -591,7 +613,6 @@ elseif correlated_model
     if param.svd_pchol
         error('not coded yet');
     end
-    global tau_ss;
     bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
     bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
     bt_fv = bt_MCMC;
