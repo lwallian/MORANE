@@ -17,6 +17,13 @@ end
 
 param.name_file_Reconstruction_Q =[ folder_data 'Reconstruction_Q_' ...
     param.type_data '_subSampl_' num2str(param.decor_by_subsampl.n_subsampl_decor) '/'];
+if param.data_assimilation > 0
+    param.name_file_Reconstruction_Q =[ param.name_file_Reconstruction_Q ...
+        '_DA_' num2str(param.data_assimilation) '/'];
+else
+    param.name_file_Reconstruction_Q =[ param.name_file_Reconstruction_Q ...
+        '_no_DA/' ];
+end
 if ~strcmp(name_simu,'ref')
     % if strcmp(name_simu,'ref')
     %     param.name_file_Reconstruction_Q=[ folder_data 'Reconstruction_2dvort_' ...
