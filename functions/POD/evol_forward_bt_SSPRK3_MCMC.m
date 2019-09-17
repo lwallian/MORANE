@@ -36,18 +36,6 @@ bt_evol = permute( bt_evol , [2 1 4 3]);
 
 end
 
-function db = evolve_noisy_bt(bt, I, L, C, pchol_cov_noises, dt)
-
-[~ , n , nb_pcl ] = size(bt);
-
-db_fv = evolve_deter(bt, I, L, C);
-db_m = evolve_sto(pchol_cov_noises, n, nb_pcl, dt, bt);
-
-db = db_fv + db_m;
-db = permute( db , [2 1 4 3]);
-
-end
-
 function db_m = evolve_sto(noises, n, nb_pcl, bt)
 
 bt = permute(bt,[2 1 4 3]); % m x 1 x 1 x nb_pcl

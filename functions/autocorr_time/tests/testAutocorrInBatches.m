@@ -2,7 +2,7 @@
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
 %
-
+% Some tests for the autocorrelation in batches that we ended up not using
 %% Test autocorrelation time in batches with real data
 clear all, close all, clc;
 

@@ -1,6 +1,18 @@
 function [result, pseudo_chol] = estimate_noise_non_orthogonal(bt, eta, n, T, dt, n_particles, diagonal_G, lambda)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%ESTIMATE_NOISE_NON_ORTHOGONAL Test function for the noise estimator in the
+%correlated case. It uses the hypothesis of non orthogonal chronos.
+%   @param bt: chronos
+%   @param eta: multiplicative noise
+%   @param n: number of modes
+%   @param T: number of time steps
+%   @param dt: time step delta
+%   @param n_particles: number of particles to evolve
+%   @param diagonal_G: if true, it uses the lambda to generate a diagonal G
+%   matrix with those values and a 1 for b0.
+%   @param lambda: lambda values for when diagonal_G is true, otherwise it
+%   should not have a value
+%   @return result: noise matrix without the pchol
+%   @return pseudo_chol: pseudo cholesky on the result matrix
 
 diff_bt = (bt(2 : end, :, :) - bt(1 : end - 1, :, :)) / (dt);
 diff_bt(end, :, :, :) = [];

@@ -12,7 +12,7 @@ function [bt_evol, db_fv, db_m, eta, Mi_ss, spiral] = evol_forward_correlated_ce
 %   @return bt_evol: current chronos states
 %   @return eta: current multiplicative noise coefficients
 %   @return Mi_ss: current additive noise coefficients
-%   @return Gr: current noise evolution coefficient for Mi_ss
+%   @return spiral: current noise evolution coefficient for Mi_ss
 
 [~ , n , nb_pcl ] = size(bt);
 noises = generate_noises(pchol_cov_noises, n, nb_pcl, dt);
@@ -64,47 +64,47 @@ db_m = dt * reshape(eta_bt, [1, n, nb_pcl]) + dt * Mi_ss;
 end
 
 
-function [db_eta, db_Mi_ss, db_Gr] = evolve_sto_coeff(noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt)
+function [d_eta, d_Mi_ss, d_Gr] = evolve_sto_coeff(noises, tau, eta, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve both eta_i and M_i_ss
-db_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt);
-[db_Mi_ss, db_Gr] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt);
+d_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt);
+[d_Mi_ss, d_Gr] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt);
 
 end
 
 
-function db_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt)
+function d_eta = evolve_eta(noises, tau, eta, n, nb_pcl, dt)
 
 % Evolve eta with Euler-Maruyama
-db_sto = reshape(noises(n + 1 : end, 1, 1, :), [1, n + 1, n, nb_pcl]);
-db_deter = -eta / tau;
+sto = reshape(noises(n + 1 : end, 1, 1, :), [1, n + 1, n, nb_pcl]);
+deter = -eta / tau;
 
-db_eta = eta + dt * db_deter + db_sto;
+d_eta = eta + dt * deter + sto;
 
 end
 
 
-function [db_Mi_ss, db_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt)
+function [d_Mi_ss, db_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve Mi_ss with Euler-Maruyama
 mi_ss_noise = noises(1 : n, :);
 db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl);
-db_deter = - 2 * Mi_ss / tau;
-db_sto = bsxfun(@times, db_spiral, mi_ss_noise);
-db_sto = sum(db_sto, 3);
-db_sto = reshape(db_sto, [1, n, nb_pcl]);
+deter = - 2 * Mi_ss / tau;
+sto = bsxfun(@times, db_spiral, mi_ss_noise);
+sto = sum(sto, 3);
+sto = reshape(sto, [1, n, nb_pcl]);
 
-db_Mi_ss = Mi_ss + dt * db_deter + db_sto;
+d_Mi_ss = Mi_ss + dt * deter + sto;
 
 end
 
-function db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl)
+function d_spiral = evolve_spiral(spiral, tau, dt, nb_pcl)
 
 % Evolve spiral with Euler-Maruyama
-db_sto = sqrt(dt) * sqrt(2 / tau) * randn(1, 1, nb_pcl);
-db_deter = -spiral / tau;
+sto = sqrt(dt) * sqrt(2 / tau) * randn(1, 1, nb_pcl);
+deter = -spiral / tau;
 
-db_spiral = spiral + dt * db_deter + db_sto;
+d_spiral = spiral + dt * deter + sto;
 
 end
 

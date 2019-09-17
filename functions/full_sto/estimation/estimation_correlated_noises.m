@@ -1,4 +1,4 @@
-function [result, pseudo_chol, Mi_sigma, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt)
+function [result, pseudo_chol, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt)
 % This function estimates the covariance of the additive and multiplicative
 % noises, assuming that the Chronos are orthogonal
 
@@ -10,29 +10,10 @@ if exist(param.name_file_noise_cov,'file')==2
     load(param.name_file_noise_cov,'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0');
     result = nan;
 else
-    M = param.M;
-    dX = param.dX;
-    MX = param.MX;
-    d = param.d;
     m = param.nb_modes;
-    N_tot = param.N_tot;
-    dt = param.dt;
-    T = dt*N_tot;
-    lambda = param.lambda;
-    param.replication_data=false;
-    
-    % The last two time steps are not used
-    T = T - 2 * dt;
     
     %% compute the RHS of equation
-    % R1 is proportional to theta_theta
-    % R2 is proportional to Mi_sigma
-    % R3 is proportional to xi_xi_inf
-    
-    [theta_theta, R2, xi_xi_inf, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt);
-    
-    % Compute Mi_sigma
-    Mi_sigma = R2 ./ N_tot; clear R2;
+    [theta_theta, xi_xi_inf, eta_0, Mi_ss_0] = fct_comp_correlated_RHS(param, bt);
     
     theta_theta = reshape(theta_theta, [m * (m + 1), m * (m + 1)]);
     xi_xi_inf = reshape(xi_xi_inf, [m, m]);
@@ -56,7 +37,7 @@ else
     
     % %% Remove temporary files
     % rmdir(param.folder_file_U_temp,'s')
-%     save(param.name_file_noise_cov, 'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0','-v7.3');
+    save(param.name_file_noise_cov, 'pseudo_chol', 'eta_0', 'Mi_ss_0','-v7.3');
     
 end
 

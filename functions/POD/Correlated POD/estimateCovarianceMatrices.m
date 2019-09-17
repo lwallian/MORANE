@@ -1,6 +1,7 @@
 function [c, dt_c, param]=estimateCovarianceMatrices(param_ref,bool_init)
 % Compute c the matrix (two times correlation function) defined by 
-% the snapshots method (Sirovich) of the velocity field and its derivative
+% the snapshots method (Sirovich) of the velocity field and its
+% derivative for the correlated model
 %
 
 if param_ref.data_in_blocks.bool % if data are saved in several files
@@ -142,8 +143,7 @@ else
     
     % As the downsampling will be done using the derivative of the field,
     % it is estimated through differences
-    dU1 = diff(U1, 1, 2);
-%     dU1 = cat(2, dU1, zeros(param.M, 1, param.d)); % Pad with 0 the last time step
+    dU1 = diff(U1, 1, 2) ./ param.dt;
     
     if strcmp(param.type_data, param.data_in_blocks.type_data2)
         % if left file = right file
@@ -161,7 +161,7 @@ else
         if ~bool_init(1) ...  % all files have been pre-treated
                 || (exist([name_file_U_centered2, '.mat'], 'file') == 2)
             load(name_file_U_centered2);
-            dU = diff(U, 1, 2);
+            dU = diff(U, 1, 2) ./ param.dt;
 %             load(name_file_U_temp2);
         else % the right file has not already been pre-treated
             param2 = param_ref;
@@ -170,7 +170,7 @@ else
             % and remove time average value from U1
             % TO DO : enable using pre-treated snapshots
             U = pre_treatement_of_U(param2);
-            dU = diff(U, 1, 2);
+            dU = diff(U, 1, 2) ./ param.dt;
             clear param2
         end
     end

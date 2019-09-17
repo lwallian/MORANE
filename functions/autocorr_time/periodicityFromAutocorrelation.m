@@ -15,6 +15,7 @@ autocorrFunction = estimateAutocorrelation(cov_s);
 power_spectrum = fftshift(fft([autocorrFunction', zeros(size(autocorrFunction'))]));
 power_spectrum = abs(power_spectrum(floor(length(power_spectrum) / 2) : end)); % just keep half of the amplitude
 
+% The period corresponds to the central frequency
 [~, frequence_central] = max(power_spectrum);
 period = ceil(2.0 * length(power_spectrum) / frequence_central);
 

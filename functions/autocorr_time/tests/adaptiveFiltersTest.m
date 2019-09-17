@@ -2,6 +2,8 @@
 % Author: Agustin PICARD, intern @ Scalian with Valentin RESSEGUIER as
 % supervisor
 %
+% Run each section separately
+%% Load the pertinent files for the tests
 clear all, close all, clc;
 
 data = load('C_DNS100_8Modes.mat');
@@ -12,6 +14,8 @@ cov_v = data.c;
 cov_v = cov_v(1 : 10000, 1 : 10000);
 bt = data.bt;
 clear data;
+
+% Estimate the residual's autocorrelation and its periodicity
 cov_s = smallScaleVelocityCov(cov_v, bt);
 correlation = estimateAutocorrelation(cov_s);
 period = periodicityFromAutocorrelation(cov_v);
@@ -110,8 +114,8 @@ forgetFactor = 0.999;
 
 filteredVariation = zeros(maxTaps, 1);
 for i = 1 : maxTaps
-%     filteredCorrelation = LMSFilter(correlation, i, d);
-    filteredCorrelation = RLSFilter(correlation, l, d, forgetFactor);
+    filteredCorrelation = LMSFilter(correlation, i, d);
+%     filteredCorrelation = RLSFilter(correlation, l, d, forgetFactor);
     filteredVariation(i) = norm(diff(filteredCorrelation(1 : 5 * period)));
 end
 
@@ -128,14 +132,11 @@ sweep = zeros(N - 1, 1);
 aperiodic = mean(diag(cov_s, 1));
 sweep(1) =  1 + 2 * aperiodic ./ var_s;
 for i = 2 : N
-%     aperiodic = [aperiodic ./ (i - 1), mean(diag(cov_s, i))] .* i;
     aperiodic = [aperiodic ./ N, mean(diag(cov_s, i))] .* N;
     sweep(i - 1) = 1 + 2 * sum(aperiodic) / var_s;
 end
 
-% figure, plot(0 : dt : dt * (length(sweep) - 1), sweep);
 figure, plot(0 : dt : dt * (length(sweep) - 1), sweep * dt);
-% figure, plot(linspace(0.0, 10000 * 0.05, length(tau)), tau * 0.05);
 title('Sweep (DNS100 - 2 modes)')
 xlabel('Time [s]'), ylabel('$\tau_{corr} [s]$', 'Interpreter', 'latex');
 grid minor;
@@ -147,7 +148,6 @@ tau_cut = sweep(5 * period) * dt
 tau = aperiodicCorrelationTimeSweep(cov_v, bt);
 % tau = aperiodicCorrelationTimeSweep(cov_v(1 : 10000, 1 : 10000), bt);
 
-% figure, plot(tau);
 figure, plot(0 : dt : dt * (length(tau) - 1), tau * dt);
 title('Aperiodic correlation time estimation (DNS300 - 2 modes)')
 xlabel('Time [s]'), ylabel('$\tau_{corr} [s]$', 'Interpreter', 'latex');
@@ -168,7 +168,7 @@ figure, plot(0 : dt : dt * (length(sweep) - 1), sweep), grid minor;
 title(['LMS filtered \tau_{corr} estimation sweep (taps = ', num2str(taps) ')'])
 xlabel('Time [s]'), ylabel('$\frac{\tau_{corr}}{\Delta t}$', 'Interpreter', 'latex');
 
-%% Simple estimator
+%% Heterogeneous estimator
 
 tau_corr = sqrt(2 * mean((correlation).^2) / mean((diff(correlation) ./ dt).^2))
 tau_corr_cut = sqrt(2 * mean(correlation(1 : (5 * period)).^2) / mean(diff((correlation(1 : (5 * period))) ./ dt).^2))

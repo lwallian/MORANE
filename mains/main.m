@@ -327,7 +327,7 @@ end
 
 global correlated_model;
 if correlated_model
-    [Cov_noises, pchol_cov_noises, Mi_sigma, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt_tot);
+    [Cov_noises, pchol_cov_noises, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt_tot);
 else
     [Cov_noises,pchol_cov_noises] = estimation_noises(param,bt_tot,ILC.tot);
 end

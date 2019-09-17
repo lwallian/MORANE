@@ -58,18 +58,10 @@ end
 
 eta_estim(end, :, :)=nan;
 
-% eta_estim = zeros(param.N_tot, nb_modes + 1, nb_modes);
-% for k = 1 : param.N_tot
-%     eta_estim(k, :, :) = operator_Q(U(:, k, :), phi, param);
-% end
-
-%%
-
-
 % Estimate the noises in both cases
 [result, pseudo_chol] = estimation_correlated_noises(param, bt);
-% [result, pseudo_chol] = estimate_noise_non_orthogonal2(bt, eta_estim, nb_modes, param.N_tot, dt, 1, true, [param.lambda; 1.0]);
 [result_est, pseudo_chol_est] = estimate_noise_non_orthogonal(bt, eta_estim, nb_modes, param.N_tot, dt, 1, true, [param.lambda; 1.0]);
+% [result_est, pseudo_chol_est] = estimate_noise_non_orthogonal(bt, eta_estim, nb_modes, param.N_tot, dt, 1, false);
 
 err_result = (result - result_est).^2 / mean((result(:)).^2);
 sq_mean_err_result = sqrt(mean(err_result(:)))
