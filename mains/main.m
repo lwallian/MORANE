@@ -249,6 +249,7 @@ if compute_fake_PIV
     disp('Fake PIV computation done');
     keyboard;
 end
+global correlated_model;
 if computed_PIV_variance_tensor
     quadratic_variation_estimation_PIV(param,bt_tot);
     toc;tic;
@@ -258,10 +259,12 @@ end
 % Computation of the variance tensor a
 % or computation of its parameters z_i(x)
 % Since it is big data, they are saved in specific files
-param = quadratic_variation_estimation(param,bt_tot);
-if param.big_data
-    toc;tic;
-    disp('Variance tensor estimation done');
+if ~correlated_model
+    param = quadratic_variation_estimation(param,bt_tot);
+    if param.big_data
+        toc;tic;
+        disp('Variance tensor estimation done');
+    end
 end
 
 %% POD-Galerkin projection
@@ -290,27 +293,33 @@ if param.big_data
 end
 % Additional coefficients due to stochastic terms
 global stochastic_integration
-if param.adv_corrected
-    if strcmp(stochastic_integration, 'Ito')
-        [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
-    elseif strcmp(stochastic_integration, 'Str')
-        [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
-        [F1, ~] = coefficients_sto(param);
-        L_sto = L_sto - F1;
+if ~ correlated_model
+    if param.adv_corrected
+        if strcmp(stochastic_integration, 'Ito')
+            [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
+        elseif strcmp(stochastic_integration, 'Str')
+            [I_sto,L_sto,C_sto] = param_ODE_bt_sto(param.name_file_mode, param, param.grid);
+            [F1, ~] = coefficients_sto(param);
+            L_sto = L_sto - F1;
+        else
+            error('Invalid stochastic integration path');
+        end
     else
-        error('Invalid stochastic integration path');
+        if strcmp(stochastic_integration, 'Ito')
+            [F1, ~] = coefficients_sto(param);
+        elseif strcmp(stochastic_integration, 'Str')
+            F1 = zeros([param.nb_modes param.nb_modes 1]);
+        else
+            error('Invalid stochastic integration path')
+        end
+        L_sto = F1;
+        I_sto = zeros([param.nb_modes 1]);
+        C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);
     end
-else
-    if strcmp(stochastic_integration, 'Ito')
-        [F1, ~] = coefficients_sto(param);
-    elseif strcmp(stochastic_integration, 'Str')
-        F1 = zeros([param.nb_modes param.nb_modes 1]);
-    else
-        error('Invalid stochastic integration path')
-    end
-    L_sto = F1;
+else 
     I_sto = zeros([param.nb_modes 1]);
-    C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);
+    L_sto = zeros([param.nb_modes param.nb_modes]);   
+    C_sto = zeros([param.nb_modes param.nb_modes param.nb_modes]);    
 end
 
 deter = struct('I',I_deter,'L',L_deter,'C',C_deter);
@@ -325,7 +334,7 @@ if param.big_data
     disp('Galerkin projection on stochastic Navier-Stokes done');
 end
 
-global correlated_model;
+% global correlated_model;
 if correlated_model
     [Cov_noises, pchol_cov_noises, eta_0, Mi_ss_0] = estimation_correlated_noises(param, bt_tot);
 else
