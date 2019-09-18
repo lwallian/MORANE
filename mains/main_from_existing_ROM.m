@@ -459,7 +459,11 @@ else
 end
 % if tau_noise/(1e3) < param.dt
 if tau_noise/(5e2) < param.dt
-     error('n_simu should be larger')
+     warning('n_simu should be larger')
+     ratio_n_simu = ceil(param.dt / (tau_noise/(5e2)));
+     n_simu = ratio_n_simu * n_simu;
+     param.dt = param.dt/ratio_n_simu;
+     param.N_test=param.N_test*ratio_n_simu;
 end
 
 % % BETA only for test2D
