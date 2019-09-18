@@ -36,8 +36,11 @@ else
         end
         bt_temp = permute( bt(1:end-1,:), [3 2 1]);
         % Exchange time and realization dimension
-        d_bt_fv = evol_forward_bt_MCMC(ILC.I,ILC.L,ILC.C, 0, param.dt, bt_temp);
-        clear bt_temp
+        bt_fv_tp1 = evol_forward_bt_MCMC(ILC.I,ILC.L,ILC.C, 0, param.dt, bt_temp);
+        d_bt_fv = bt_fv_tp1 - bt_temp;
+        clear bt_temp bt_fv_tp1
+%         d_bt_fv = evol_forward_bt_MCMC(ILC.I,ILC.L,ILC.C, 0, param.dt, bt_temp);
+%         clear bt_temp 
         d_bt_fv = permute( d_bt_fv, [3 2 1]);  
         % Exchange back time and realization dimension      
         d_bt = d_bt - d_bt_fv;
