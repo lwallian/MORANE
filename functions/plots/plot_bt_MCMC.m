@@ -36,7 +36,8 @@ switch param.type_data
         width=2.5;
         height=1.5;
     case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-       param.N_test = ceil(80/param.dt);
+       param.N_test = ceil(40/param.dt);
+%        param.N_test = ceil(80/param.dt);
 %        param.N_test = ceil(20/param.dt);
 end
 
@@ -218,7 +219,7 @@ for k=1:nb_modes
         %     semilogy(time, (bt_forecast_deter(:,k))','b');
     end
     
-    plot(time, (bt_pseudoSto(:,k))','r--');
+%     plot(time, (bt_pseudoSto(:,k))','r--');
     
     % Real values
     plot(time_ref,bt_tot(:,k)','k-.');
@@ -272,6 +273,8 @@ for k=1:nb_modes
 %         % Raise current axis to the top layer, to prevent it
 %         % from being hidden by the grayed area
 %         set (gca, 'Layer', 'top');
+    else
+         plot(time, (struct_bt_MCMC.tot.one_realiz(:,k))','y');
     end
     if plot_EV
         plot(time, (bt_forecast_MEV(:,k))','b--');
