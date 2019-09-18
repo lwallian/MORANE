@@ -6,11 +6,14 @@ function [ idx_min_error, idx_min_err_tot] = ...
 % Plot the sum of the error along time (in log scale)
 %
 
+plot_err_min = false;
+
 clear height
 % logscale =true
 logscale =false
 
 LineWidth = 1;
+LineWidth_small = 0.1;
 % FontSize = 6;
 % FontSizeTtitle = 7;
 % width=0.7;
@@ -96,6 +99,8 @@ dt_tot=param.dt;
 N_time_final=N_tot;
 time=(1:(N_test+1))*dt_tot;
 time_ref = time;
+
+% width = width * (time(end)-time(1))/20;
 
 % N_time_final=param.N_tot;
 % N_test=param.N_test;
@@ -235,15 +240,21 @@ else
 end
 
 nrj_mean = norm0; clear norm0;
-nrj_tot=nrj_mean+nrj_varying_tot;
 
-if param.reconstruction
-    err_fix =  ((nrj_varying_tot - sum(param.lambda))/nrj_tot) * ...
-        ones(param.N_test,1) ;
+if plot_err_min
+    nrj_tot=nrj_mean+nrj_varying_tot;
+    
+    if param.reconstruction
+        err_fix =  ((nrj_varying_tot - sum(param.lambda))/nrj_tot) * ...
+            ones(param.N_test,1) ;
+    else
+        err_fix =  param.truncated_error2/nrj_tot ;
+    end
+    % err_fix =  zeros(size(err_fix));
 else
-    err_fix =  param.truncated_error2/nrj_tot ;
+    err_fix = zeros(size(bt_tot(:,1)));
+    nrj_tot = nrj_mean + sum(param.lambda);
 end
-% err_fix =  zeros(size(err_fix));
 
 bt_0 = sum((bt_tot).^2,2)/nrj_tot+err_fix;
 % %     keyboard;
@@ -464,6 +475,20 @@ set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
 % from being hidden by the grayed area
 set (gca, 'Layer', 'top');
 
+
+if param.plot_EV_noise
+    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g--o', 'LineWidth',...
+        LineWidth_small,'MarkerSize',20*LineWidth_small);
+    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r--o', 'LineWidth',...
+        LineWidth_small,'MarkerSize',20*LineWidth_small);
+    plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m--o', 'LineWidth',...
+        LineWidth_small,'MarkerSize',20*LineWidth_small);
+%     plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g-+', 'LineWidth', LineWidth_small);
+%     plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r-+', 'LineWidth', LineWidth_small);
+%     plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m-+', 'LineWidth', LineWidth_small);
+end
+
+
 plot(time,sqrt(bt_0),'k', 'LineWidth', LineWidth);
 % plot(time,sqrt(struct_bt_MCMC.tot.one_realiz(:,k))','y', 'LineWidth', LineWidth);
 plot(time,sqrt(err_fix),'--k', 'LineWidth', LineWidth);
@@ -483,12 +508,6 @@ plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
 plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
 % plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
 plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
-
-if param.plot_EV_noise
-    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g-+', 'LineWidth', LineWidth);
-    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r-+', 'LineWidth', LineWidth);
-    plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m-+', 'LineWidth', LineWidth);
-end
 
 % if plot_modal_dt
 %     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);

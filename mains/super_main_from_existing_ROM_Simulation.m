@@ -130,8 +130,8 @@ for modal_dt=vect_modal_dt
                     switch type_data
                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
                             ax = axis;
-                            %                         ax(2)=40;
-                            ax(2)=20;
+                                                    ax(2)=40;
+%                             ax(2)=20;
                             axis(ax);
                         case 'turb2D_blocks_truncated'
                             ax = axis;
@@ -140,6 +140,12 @@ for modal_dt=vect_modal_dt
                     end
                 end
                 
+                fig1=figure(1);
+                ax=axis;
+                fig1.Position = [0 0 4*(ax(2)-ax(1))/20 4];
+%                 gca(fig1,'Units','inches', ...
+%                     'Position',[0 0 4*(ax(2)-ax(1))/20 4], ...
+%                     'PaperPositionMode','auto');
                 %% Save plot
                 folder_results = [ pwd '/resultats/current_results/summary/'];
                 current_pwd = pwd; cd ..
@@ -191,6 +197,7 @@ for modal_dt=vect_modal_dt
                 end
                 if correlated_model
                     str = [str '_correlated']
+                end
                 str =[ str '.png'];
                 str
                 drawnow
