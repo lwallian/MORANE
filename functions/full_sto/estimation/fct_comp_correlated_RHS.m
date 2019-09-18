@@ -115,6 +115,10 @@ for t = 1 : N_tot - N_final % loop in time
     % Incrementation of the index of the snapshot in the file
     t_local = t_local + 1;
 end
+
+% C2 (the initial conditions for Mi_ss) is calculated as the projection
+% onto the topos for (d_wss del) d_wss for the last time step available in
+% the dataset
 C2_mat = calculate_dU_del_dU(dU(:, end, :), d, MX, dX);
 clear dU;
 
@@ -181,6 +185,8 @@ else
     load(name_file_U_temp, 'U');
 end
 
+% Just like before, C1 (the initial conditions for eta) is estimated as the
+% operator Q applied to the last available datapoints in the training set.
 U = U(:, end, :);
 C1 = operator_Q(U, phi_m_U, param);
 

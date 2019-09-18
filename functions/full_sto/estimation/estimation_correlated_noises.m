@@ -7,7 +7,7 @@ function [result, pseudo_chol, eta_0, Mi_ss_0] = estimation_correlated_noises(pa
 param = fct_name_file_correlated_noise_cov(param);
 
 if exist(param.name_file_noise_cov,'file')==2
-    load(param.name_file_noise_cov,'pseudo_chol', 'Mi_sigma', 'eta_0', 'Mi_ss_0');
+    load(param.name_file_noise_cov,'pseudo_chol', 'eta_0', 'Mi_ss_0');
     result = nan;
 else
     m = param.nb_modes;

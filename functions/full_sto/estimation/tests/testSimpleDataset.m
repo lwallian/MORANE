@@ -1,3 +1,7 @@
+%% Second debug of the correlated model. A simple dataset is taken, its POD
+% is calculated and the estimations are carried out for the orthogonal and
+% non orthogonal chronos cases
+
 %% Test with real but simpler data
 clear all, close all, clc;
 
