@@ -311,82 +311,133 @@ end
 %% Reduction of the noise matrix
 
 if param.svd_pchol
-%     var_pchol_cov_noises_ini = trace(pchol_cov_noises*pchol_cov_noises');
+%     figure;plot(diag(pchol_cov_noises*pchol_cov_noises'))
+%     cov = pchol_cov_noises*pchol_cov_noises';
+    
+    % Normalizing noise covariance
+    sq_lambda = sqrt(param.lambda);
+%     sq_lambda = ones(size(sq_lambda));
+    if correlated_model
+%         sq_lambda_cat = [ sq_lambda' 1 ];
+%     else
+%         sq_lambda_cat = [ sq_lambda' ];
+        sq_lambda_cat = [ 1 sq_lambda' 1 ];
+    else
+        sq_lambda_cat = [ 1 sq_lambda' ];
+    end
+    pchol_add_noise = pchol_cov_noises(1:param.nb_modes,:);
+    pchol_cov_noises(1:param.nb_modes,:)=[];
+    n_plus = length(sq_lambda_cat);
+    pchol_cov_noises = reshape( pchol_cov_noises , ...
+        [ (n_plus-1) param.nb_modes n_plus*param.nb_modes ] );
+    
+%     for q=1:(n_plus*param.nb_modes)
+%         pchol_cov_noises(1:end,:,q)
+%     end
+    
+    %     if ~correlated_model
+    pchol_add_noise = permute( pchol_add_noise ,[ 3 1 2]);
+    pchol_cov_noises = cat(1,pchol_add_noise,pchol_cov_noises);
+    %     end
+    
+    
+    for k=1:n_plus
+        for i=1:(param.nb_modes)
+%             (sq_lambda_cat(k)/sq_lambda(i))
+            pchol_cov_noises(k,i,:) = (sq_lambda_cat(k)/sq_lambda(i)) * ...
+                pchol_cov_noises(k,i,:);
+        end
+    end
+    
+    %     if ~correlated_model
+    pchol_add_noise = pchol_cov_noises(1,:,:);
+    pchol_cov_noises(1,:,:)=[];
+    %     end
+    
+%     for q=1:(n_plus*param.nb_modes)
+%         pchol_cov_noises(1:end,:,q)
+%     end
+    
+    pchol_cov_noises = reshape( pchol_cov_noises , ...
+        [ (n_plus-1)*param.nb_modes n_plus*param.nb_modes ] );
+%     pchol_cov_noises = cat(1,pchol_add_noise,pchol_cov_noises);
+    
+    %     if ~correlated_model
+    pchol_add_noise = permute( pchol_add_noise ,[ 2 3 1]);
+    pchol_cov_noises = cat(1,pchol_add_noise,pchol_cov_noises);
+    %     end
+    
+%     
+%     figure;plot(diag(pchol_cov_noises*pchol_cov_noises'))
+%     cov2 = pchol_cov_noises*pchol_cov_noises';
+%     figure;imagesc(cov2)
+%     cov-cov2
+    
+%     cov2 = cov;
+    
+    % Noise PCA
+    var_pchol_cov_noises_ini = trace(pchol_cov_noises*pchol_cov_noises');
     [U_cov_noises,S_cov_noises,~] = ...
         svds(pchol_cov_noises,param.nb_modes);
     pchol_cov_noises = U_cov_noises * S_cov_noises;
-%     var_pchol_cov_noises_red = trace(pchol_cov_noises*pchol_cov_noises');
-%     ratio_var_red_pchol = var_pchol_cov_noises_red/var_pchol_cov_noises_ini
-end
-
-%% Sensibility
-% coef_mod = 1;
-% if coef_mod ~= 1
-%     warning('Coefficients modified to study sentibility');
-% end
-% param.coef_sensitivity = coef_mod;
-% I_deter=ILC_a_cst.deter.I;
-% L_deter=ILC_a_cst.deter.L;
-% C_deter=ILC_a_cst.deter.C;
-%
-% I_sto= coef_mod^2 * ILC_a_cst.sto.I;
-% L_sto= coef_mod^2 * ILC_a_cst.sto.L;
-% C_sto= coef_mod^2 * ILC_a_cst.sto.C;
-% pchol_cov_noises = coef_mod * pchol_cov_noises;
-%
-% ILC_a_cst.modal_dt.I=I_sto+I_deter;
-% ILC_a_cst.modal_dt.L=L_sto+L_deter;
-% ILC_a_cst.modal_dt.C=C_sto+C_deter;
-
-%% Choice the learning duration
-% if ~isfield(param.coef_correctif_estim,'learning_time')
-%     param.coef_correctif_estim.learning_time='quarter';
-% end
-% switch param.coef_correctif_estim.learning_time
-%     case 'all'
-%         param.N_learn_coef_a=size(bt_tot,1);
-%     case 'quarter'
-%         param.N_learn_coef_a=ceil((size(bt_tot,1)-2)/4);
-%     case 'N_estim'
-%         param.N_learn_coef_a=param.N_estim;
-%     otherwise
-%         error('unknown type of duration');
-% end
-% param.N_learn_coef_a=size(bt_tot,1);
-
-%% Learning corrective coefficients
-%
-% [coef_beta, ILC_beta] = estim_vector_mat_beta(bt_tot,ILC,param);
-% param.coef_correctif_estim.type_estim='scalar';
-% [coef_scalar, ILC_scalar] = estim_vector_mat_beta(bt_tot,ILC,param);
-% [MEV, ILC] = estim_modal_eddy_viscosity(bt_tot,ILC,param);
-% [NLMEV, ILC] = estim_modal_non_lin_eddy_viscosity(bt_tot,ILC,param);
-
-
-%% Duration of the test
-
-% % warning('nb periods changed by hands')
-% % param.type_data = [param.type_data '++'];
-% % nb_period_test = 5*nb_period_test;
-%
-% if strcmp(param.type_data, 'inc3D_Re3900_blocks')
-%     param.N_test = ceil(5*5/param.dt);
-%     warning('simulation on only 5 periods')
-% %     param.N_test = ceil(10*5/param.dt);
-% %     warning('simulation on only 10 periods')
-% end
-% if nargin > 3
-%     param.nb_period_test=nb_period_test;
-%     if strcmp(param.type_data,'incompact3d_wake_episode3_cut_truncated')
-%         T_period = 4.1;
-%         param.N_test = ceil( T_period * nb_period_test/param.dt);
-%         warning(['simulation on only ' num2str(nb_period_test) ' periods']);
-% %     else
-% %         T_period = 5;
+    
+    var_pchol_cov_noises_red = trace(pchol_cov_noises*pchol_cov_noises');
+    ratio_var_red_pchol = var_pchol_cov_noises_red/var_pchol_cov_noises_ini
+    
+%     figure;plot(diag(pchol_cov_noises*pchol_cov_noises'))
+%     cov2 = pchol_cov_noises*pchol_cov_noises';
+%     figure;imagesc(cov2)
+    
+    % de-Normalizing noise covariance
+    pchol_add_noise = pchol_cov_noises(1:param.nb_modes,:);
+    pchol_cov_noises(1:param.nb_modes,:)=[];
+    
+    pchol_cov_noises = reshape( pchol_cov_noises , ...
+        [ (n_plus-1) param.nb_modes param.nb_modes ] );
+    
+%     for q=1:(n_plus*param.nb_modes)
+%         pchol_cov_noises(1:end,:,q)
 %     end
-% %     param.N_test = ceil( T_period * nb_period_test/param.dt);
-% %     warning(['simulation on only ' num2str(nb_period_test) ' periods']);
-% end
+    
+    %     if ~correlated_model
+    pchol_add_noise = permute( pchol_add_noise ,[ 3 1 2]);
+    pchol_cov_noises = cat(1,pchol_add_noise,pchol_cov_noises);
+    %     end
+    
+    
+    for k=1:n_plus
+        for i=1:(param.nb_modes)
+            pchol_cov_noises(k,i,:) = (sq_lambda(i)/sq_lambda_cat(k)) * ...
+                pchol_cov_noises(k,i,:);
+        end
+    end
+    
+    %     if ~correlated_model
+    pchol_add_noise = pchol_cov_noises(1,:,:);
+    pchol_cov_noises(1,:,:)=[];
+    %     end
+    
+%     for q=1:(n_plus*param.nb_modes)
+%         pchol_cov_noises(1:end,:,q)
+%     end
+    
+    pchol_cov_noises = reshape( pchol_cov_noises , ...
+        [ (n_plus-1)*param.nb_modes param.nb_modes ] );
+%     pchol_cov_noises = cat(1,pchol_add_noise,pchol_cov_noises);
+    
+    %     if ~correlated_model
+    pchol_add_noise = permute( pchol_add_noise ,[ 2 3 1]);
+    pchol_cov_noises = cat(1,pchol_add_noise,pchol_cov_noises);
+    %     end
+    
+    
+%     figure;plot(diag(pchol_cov_noises*pchol_cov_noises'))
+%     
+%     figure;imagesc(cov);cax=caxis; colorbar;
+%     cov2 = pchol_cov_noises*pchol_cov_noises';
+%     figure;imagesc(cov2);caxis(cax); colorbar;
+    
+end
 
 %% Do not temporally subsample, in order to prevent aliasing in the results
 % % BETA
