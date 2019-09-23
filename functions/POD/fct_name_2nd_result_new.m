@@ -33,13 +33,17 @@ param.name_file_2nd_result=[param.name_file_2nd_result '\'];
 % if modal_dt
 %     param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
 % end
-if modal_dt == 1
-    param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
-elseif modal_dt == 2
-    param.name_file_2nd_result=[param.name_file_2nd_result '_real_dt'];
-end
-if ~ param.adv_corrected
-    param.name_file_2nd_result=[param.name_file_2nd_result '_no_correct_drift'];
+if ~correlated_model
+    if strcmp(choice_n_subsample,'auto_shanon')
+        if modal_dt == 1
+            param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
+        elseif modal_dt == 2
+            param.name_file_2nd_result=[param.name_file_2nd_result '_real_dt'];
+        end
+    end
+    if ~ param.adv_corrected
+        param.name_file_2nd_result=[param.name_file_2nd_result '_no_correct_drift'];
+    end
 end
 % if param.decor_by_subsampl.no_subampl_in_forecast
 %     param.name_file_2nd_result=[param.name_file_2nd_result '_no_subampl_in_forecast'];

@@ -28,8 +28,10 @@ end
 param.name_file_1st_result=[param.name_file_1st_result '_fullsto'];
 mkdir(param.name_file_1st_result)
 param.name_file_1st_result=[param.name_file_1st_result '\'];
-if ~ param.adv_corrected
-    param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];    
+if ~correlated_model
+    if ~ param.adv_corrected
+        param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];
+    end
 end
 param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_integration];
 if estim_rmv_fv

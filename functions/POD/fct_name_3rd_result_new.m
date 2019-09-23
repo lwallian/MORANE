@@ -15,11 +15,13 @@ if strcmp(choice_n_subsample, 'auto_shanon')
         num2str(param.decor_by_subsampl.spectrum_threshold)];
 end
 param.name_file_3rd_result = [param.name_file_3rd_result  param.decor_by_subsampl.test_fct  '/'];
-if strcmp(choice_n_subsample, 'auto_shanon') && modal_dt
-    param.name_file_3rd_result = [param.name_file_3rd_result  '_modal_dt'];
-end
-if ~ param.adv_corrected
-    param.name_file_3rd_result = [param.name_file_3rd_result  '_no_correct_drift'];
+if ~correlated_model
+    if strcmp(choice_n_subsample, 'auto_shanon') && modal_dt
+        param.name_file_3rd_result = [param.name_file_3rd_result  '_modal_dt'];
+    end
+    if ~ param.adv_corrected
+        param.name_file_3rd_result = [param.name_file_3rd_result  '_no_correct_drift'];
+    end
 end
 
 
