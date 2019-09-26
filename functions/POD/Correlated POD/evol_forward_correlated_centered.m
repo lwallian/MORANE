@@ -1,5 +1,7 @@
-function [bt_evol, b_fv, b_m, eta, Mi_ss, spiral] = evol_forward_correlated_centered(I, L, C, ...
-                        pchol_cov_noises, tau, dt, bt, eta, spiral, Mi_ss, bt_fv, bt_m)
+function [bt_evol, eta, Mi_ss, spiral] = evol_forward_correlated_centered(I, L, C, ...
+                        pchol_cov_noises, tau, dt, bt, eta, spiral, Mi_ss)
+% function [bt_evol, b_fv, b_m, eta, Mi_ss, spiral] = evol_forward_correlated_centered(I, L, C, ...
+%                         pchol_cov_noises, tau, dt, bt, eta, spiral, Mi_ss, bt_fv, bt_m)
 %EVOL_FORWARD_CORRELATED_CENTERED Evolves the correlated centered chronos using
 %an Euler-Maruyama integration scheme
 %   @param I, L, C: deterministic model coefficients
@@ -25,13 +27,13 @@ db_m = evolve_sto(bt, Mi_ss, eta, n, nb_pcl, dt);
 db_fv = evolve_deter(bt, I, L ,C, dt);
 db_fv = permute(db_fv , [2 1 4 3]);
 
-if nargin > 10
-    b_fv = bt_fv + db_fv;
-    b_m = bt_m + db_m;
-%     bt_evol = db_fv + db_m;
-% else
-%     bt_evol = bt + db_fv + db_m;
-end
+% if nargin > 10
+%     b_fv = bt_fv + db_fv;
+%     b_m = bt_m + db_m;
+% %     bt_evol = db_fv + db_m;
+% % else
+% %     bt_evol = bt + db_fv + db_m;
+% end
 bt_evol = bt + db_fv + db_m;
 
 end

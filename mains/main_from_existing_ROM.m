@@ -664,54 +664,99 @@ elseif strcmp(stochastic_integration, 'Str') && ~correlated_model
     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
     % struct_bt_MCMC.tot.one_realiz = bt_MCMC(:,:,1);
 elseif correlated_model
-    bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+    bt_MCMC = nan([param.N_test/n_simu+1 param.nb_modes param.N_particules]);
     bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
-    bt_fv = bt_MCMC;
-    bt_m = zeros(1, param.nb_modes, param.N_particules);
+    bt_MCMC_previous=repmat(bt_tronc,[1 1 param.N_particules]);
+    struct_bt_MCMC = fct_init_struct_bt_MCMC(param,bt_MCMC_previous);
+    %     struct_bt_MCMC.tot.mean=nan([param.N_test+1 param.nb_modes ]);
+%     struct_bt_MCMC.tot.var=nan([param.N_test+1 param.nb_modes ]);
+%     struct_bt_MCMC.tot.one_realiz=nan([param.N_test+1 param.nb_modes ]);
+%     struct_bt_MCMC.qtl=nan([param.N_test+1 param.nb_modes ]);
+%     struct_bt_MCMC.diff=nan([param.N_test+1 param.nb_modes ]);
+%     bt_MCMC=nan([param.N_test+1 param.nb_modes param.N_particules]);
+%     bt_MCMC(1,:,:)=repmat(bt_tronc,[1 1 param.N_particules]);
+%     bt_fv = bt_MCMC;
+%     bt_m = zeros(1, param.nb_modes, param.N_particules);
     
     % Initialization of model's stochastic variables
-    eta_0 = permute(eta_0, [3, 1, 2, 4]);
-    eta = repmat(eta_0, [1, 1, 1, param.N_particules]);
-    spiral = randn(1, 1, param.N_particules);
-    Mi_ss_0 = permute(Mi_ss_0, [3, 1, 2, 4]);
-    Mi_ss = repmat(Mi_ss_0, [1, 1, 1, param.N_particules]);
+    eta_previous = repmat(permute(eta_0, [3, 1, 2, 4]), ...
+        [1 1 1 param.N_particules]);
+    struct_bt_MCMC.eta = fct_init_struct_bt_MCMC(param,eta_previous);
+    Mi_ss_previous = repmat(permute(Mi_ss_0, [3, 1, 2, 4]), ...
+        [1 1 param.N_particules]);
+    struct_bt_MCMC.Mi_ss = fct_init_struct_bt_MCMC(param,Mi_ss_previous);
+    spiral_previous = randn(1, 1, param.N_particules);
+    struct_bt_MCMC.spiral = fct_init_struct_bt_MCMC(param,spiral_previous);
+%     eta_0 = permute(eta_0, [3, 1, 2, 4]);
+%     eta = repmat(eta_0, [1, 1, 1, param.N_particules]);
+%     spiral = randn(1, 1, param.N_particules);
+%     Mi_ss_0 = permute(Mi_ss_0, [3, 1, 2, 4]);
+%     Mi_ss = repmat(Mi_ss_0, [1, 1, 1, param.N_particules]);
     
     for l = 1 : param.N_test
-        [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
-            eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), spiral(l + 1, :, :)] = ...
+%         [bt_MCMC(l + 1, :, :), bt_fv(l + 1, :, :), bt_m(l + 1, :, :), ...
+%             eta(l + 1, :, :, :), Mi_ss(l + 1, :, :), spiral(l + 1, :, :)] = ...
+%             evol_forward_correlated_centered(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
+%             pchol_cov_noises, param.tau_ss, param.dt, bt_MCMC(l, :, :), ...
+%             eta(l, :, :, :), spiral(l, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
+        [bt_MCMC_new, eta_new, Mi_ss_new, spiral_new] = ...
             evol_forward_correlated_centered(ILC_a_cst.modal_dt.I,ILC_a_cst.modal_dt.L,ILC_a_cst.modal_dt.C, ...
-            pchol_cov_noises, param.tau_ss, param.dt, bt_MCMC(l, :, :), ...
-            eta(l, :, :, :), spiral(l, :, :), Mi_ss(l, :, :), bt_fv(l, :, :), bt_m(l, :, :));
+            pchol_cov_noises, param.tau_ss, param.dt, bt_MCMC_previous, ...
+            eta_previous, spiral_previous, Mi_ss_previous);
+        struct_bt_MCMC = fct_fill_struct_bt_MCMC(param, l+1,...
+                            struct_bt_MCMC, bt_MCMC_new);
+        struct_bt_MCMC.eta = fct_fill_struct_bt_MCMC(param, l+1,...
+                            struct_bt_MCMC.eta, eta_new);
+        struct_bt_MCMC.Mi_ss = fct_fill_struct_bt_MCMC(param, l+1,...
+                            struct_bt_MCMC.Mi_ss, Mi_ss_new);
+        struct_bt_MCMC.spiral = fct_fill_struct_bt_MCMC(param, l+1,...
+                            struct_bt_MCMC.spiral, spiral_new);
+        bt_MCMC_previous = bt_MCMC_new;
+        eta_previous = eta_new;
+        Mi_ss_previous = Mi_ss_new;
+        spiral_previous = spiral_new;
+        if mod(l+1-1,n_simu) == 0
+            l_subsampl = (l/n_simu)+1;
+            bt_MCMC(l_subsampl,:,:) = bt_MCMC_new;
+        end
     end
     clear bt_tronc
     
     param.dt = param.dt * n_simu;
     param.N_test = param.N_test / n_simu;
-    bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
-    bt_fv = bt_fv(1 : n_simu : end, :, :);
-    bt_m = bt_m(1 : n_simu : end, :, :);
-    eta = eta(1 : n_simu : end, :, :, :);
-    spiral = spiral(1 : n_simu : end, :, :);
-    Mi_ss = Mi_ss(1: n_simu : end, :, :);
+    struct_bt_MCMC = fct_subsampl_struct_bt_MCMC(param,n_simu,...
+                                struct_bt_MCMC);
+    struct_bt_MCMC.eta = fct_subsampl_struct_bt_MCMC(param,n_simu,...
+                                struct_bt_MCMC.eta);
+    struct_bt_MCMC.Mi_ss = fct_subsampl_struct_bt_MCMC(param,n_simu,...
+                                struct_bt_MCMC.Mi_ss);
+    struct_bt_MCMC.spiral = fct_subsampl_struct_bt_MCMC(param,n_simu,...
+                                struct_bt_MCMC.spiral);
+%     bt_MCMC = bt_MCMC(1 : n_simu : end, :, :);
+% %     bt_fv = bt_fv(1 : n_simu : end, :, :);
+% %     bt_m = bt_m(1 : n_simu : end, :, :);
+%     eta = eta(1 : n_simu : end, :, :, :);
+%     spiral = spiral(1 : n_simu : end, :, :);
+%     Mi_ss = Mi_ss(1: n_simu : end, :, :);
     bt_forecast_sto = bt_forecast_sto(1 : n_simu : end, :);
     bt_forecast_deter = bt_forecast_deter(1 : n_simu : end, :);
     
-    struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
-    struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
-    struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
-    struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
-    struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
-    struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
-    struct_bt_MCMC.m.mean = mean(bt_m, 3);
-    struct_bt_MCMC.m.var = var(bt_m, 0, 3);
-    struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
+%     struct_bt_MCMC.tot.mean = mean(bt_MCMC, 3);
+%     struct_bt_MCMC.tot.var = var(bt_MCMC, 0, 3);
+%     struct_bt_MCMC.tot.one_realiz = bt_MCMC(:, :, 1);
+% %     struct_bt_MCMC.fv.mean = mean(bt_fv, 3);
+% %     struct_bt_MCMC.fv.var = var(bt_fv, 0, 3);
+% %     struct_bt_MCMC.fv.one_realiz = bt_fv(:, :, 1);
+% %     struct_bt_MCMC.m.mean = mean(bt_m, 3);
+% %     struct_bt_MCMC.m.var = var(bt_m, 0, 3);
+% %     struct_bt_MCMC.m.one_realiz = bt_m(:, :, 1);
 else
     error('Invalid stochastic integration path')
 end
 
 % BETA : confidence interval
-struct_bt_MCMC.qtl = fx_quantile(bt_MCMC, 0.025, 3);
-struct_bt_MCMC.diff = fx_quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
+% struct_bt_MCMC.qtl = fx_quantile(bt_MCMC, 0.025, 3);
+% struct_bt_MCMC.diff = fx_quantile(bt_MCMC, 0.975, 3) - struct_bt_MCMC.qtl;
 % end BETA
 if param.igrida
     toc;tic

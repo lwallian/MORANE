@@ -15,7 +15,15 @@ empirical_cdf = (1 : size(data, dim)) ./ size(data, dim);
 
 quantile = find(empirical_cdf >= p);
 % Hardcoded dimensions for the use case in this code!
-quantile = sorted_data(:, :, quantile(1));
+% quantile = sorted_data(:, :, quantile(1));
+
+len_sz = length(size(sorted_data));
+sorted_data = permute(sorted_data,[1:(dim-1) (dim+1):len_sz dim] );
+siz = size(sorted_data);
+sorted_data = reshape(sorted_data,[prod(siz(1:end-1)) siz(end)] );
+quantile = sorted_data(:, quantile(1));
+quantile = reshape(quantile,[siz(1:end-1) 1] );
+quantile = permute(quantile,[1:(dim-1) len_sz (dim):(len_sz-1)] );
 
 end
 
