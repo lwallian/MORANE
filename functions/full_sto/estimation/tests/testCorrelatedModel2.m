@@ -15,7 +15,7 @@ Temps_integ = 80
 % dt = 0.00008
 dt = 0.0008
 T = floor(Temps_integ / dt) % number of simulation steps
-n_particles = 1;
+n_particles = 2;
 time = 0 : dt : dt * (T - 1);
 
 % Load the determinisitic ROM parameters
@@ -45,7 +45,7 @@ chol_theta_theta = ...
 chol_theta_theta(1:n,:,:,:) = chol_theta_theta(1:n,:,:,:) * ...
     sqrt( coef_expl * (1/(tau*tau_min^2)) ) ;
 chol_theta_theta(n+1,:,:,:) = chol_theta_theta(n+1,:,:,:) * ...
-    sqrt( ( mean(bt(1, :, :) / tau)).^2 / tau_min ) ;
+    sqrt( ( mean(bt(1, :, 1) / tau)).^2 / tau_min ) ;
 chol_theta_theta = reshape( chol_theta_theta , [n * (n + 1),n * (n + 1)]);
 % chol_theta_theta = sqrt( coef_expl * (1/(tau*tau_min^2)) ) * ...
 %     ( randn(n * (n + 1)) / sqrt(n * (n + 1)) );
@@ -62,7 +62,7 @@ theta_theta = V * D * V';
 chol_theta_theta = V * sqrt(D);
 
 % chol_xi_xi = randn(n);
-chol_xi_xi = sqrt( (2 * mean(bt(1, :, :) / tau)).^2 / tau_min ) ...
+chol_xi_xi = sqrt( (2 * mean(bt(1, :, 1) / tau)).^2 / tau_min ) ...
     * (randn(n)/sqrt(n));
 % chol_xi_xi = sqrt( (2 * mean(bt(1, :, :) / tau)).^2 / tau_min ) * randn(n);
 xi_xi =  chol_xi_xi * chol_xi_xi' ;
@@ -78,7 +78,7 @@ D = diag(D);
 xi_xi = V * D * V';
 chol_xi_xi = V * sqrt(D);
 
-tau_xi_xi = (2 * mean(bt(1, :, :) / tau)).^2 / (trace(xi_xi)/n)
+tau_xi_xi = (2 * mean(bt(1, :, 1) / tau)).^2 / (trace(xi_xi)/n)
 
 theta_xi = zeros(n * (n + 1), n);
 
@@ -110,16 +110,21 @@ spiral = zeros(T, 1, n_particles);
 
 % Integrate the chronos
 for k = 1 : T - 1
-    [bt(k + 1, :, :), bt_fv(k + 1, :, :), bt_m(k + 1, :, :), eta(k + 1, :, :, :) ...
+    [bt(k + 1, :, :), eta(k + 1, :, :, :) ...
         , Mi_ss(k + 1, :, :), spiral(k + 1, : ,:, :)] = ...
         evol_forward_correlated_centered(I, L, C, ...
         chol_result, tau, dt, bt(k, :, :), eta(k, :, :, :),...
-        spiral(k, :, :, :), Mi_ss(k, :, :), bt_fv(k, :, :), bt_m(k, :, :));
+        spiral(k, :, :, :), Mi_ss(k, :, :));
 %     [bt(k + 1, :, :), bt_fv(k + 1, :, :), bt_m(k + 1, :, :), eta(k + 1, :, :, :) ...
 %         , Mi_ss(k + 1, :, :), spiral(k + 1, : ,:, :)] = ...
-%         evol_correlated_no_pchol(I, L, C, ...
-%         chol_xi_xi, chol_theta_theta, tau, dt, bt(k, :, :), eta(k, :, :, :),...
+%         evol_forward_correlated_centered(I, L, C, ...
+%         chol_result, tau, dt, bt(k, :, :), eta(k, :, :, :),...
 %         spiral(k, :, :, :), Mi_ss(k, :, :), bt_fv(k, :, :), bt_m(k, :, :));
+% %     [bt(k + 1, :, :), bt_fv(k + 1, :, :), bt_m(k + 1, :, :), eta(k + 1, :, :, :) ...
+% %         , Mi_ss(k + 1, :, :), spiral(k + 1, : ,:, :)] = ...
+% %         evol_correlated_no_pchol(I, L, C, ...
+% %         chol_xi_xi, chol_theta_theta, tau, dt, bt(k, :, :), eta(k, :, :, :),...
+% %         spiral(k, :, :, :), Mi_ss(k, :, :), bt_fv(k, :, :), bt_m(k, :, :));
 end
 
 %% Plot the resulting solutions
@@ -146,16 +151,18 @@ ax=axis;ax(3:4)=ax(3:4)*1e-4;axis(ax);
 % ax=axis;ax(3:4)=ax(3:4)*1e-3;axis(ax);
 % % axis([time(1) time(end) -10 10]);
 
-eta2 = sum(sum(eta(:,1:end-1,:).^2,3),2);
+eta2 = sum(sum(eta(:,1:end-1,:,1).^2,3),2);
 tau_eta = 1./sqrt( mean(eta2 ,1) ) 
 
 %%
 
 % Estimate the parameters with the corresponding function
 [result_est, pseudo_chol_est] = estimate_noise_non_orthogonal(...
-    bt, eta, n, T, dt, n_particles, false);
-% [theta_theta_est, xi_xi_est] = estimate_noise_matrices_orthogonal(...
+    bt(:,:,1), eta(:,:,:,1), n, T, dt, 1, false);
+% [result_est, pseudo_chol_est] = estimate_noise_non_orthogonal(...
 %     bt, eta, n, T, dt, n_particles, false);
+% % [theta_theta_est, xi_xi_est] = estimate_noise_matrices_orthogonal(...
+% %     bt, eta, n, T, dt, n_particles, false);
 
 % Estimate the error made while estimating
 err_result = (result - result_est).^2 / mean((result(:)).^2);
