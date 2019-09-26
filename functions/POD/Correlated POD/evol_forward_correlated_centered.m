@@ -90,15 +90,17 @@ d_eta = eta + dt * deter + sto;
 end
 
 
-function [d_Mi_ss, db_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt)
+function [d_Mi_ss, d_spiral] = evolve_Mi_ss(noises, tau, Mi_ss, spiral, n, nb_pcl, dt)
 
 % Evolve Mi_ss with Euler-Maruyama
 mi_ss_noise = noises(1 : n, :, :, :);
+mi_ss_noise = permute(mi_ss_noise,[ 1 2 4 3]);
 % mi_ss_noise = noises(1 : n, :);
-db_spiral = evolve_spiral(spiral, tau, dt, nb_pcl);
+d_spiral = evolve_spiral(spiral, tau, dt, nb_pcl);
 deter = - 2 * Mi_ss / tau;
-sto = bsxfun(@times, db_spiral, mi_ss_noise);
-sto = sum(sto, 3);
+sto = bsxfun(@times, spiral, mi_ss_noise);
+% sto = bsxfun(@times, d_spiral, mi_ss_noise);
+% sto = sum(sto, 3);
 sto = reshape(sto, [1, n, nb_pcl]);
 
 d_Mi_ss = Mi_ss + dt * deter + sto;
