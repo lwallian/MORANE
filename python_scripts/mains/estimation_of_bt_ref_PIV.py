@@ -48,7 +48,8 @@ Re = 300
 test_fct = 'b'
 #svd_pchol = True
 choice_n_subsample = 'auto_shanon'
-adv_corrected = [False]
+adv_corrected = False
+#adv_corrected = [False]
 u_inf_measured = 0.388 
 #number_of_PIV_files = 300
 number_of_PIV_files = 4082
@@ -61,9 +62,10 @@ folder_data = current_pwd.parents[0].joinpath('data') # Select the data path
 #param_ref['folder_data'] = str(folder_data)       # Stock folder data path
 #modal_dt_ref = modal_dt # Define modal_dt_ref
  
-    
-    #%% Get data
-    
+
+
+#%% Get data
+
 # On which function the Shanon ctriterion is used
 #    test_fct = 'b'  # 'b' is better than db
 a_t = '_a_cst_' 
@@ -71,9 +73,10 @@ a_t = '_a_cst_'
 ############################ Construct the path to select the model constants I,L,C,pchol and etc.
 
 file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-        a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample + \
-        '_threshold_' + str(threshold) + \
-        'fct_test_' + test_fct    
+        a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample 
+if choice_n_subsample == 'auto_shanon' :
+    file = file + '_threshold_' + str(threshold)
+file = file +'fct_test_' + test_fct    
 #    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
 #            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
 #            'fct_test_' + test_fct    
@@ -99,10 +102,55 @@ if not os.path.exists(file_res):
 #            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
 #        file = file_save
     if not adv_corrected:
-        file = file + '\\_no_correct_drift'
+        file = file + '/_no_correct_drift'
+    file_save = file
     file = file + '.mat'
     file_res = folder_results / Path(file)
-print(file)
+    if not os.path.exists(file_res):
+        
+        file = file_save + '/'
+        if not adv_corrected:
+            file = file + '_no_correct_drift'
+        file = file_save + '_integ_Ito'
+        
+#        file = file_save + '_integ_Ito'
+        file = file + '.mat'
+        file_res = folder_results / Path(file)
+    
+
+#file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+#        a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample + \
+#        '_threshold_' + str(threshold) + \
+#        'fct_test_' + test_fct    
+##    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+##            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
+##            'fct_test_' + test_fct    
+##    var_exits =  'var' in locals() or 'var' in globals()
+##    period_estim = 'period_estim' in locals() or 'period_estim' in globals()
+##    if var_exits == True and period_estim == True:
+##        file = file + '_p_estim_' + str(period_estim);
+#file = file + '_fullsto' # File where the ROM coefficients are save
+#print(file)
+##    file_save = file
+#if not adv_corrected:
+#    file = file + '_no_correct_drift'
+#file = file + '.mat'
+#file_res = folder_results / Path(file)
+#if not os.path.exists(file_res):
+#    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_'  \
+#              + choice_n_subsample
+#    if choice_n_subsample == 'auto_shanon' :
+#        file = file + '_threshold_' + str(threshold)
+#    file = file + test_fct   
+#    file = file + '_fullsto' # File where the ROM coefficients are save
+##        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+##            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
+##        file = file_save
+#    if not adv_corrected:
+#        file = file + '\\_no_correct_drift'
+#    file = file + '.mat'
+#    file_res = folder_results / Path(file)
+#print(file)
 
 # The function creates a dictionary with the same structure as the Matlab Struct in the path file_res
 I_sto,L_sto,C_sto,I_deter,L_deter,C_deter,plot_bts,pchol_cov_noises,bt_tot,param = convert_mat_to_python(str(file_res)) # Call the function and load the matlab data calculated before in matlab scripts.
@@ -157,7 +205,7 @@ Hpiv_Topos = np.reshape(Hpiv_Topos,\
 print('Loading Sigma')
 threshold_ = str(threshold).replace('.', '_',)
 path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
-joinpath('diffusion_mode_PIV_'+type_data+'_'+str(param['nb_modes'])\
+joinpath('diffusion_mode_PIV_'+type_data+'_'+str(int(param['nb_modes']))\
          +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
 #    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
 Sigma_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
