@@ -1545,9 +1545,23 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     if plot_Q_crit:
         # File to save Q cirterion for real time 3D plots
         path_Q_crit = Path(__file__).parents[3].\
-            joinpath('data_after_filtering').joinpath('aurore')
+            joinpath('data_after_filtering').joinpath('Q_RedLUM')
+#            joinpath('data_after_filtering').joinpath('aurore')
         if not os.path.exists(path_Q_crit):
             os.makedirs( path_Q_crit )
+        if EV:
+            # File to save Q cirterion for real time 3D plots
+            path_Q_crit_EV = Path(__file__).parents[3].\
+                joinpath('data_after_filtering').joinpath('Q_EV')
+            if not os.path.exists(path_Q_crit_EV):
+                os.makedirs( path_Q_crit_EV )
+        if plot_ref:
+            # File to save Q cirterion for real time 3D plots
+            path_Q_crit_ref = Path(__file__).parents[3].\
+                joinpath('data_after_filtering').joinpath('Q_ref')
+            if not os.path.exists(path_Q_crit_ref):
+                os.makedirs( path_Q_crit_ref )
+            
     
     #%% Parameters of the ODE of the b(t)
     
@@ -2621,11 +2635,72 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 
                 with open(str(name_file_data), 'w') as f:
                     json.dump(Q.tolist(), f)
-            
+                del Q
             quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
+            
             if EV:
                 particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
                 quantiles_EV = np.quantile(bt_forecast_EV[:,:,:],q=[0.025,0.975],axis=2)
+                
+                ########################## Plotting Q cirterion ########################
+                if plot_Q_crit:
+    #                particles_mean = mat['particles_mean']
+                    particles_mean_ = np.hstack((particles_mean_EV,np.ones((particles_mean_EV.shape[0],1))))[i,:]
+                    particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
+                    particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
+                    
+                    Omega = np.multiply(particles_mean_,Omega_phi_m_U)
+                    Omega = np.sum(Omega,axis=1)
+                    Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
+                    
+                    S = np.multiply(particles_mean_,S_phi_m_U)
+                    S = np.sum(S,axis=1)
+                    S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
+                    
+                    Q = 0.5 * ( Omega - S )
+                    del Omega
+                    del S
+                    
+                    MX = param['MX'].astype(int)
+                    Q = np.reshape(Q,(MX))
+                    
+    #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                    name_file_data = path_Q_crit_EV.joinpath('sequence_teste_Q'+str(index)+'.json')
+                    
+                    with open(str(name_file_data), 'w') as f:
+                        json.dump(Q.tolist(), f)
+                    del Q
+                
+            if plot_ref:                
+                ########################## Plotting Q cirterion ########################
+                if plot_Q_crit:
+    #                particles_mean = mat['particles_mean']
+                    particles_mean_ = np.hstack((bt_tot,np.ones((bt_tot.shape[0],1))))[i,:]
+                    particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
+                    particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
+                    
+                    Omega = np.multiply(particles_mean_,Omega_phi_m_U)
+                    Omega = np.sum(Omega,axis=1)
+                    Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
+                    
+                    S = np.multiply(particles_mean_,S_phi_m_U)
+                    S = np.sum(S,axis=1)
+                    S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
+                    
+                    Q = 0.5 * ( Omega - S )
+                    del Omega
+                    del S
+                    
+                    MX = param['MX'].astype(int)
+                    Q = np.reshape(Q,(MX))
+                    
+    #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                    name_file_data = path_Q_crit_ref.joinpath('sequence_teste_Q'+str(index)+'.json')
+                    
+                    with open(str(name_file_data), 'w') as f:
+                        json.dump(Q.tolist(), f)
+                    del Q
+                    
     
             ax_1.set_xlim([0, time[-1]+10])
             ax_2.set_xlim([0, time[-1]+10])
