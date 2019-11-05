@@ -29,7 +29,8 @@ param = fct_name_reconstruction_Q(...
 %     num2str(big_T) '.mat'];
 % load(name_file_temp,'Q')
 
-n1 = size(Q);n1=n1(end);
+n1 = length(v_index_time);
+% n1 = size(Q);n1=n1(end);
 d=param.d;
 
 % % MQ=max(Q(:));
