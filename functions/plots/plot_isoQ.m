@@ -3,8 +3,8 @@ function [v_threshold] = ...
     big_T,first_big_T,Q,v_index_time)
 %
 
-
-zoom=false;
+zoom = 2;
+% zoom=false;
 % zoom=true;
 
 v_threshold = [ 0  1.4907 0.3 ]
@@ -69,17 +69,21 @@ clear width2
 % height2=1.1;
 ratio_width = 1.5;
 % ratio_width = 2;
-if zoom
-    height2=2;
-    add_height2=1.5;
-    %     height2=3;
-    %     add_height2=1.5;
-    %     height2=1;
-    %     add_height2=0.4;
-else
-    height2=1.5;
-    add_height2=1.1;
-    % add_height2=.8;
+switch zoom
+    case 2
+        height2=1.25;
+        add_height2=1.3;
+    case 1
+        height2=2;
+        add_height2=1.5;
+        %     height2=3;
+        %     add_height2=1.5;
+        %     height2=1;
+        %     add_height2=0.4;
+    case 0
+        height2=1.5;
+        add_height2=1.1;
+        % add_height2=.8;
 end
 X0=[0 0];
 
@@ -136,49 +140,71 @@ Z=dX(3)*(-((param.MX(3)-1)/2):((param.MX(3)-1)/2));
 %     v_threshold = param.plot.Q.v_threshold;
 % end
 
-
-if zoom
-    idx_x=(X<15)&(X>4.5);
-    X=X(idx_x);
-    idx_y=(abs(Y)<1.5);
-    Y=Y(idx_y);
-    idx= bsxfun(@and,idx_x' , idx_y);
-    idx = repmat(idx, [ 1 1 param.MX(3)]);
-    idx=idx(:);
-    %         div_z = div_z(idx,:,:);
-    Q = Q(idx,:);
-    vol_cyl = vol_cyl(idx,:);
-    %         V = V(idx,:,:,:);
-    %         V=V(idx,:,:,:);
-    %         D=D(idx,:,:);
-    param.MX=[sum(idx_x) sum(idx_y) param.MX(3)];
-    %         param.MX=[sum(idx_x) sum(idx_y)];
-    M=prod(param.MX);
-    axis_set = [ 4.5 10 -1.5 1.5 Z(1) Z(end)];
-    %         axis_set = [ 4.5 10 -1.5 1.5];
-    %         axis_set = [-1.5 1.5 4.5 10];
-    
-    nb_subsample_begin=10;
-else
-    
-    idx_x=(X<20)&(X>4.5);
-    X=X(idx_x);
-    idx_y=(abs(Y)<2.5);
-    Y=Y(idx_y);
-    idx= bsxfun(@and,idx_x' , idx_y);
-    idx = repmat(idx, [ 1 1 param.MX(3)]);
-    idx=idx(:);
-    %         div_z = div_z(idx,:,:);
-    Q = Q(idx,:);
-    vol_cyl = vol_cyl(idx,:);
-    %         V = V(idx,:,:,:);
-    %         V=V(idx,:,:,:);
-    %         D=D(idx,:,:);
-    param.MX=[sum(idx_x) sum(idx_y) param.MX(3)];
-    %         param.MX=[sum(idx_x) sum(idx_y)];
-    M=prod(param.MX);
-    nb_subsample_begin=10;
-    axis_set = [ 4.5 20 -2.5 2.5 Z(1) Z(end)];
+switch zoom
+    case 2
+        idx_x=(X<15)&(X>4.5);
+        X=X(idx_x);
+        idx_y=(abs(Y)<1.5);
+        Y=Y(idx_y);
+        idx= bsxfun(@and,idx_x' , idx_y);
+        idx = repmat(idx, [ 1 1 param.MX(3)]);
+        idx=idx(:);
+        %         div_z = div_z(idx,:,:);
+        Q = Q(idx,:);
+        vol_cyl = vol_cyl(idx,:);
+        %         V = V(idx,:,:,:);
+        %         V=V(idx,:,:,:);
+        %         D=D(idx,:,:);
+        param.MX=[sum(idx_x) sum(idx_y) param.MX(3)];
+        %         param.MX=[sum(idx_x) sum(idx_y)];
+        M=prod(param.MX);
+        axis_set = [ 4.5 15 -1.5 1.5 Z(1) Z(end)];
+        %         axis_set = [ 4.5 10 -1.5 1.5];
+        %         axis_set = [-1.5 1.5 4.5 10];
+        
+        nb_subsample_begin=10;
+    case 1
+        idx_x=(X<15)&(X>4.5);
+        X=X(idx_x);
+        idx_y=(abs(Y)<1.5);
+        Y=Y(idx_y);
+        idx= bsxfun(@and,idx_x' , idx_y);
+        idx = repmat(idx, [ 1 1 param.MX(3)]);
+        idx=idx(:);
+        %         div_z = div_z(idx,:,:);
+        Q = Q(idx,:);
+        vol_cyl = vol_cyl(idx,:);
+        %         V = V(idx,:,:,:);
+        %         V=V(idx,:,:,:);
+        %         D=D(idx,:,:);
+        param.MX=[sum(idx_x) sum(idx_y) param.MX(3)];
+        %         param.MX=[sum(idx_x) sum(idx_y)];
+        M=prod(param.MX);
+        axis_set = [ 4.5 10 -1.5 1.5 Z(1) Z(end)];
+        %         axis_set = [ 4.5 10 -1.5 1.5];
+        %         axis_set = [-1.5 1.5 4.5 10];
+        
+        nb_subsample_begin=10;
+    case 0
+        
+        idx_x=(X<20)&(X>4.5);
+        X=X(idx_x);
+        idx_y=(abs(Y)<2.5);
+        Y=Y(idx_y);
+        idx= bsxfun(@and,idx_x' , idx_y);
+        idx = repmat(idx, [ 1 1 param.MX(3)]);
+        idx=idx(:);
+        %         div_z = div_z(idx,:,:);
+        Q = Q(idx,:);
+        vol_cyl = vol_cyl(idx,:);
+        %         V = V(idx,:,:,:);
+        %         V=V(idx,:,:,:);
+        %         D=D(idx,:,:);
+        param.MX=[sum(idx_x) sum(idx_y) param.MX(3)];
+        %         param.MX=[sum(idx_x) sum(idx_y)];
+        M=prod(param.MX);
+        nb_subsample_begin=10;
+        axis_set = [ 4.5 20 -2.5 2.5 Z(1) Z(end)];
 end
 width2 = height2*(axis_set(2)-axis_set(1))/(axis_set(4)-axis_set(3));
 if view_top
@@ -192,10 +218,15 @@ Z_save = Z;
 % V_save = V;
 vol_cyl=reshape(vol_cyl,param.MX );
 
-if zoom
-    param.name_file_Reconstruction_Q = ...
-        [ param.name_file_Reconstruction_Q 'zoom/'];
-    mkdir(param.name_file_Reconstruction_Q);
+switch zoom
+    case 1
+        param.name_file_Reconstruction_Q = ...
+            [ param.name_file_Reconstruction_Q 'zoom/'];
+        mkdir(param.name_file_Reconstruction_Q);
+    case 2
+        param.name_file_Reconstruction_Q = ...
+            [ param.name_file_Reconstruction_Q 'zoom2/'];
+        mkdir(param.name_file_Reconstruction_Q);
 end
 
 % for q=1:1
@@ -215,19 +246,19 @@ for q=1:n1
     if smooth
         Q(:,:,:,1)=smooth3(Q(:,:,:,1));
     end
-%     %         %     threshold=6;
-%     %         %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1));
-%     %         [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
-%     [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
-        [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
-%     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(2),Z);
-    pp=patch('Vertices', verts, 'Faces', faces, ...
-        'FaceVertexCData', colors, ...
-        'FaceColor','interp', ...
-        'edgecolor', 'interp');
-%     set(pp,'FaceColor','green','EdgeColor','none','FaceAlpha',.8)
-    set(pp,'FaceColor','green','EdgeColor','none')
-    hold on;
+% %     %         %     threshold=6;
+% %     %         %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1));
+% %     %         [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
+% %     [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
+%         [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
+% %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(2),Z);
+%     pp=patch('Vertices', verts, 'Faces', faces, ...
+%         'FaceVertexCData', colors, ...
+%         'FaceColor','interp', ...
+%         'edgecolor', 'interp');
+% %     set(pp,'FaceColor','green','EdgeColor','none','FaceAlpha',.8)
+%     set(pp,'FaceColor','green','EdgeColor','none')
+%     hold on;
     %     end
     
 %     %     threshold=3;
@@ -239,6 +270,7 @@ for q=1:n1
         'FaceColor','interp', ...
         'edgecolor', 'interp');
     set(pp,'FaceColor','red','EdgeColor','none');
+    hold on;
     
     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(3),Z);
     pp=patch('Vertices', verts, 'Faces', faces, ...
@@ -256,6 +288,19 @@ for q=1:n1
 %         'edgecolor', 'interp');
 % %     set(pp,'FaceColor','yellow','EdgeColor','none','FaceAlpha',.8)
 %     set(pp,'FaceColor','yellow','EdgeColor','none')
+
+%     %         %     threshold=6;
+%     %         %     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1));
+%     %         [faces,verts,colors] = isosurface(X,Y,Z,Q,threshold,Z);
+%     [faces,verts,colors] = isosurface(X,Y,Z,Q,0,Z);
+        [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(1),Z);
+%     [faces,verts,colors] = isosurface(X,Y,Z,Q,v_threshold(2),Z);
+    pp=patch('Vertices', verts, 'Faces', faces, ...
+        'FaceVertexCData', colors, ...
+        'FaceColor','interp', ...
+        'edgecolor', 'interp');
+%     set(pp,'FaceColor','green','EdgeColor','none','FaceAlpha',.8)
+    set(pp,'FaceColor','green','EdgeColor','none')
     
     [faces,verts,colors] = isosurface(X,Y,Z,vol_cyl,0.5,Z);
     pp=patch('Vertices', verts, 'Faces', faces, ...
