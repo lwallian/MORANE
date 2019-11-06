@@ -2611,7 +2611,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             ########################## Plotting Q cirterion ########################
             if plot_Q_crit:
 #                particles_mean = mat['particles_mean']
-                particles_mean_ = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[i,:]
+                particles_mean_ = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[index,:]
                 particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
                 particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
                 
@@ -2645,7 +2645,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 ########################## Plotting Q cirterion ########################
                 if plot_Q_crit:
     #                particles_mean = mat['particles_mean']
-                    particles_mean_ = np.hstack((particles_mean_EV,np.ones((particles_mean_EV.shape[0],1))))[i,:]
+                    particles_mean_ = np.hstack((particles_mean_EV,np.ones((particles_mean_EV.shape[0],1))))[index,:]
                     particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
                     particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
                     
@@ -2675,7 +2675,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 ########################## Plotting Q cirterion ########################
                 if plot_Q_crit:
     #                particles_mean = mat['particles_mean']
-                    particles_mean_ = np.hstack((bt_tot,np.ones((bt_tot.shape[0],1))))[i,:]
+                    particles_mean_ = np.hstack((bt_tot,np.ones((bt_tot.shape[0],1))))[index,:]
                     particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
                     particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
                     
