@@ -2607,6 +2607,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         if (index%n_frame_plots)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
 #        if (index%20)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
             particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
+            lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
             
             ########################## Plotting Q cirterion ########################
             if plot_Q_crit:
@@ -2675,7 +2676,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 ########################## Plotting Q cirterion ########################
                 if plot_Q_crit:
     #                particles_mean = mat['particles_mean']
-                    particles_mean_ = np.hstack((bt_tot,np.ones((bt_tot.shape[0],1))))[index,:]
+                    particles_mean_ = np.hstack((bt_tot,np.ones((bt_tot.shape[0],1))))[lim,:]
                     particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
                     particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
                     
@@ -2709,7 +2710,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             ax_5.set_xlim([0, time[-1]+10])
             ax_6.set_xlim([0, time[-1]+10])
     
-            lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
+#            lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
             
             ax_1.collections.clear()
             if EV:
