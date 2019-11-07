@@ -102,6 +102,7 @@ pos_Mes = -7
 #import matplotlib.pyplot as plt
 import math
 import os
+import shutil
 from convert_mat_to_python import convert_mat_to_python
 from convert_mat_to_python_EV import convert_mat_to_python_EV
 from pathlib import Path
@@ -1547,8 +1548,26 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         path_Q_crit = Path(__file__).parents[3].\
             joinpath('data_after_filtering').joinpath('Q_RedLUM')
 #            joinpath('data_after_filtering').joinpath('aurore')
-        if not os.path.exists(path_Q_crit):
-            os.makedirs( path_Q_crit )
+        if os.path.exists(path_Q_crit):
+            shutil.rmtree(path_Q_crit)
+            plt.pause(1)
+        os.makedirs( path_Q_crit )
+#        if EV:
+#            # File to save Q cirterion for real time 3D plots
+#            path_Q_crit_EV = Path(__file__).parents[3].\
+#                joinpath('data_after_filtering').joinpath('Q_EV')
+#            if os.path.exists(path_Q_crit_EV):
+#                shutil.rmtree(path_Q_crit_EV)
+#            os.makedirs( path_Q_crit_EV )
+#        if plot_ref:
+#            # File to save Q cirterion for real time 3D plots
+#            path_Q_crit_ref = Path(__file__).parents[3].\
+#                joinpath('data_after_filtering').joinpath('Q_ref')
+#            if os.path.exists(path_Q_crit_ref):
+#                shutil.rmtree(path_Q_crit_ref)
+#            os.makedirs( path_Q_crit_ref )
+#        if not os.path.exists(path_Q_crit):
+#            os.makedirs( path_Q_crit )
         if EV:
             # File to save Q cirterion for real time 3D plots
             path_Q_crit_EV = Path(__file__).parents[3].\
@@ -2604,40 +2623,11 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             
         ######################### Testing real time plot #######################
         
-        if (index%n_frame_plots)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
+        if (index%n_frame_plots)==0 and (plt_real_time==True):   # Plot at each 20 time steps 
+#        if (index%n_frame_plots)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
 #        if (index%20)==0 and (index!=0) and (plt_real_time==True):   # Plot at each 20 time steps 
             particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
             lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
-            
-            ########################## Plotting Q cirterion ########################
-            if plot_Q_crit:
-#                particles_mean = mat['particles_mean']
-                particles_mean_ = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[index,:]
-                particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
-                particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
-                
-                Omega = np.multiply(particles_mean_,Omega_phi_m_U)
-                Omega = np.sum(Omega,axis=1)
-                Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
-                
-                S = np.multiply(particles_mean_,S_phi_m_U)
-                S = np.sum(S,axis=1)
-                S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
-                
-                Q = 0.5 * ( Omega - S )
-                del Omega
-                del S
-                
-                MX = param['MX'].astype(int)
-                Q = np.reshape(Q,(MX))
-                
-#                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                name_file_data = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'.json')
-                
-                with open(str(name_file_data), 'w') as f:
-                    json.dump(Q.tolist(), f)
-                del Q
-            quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
             
             if EV:
                 particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
@@ -2666,17 +2656,25 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                     Q = np.reshape(Q,(MX))
                     
     #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                    name_file_data_temp = path_Q_crit_EV.joinpath('sequence_teste_Q'+str(index)+'_temp.json')
                     name_file_data = path_Q_crit_EV.joinpath('sequence_teste_Q'+str(index)+'.json')
                     
-                    with open(str(name_file_data), 'w') as f:
+                    if os.path.exists(str(name_file_data)):
+                        os.remove(str(name_file_data))
+                    with open(str(name_file_data_temp), 'w') as f:
                         json.dump(Q.tolist(), f)
+                    os.rename(r'' + str(name_file_data_temp),r'' + str(name_file_data))
                     del Q
                 
             if plot_ref:                
                 ########################## Plotting Q cirterion ########################
                 if plot_Q_crit:
+                    bt_val_interp = np.zeros((1,bt_tot.shape[1]))
+                    for j in range(bt_tot.shape[1]):
+                        tck = interpolate.splrep(time_bt_tot, bt_tot[:,j], s=0)
+                        bt_val_interp[0,j] = interpolate.splev(time[-1], tck, der=0)
     #                particles_mean = mat['particles_mean']
-                    particles_mean_ = np.hstack((bt_tot,np.ones((bt_tot.shape[0],1))))[lim,:]
+                    particles_mean_ = np.hstack((bt_val_interp,np.ones((1,1))))
                     particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
                     particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
                     
@@ -2696,11 +2694,49 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                     Q = np.reshape(Q,(MX))
                     
     #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                    name_file_data_temp = path_Q_crit_ref.joinpath('sequence_teste_Q'+str(index)+'_temp.json')
                     name_file_data = path_Q_crit_ref.joinpath('sequence_teste_Q'+str(index)+'.json')
                     
-                    with open(str(name_file_data), 'w') as f:
+                    if os.path.exists(str(name_file_data)):
+                        os.remove(str(name_file_data))
+                    with open(str(name_file_data_temp), 'w') as f:
                         json.dump(Q.tolist(), f)
+                    os.rename(r'' + str(name_file_data_temp),r'' + str(name_file_data))
                     del Q
+            
+            ########################## Plotting Q cirterion ########################
+            if plot_Q_crit:
+#                particles_mean = mat['particles_mean']
+                particles_mean_ = np.hstack((particles_mean,np.ones((particles_mean.shape[0],1))))[index,:]
+                particles_mean_ = np.tile(particles_mean_,([Omega_phi_m_U.shape[0],Omega_phi_m_U.shape[2],Omega_phi_m_U.shape[3],1]))
+                particles_mean_ = np.transpose(particles_mean_,(0,3,1,2))
+                
+                Omega = np.multiply(particles_mean_,Omega_phi_m_U)
+                Omega = np.sum(Omega,axis=1)
+                Omega = np.sum(np.sum(np.power(Omega,2),axis=2),axis=1)
+                
+                S = np.multiply(particles_mean_,S_phi_m_U)
+                S = np.sum(S,axis=1)
+                S = np.sum(np.sum(np.power(S,2),axis=2),axis=1)
+                
+                Q = 0.5 * ( Omega - S )
+                del Omega
+                del S
+                
+                MX = param['MX'].astype(int)
+                Q = np.reshape(Q,(MX))
+                
+#                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
+                name_file_data_temp = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'_temp.json')
+                name_file_data = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'.json')
+#                name_file_data_ready = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'_ready.json')
+                
+#                with open(str(name_file_data), 'w') as f:
+                with open(str(name_file_data_temp), 'w') as f:
+                    json.dump(Q.tolist(), f)
+                os.rename(r'' + str(name_file_data_temp),r'' + str(name_file_data))
+                del Q
+            quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
                     
     
             ax_1.set_xlim([0, time[-1]+10])
