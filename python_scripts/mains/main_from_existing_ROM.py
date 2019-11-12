@@ -1666,7 +1666,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             quantiles_PIV = np.zeros((2,bt_tot.shape[0],bt_tot.shape[1]))
         else:
             file = (Path(__file__).parents[3]).joinpath('data_PIV').\
-            joinpath('bt_tot_PIV_Re'+str(int(Re))+'.mat')
+            joinpath('bt_tot_PIV_Re'+str(int(Re))+'_n'+str(nb_modes)+'.mat')
+#            joinpath('bt_tot_PIV_Re'+str(int(Re))+'.mat')
             print(file)
             dict_python = hdf5storage.loadmat(str(file))
             bt_tot = dict_python['bt_tot_PIV']
@@ -2373,24 +2374,32 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
         if plot_ref==True:
             line14, =  ax_1.plot(time_bt_tot[-1],bt_tot[0,0],'k--',label = 'True state')
             line24, =  ax_2.plot(time_bt_tot[-1],bt_tot[0,1],'k--',label = 'True state')
-            line34, =  ax_3.plot(time_bt_tot[-1],bt_tot[0,2],'k--',label = 'True state')
-            line44, =  ax_4.plot(time_bt_tot[-1],bt_tot[0,3],'k--',label = 'True state')
-            line54, =  ax_5.plot(time_bt_tot[-1],bt_tot[0,4],'k--',label = 'True state')
-            line64, =  ax_6.plot(time_bt_tot[-1],bt_tot[0,5],'k--',label = 'True state')
+            if bt_tot.shape[1]>2:
+                line34, =  ax_3.plot(time_bt_tot[-1],bt_tot[0,2],'k--',label = 'True state')
+            if bt_tot.shape[1]>3:
+                line44, =  ax_4.plot(time_bt_tot[-1],bt_tot[0,3],'k--',label = 'True state')
+            if bt_tot.shape[1]>4:
+                line54, =  ax_5.plot(time_bt_tot[-1],bt_tot[0,4],'k--',label = 'True state')
+            if bt_tot.shape[1]>5:
+                line64, =  ax_6.plot(time_bt_tot[-1],bt_tot[0,5],'k--',label = 'True state')
         
         
         ax_1.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(1)+'$'+' amplitude')
         ax_1.legend()
         ax_2.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(2)+'$'+' amplitude')
         ax_2.legend()
-        ax_3.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(3)+'$'+' amplitude')
-        ax_3.legend()
-        ax_4.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(4)+'$'+' amplitude')
-        ax_4.legend()
-        ax_5.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(5)+'$'+' amplitude')
-        ax_5.legend()
-        ax_6.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(6)+'$'+' amplitude')
-        ax_6.legend()
+        if bt_tot.shape[1]>2:
+            ax_3.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(3)+'$'+' amplitude')
+            ax_3.legend()
+        if bt_tot.shape[1]>3:
+            ax_4.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(4)+'$'+' amplitude')
+            ax_4.legend()
+        if bt_tot.shape[1]>4:
+            ax_5.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(5)+'$'+' amplitude')
+            ax_5.legend()
+        if bt_tot.shape[1]>5:
+            ax_6.set(xlabel="Time(sec)", ylabel='Chronos '+r'$b_'+str(6)+'$'+' amplitude')
+            ax_6.legend()
     
 
     
@@ -2741,10 +2750,14 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
     
             ax_1.set_xlim([0, time[-1]+10])
             ax_2.set_xlim([0, time[-1]+10])
-            ax_3.set_xlim([0, time[-1]+10])
-            ax_4.set_xlim([0, time[-1]+10])
-            ax_5.set_xlim([0, time[-1]+10])
-            ax_6.set_xlim([0, time[-1]+10])
+            if bt_tot.shape[1]>2:
+                ax_3.set_xlim([0, time[-1]+10])
+            if bt_tot.shape[1]>3:
+                ax_4.set_xlim([0, time[-1]+10])
+            if bt_tot.shape[1]>4:
+                ax_5.set_xlim([0, time[-1]+10])
+            if bt_tot.shape[1]>5:
+                ax_6.set_xlim([0, time[-1]+10])
     
 #            lim = np.where((time_bt_tot<=time[-1]))[0][-1] + 1
             
@@ -2768,58 +2781,66 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 ax_2.fill_between(time, quantiles[0,:,1],quantiles[1,:,1], color='gray')
             line23.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
-            ax_3.collections.clear()
-            if EV:
-                line31EV.set_data(time,particles_mean_EV[:,2])
-#                line31EV.set_data(time,particles_mean_EV[:,2], color=color_mean_EV)
+            if bt_tot.shape[1]>2:
+                ax_3.collections.clear()
+                if EV:
+                    line31EV.set_data(time,particles_mean_EV[:,2])
+    #                line31EV.set_data(time,particles_mean_EV[:,2], color=color_mean_EV)
+                    if heavy_real_time_plot:
+                        ax_3.fill_between(time, quantiles_EV[0,:,2],quantiles_EV[1,:,2], color=color_quantile_EV)
+                line31.set_data(time,particles_mean[:,2])
                 if heavy_real_time_plot:
-                    ax_3.fill_between(time, quantiles_EV[0,:,2],quantiles_EV[1,:,2], color=color_quantile_EV)
-            line31.set_data(time,particles_mean[:,2])
-            if heavy_real_time_plot:
-                ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
-            line33.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
+                    ax_3.fill_between(time, quantiles[0,:,2],quantiles[1,:,2], color='gray')
+                line33.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
-            ax_4.collections.clear()
-            if EV:
-                line41EV.set_data(time,particles_mean_EV[:,3])
-#                line41EV.set_data(time,particles_mean_EV[:,3], color=color_mean_EV)
+            if bt_tot.shape[1]>3:
+                ax_4.collections.clear()
+                if EV:
+                    line41EV.set_data(time,particles_mean_EV[:,3])
+    #                line41EV.set_data(time,particles_mean_EV[:,3], color=color_mean_EV)
+                    if heavy_real_time_plot:
+                        ax_4.fill_between(time, quantiles_EV[0,:,3],quantiles_EV[1,:,3], color=color_quantile_EV)
+                line41.set_data(time,particles_mean[:,3])
                 if heavy_real_time_plot:
-                    ax_4.fill_between(time, quantiles_EV[0,:,3],quantiles_EV[1,:,3], color=color_quantile_EV)
-            line41.set_data(time,particles_mean[:,3])
-            if heavy_real_time_plot:
-                ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
-            line43.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
+                    ax_4.fill_between(time, quantiles[0,:,3],quantiles[1,:,3], color='gray')
+                line43.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
-            ax_5.collections.clear()
-            if EV:
-                line51EV.set_data(time,particles_mean_EV[:,4])
-#                line51EV.set_data(time,particles_mean_EV[:,4], color=color_mean_EV)
+            if bt_tot.shape[1]>4:
+                ax_5.collections.clear()
+                if EV:
+                    line51EV.set_data(time,particles_mean_EV[:,4])
+    #                line51EV.set_data(time,particles_mean_EV[:,4], color=color_mean_EV)
+                    if heavy_real_time_plot:
+                        ax_5.fill_between(time, quantiles_EV[0,:,0],quantiles_EV[1,:,4], color=color_quantile_EV)
+                line51.set_data(time,particles_mean[:,4])
                 if heavy_real_time_plot:
-                    ax_5.fill_between(time, quantiles_EV[0,:,0],quantiles_EV[1,:,4], color=color_quantile_EV)
-            line51.set_data(time,particles_mean[:,4])
-            if heavy_real_time_plot:
-                ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
-            line53.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
+                    ax_5.fill_between(time, quantiles[0,:,4],quantiles[1,:,4], color='gray')
+                line53.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
-            ax_6.collections.clear()
-            if EV:
-                line61EV.set_data(time,particles_mean_EV[:,5])
-#                line61EV.set_data(time,particles_mean_EV[:,5], color=color_mean_EV)
+            if bt_tot.shape[1]>5:
+                ax_6.collections.clear()
+                if EV:
+                    line61EV.set_data(time,particles_mean_EV[:,5])
+    #                line61EV.set_data(time,particles_mean_EV[:,5], color=color_mean_EV)
+                    if heavy_real_time_plot:
+                        ax_6.fill_between(time, quantiles_EV[0,:,5],quantiles_EV[1,:,5], color=color_quantile_EV)
+                line61.set_data(time,particles_mean[:,5])
                 if heavy_real_time_plot:
-                    ax_6.fill_between(time, quantiles_EV[0,:,5],quantiles_EV[1,:,5], color=color_quantile_EV)
-            line61.set_data(time,particles_mean[:,5])
-            if heavy_real_time_plot:
-                ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
-            line63.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
+                    ax_6.fill_between(time, quantiles[0,:,5],quantiles[1,:,5], color='gray')
+                line63.set_data(np.array(time)[np.array(index_pf)[1:]],pos_Mes*np.ones((len(index_pf[1:]))))
             
             
             if plot_ref==True:
                 line14.set_data(time_bt_tot[:lim],bt_tot[:lim,0])
                 line24.set_data(time_bt_tot[:lim],bt_tot[:lim,1])
-                line34.set_data(time_bt_tot[:lim],bt_tot[:lim,2])
-                line44.set_data(time_bt_tot[:lim],bt_tot[:lim,3])
-                line54.set_data(time_bt_tot[:lim],bt_tot[:lim,4])
-                line64.set_data(time_bt_tot[:lim],bt_tot[:lim,5])
+                if bt_tot.shape[1]>2:
+                    line34.set_data(time_bt_tot[:lim],bt_tot[:lim,2])
+                if bt_tot.shape[1]>3:
+                    line44.set_data(time_bt_tot[:lim],bt_tot[:lim,3])
+                if bt_tot.shape[1]>4:
+                    line54.set_data(time_bt_tot[:lim],bt_tot[:lim,4])
+                if bt_tot.shape[1]>5:
+                    line64.set_data(time_bt_tot[:lim],bt_tot[:lim,5])
             
             
             fig.canvas.draw()

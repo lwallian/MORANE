@@ -42,7 +42,7 @@ modal_dt=modal_dt[0]
 no_subampl_in_forecast = False 
 plot_debug = False
 data_assimilate_dim = 2
-nb_modes = 6
+nb_modes = 2
 dt_PIV = 0.080833
 Re = 300
 test_fct = 'b'
@@ -437,7 +437,7 @@ dict_python['dt_PIV'] = dt_PIV
 dict_python['Re'] = Re
 dict_python['quantiles_PIV'] = quantiles
 
-file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('bt_tot_PIV_Re'+str(dict_python['Re'])+'.mat')
+file = (Path(__file__).parents[3]).joinpath('data_PIV').joinpath('bt_tot_PIV_Re'+str(dict_python['Re'])+'_n'+str(nb_modes)+'.mat')
 #data = hdf5storage.loadmat(str(file))
 sio.savemat(file,dict_python)
 
