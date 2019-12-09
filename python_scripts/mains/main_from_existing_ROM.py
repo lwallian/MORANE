@@ -1680,7 +1680,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
             time_bt_tot = np.arange(0,bt_tot.shape[0],1)*dt_PIV
             time_bt_tot = time_bt_tot[0,:]
 #            bt_tot = float('nan')
-            truncated_error2 = float('nan')
+#            truncated_error2 = float('nan')
+            truncated_error2 = np.zeros((bt_tot.shape[0],bt_tot.shape[1]))
             param['truncated_error2'] = truncated_error2
 #            bt_tronc = float('nan')
     
@@ -2943,8 +2944,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                                 color=color_mean_EV, label = 'EV particles mean')
         if plot_ref==True:
             if assimilate == 'real_data':
-                plt.plot(time_bt_tot,quantiles[0,:,index],'k--',label = 'True state')
-                plt.plot(time_bt_tot,quantiles[1,:,index],'k--',label = 'True state')
+                plt.plot(time_bt_tot,quantiles_PIV[0,:,index],'k--',label = 'True state')
+                plt.plot(time_bt_tot,quantiles_PIV[1,:,index],'k--',label = 'True state')
             else:
                 plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state')
             
