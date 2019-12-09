@@ -184,8 +184,10 @@ param.data_assimilation=data_assimilation;
 
 switch data_assimilation
     case 0
-        param = fct_name_2nd_result(param,modal_dt,reconstruction);
+        param = fct_name_2nd_result_new(param,modal_dt,reconstruction);
+%         param = fct_name_2nd_result(param,modal_dt,reconstruction);
         load(param.name_file_2nd_result);
+        param.DA.bool = false;
     case 1
         if param.nb_modes == 6
             param.name_file_2nd_result = [ param.folder_results ...

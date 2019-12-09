@@ -410,28 +410,30 @@ elseif strcmp(param.type_data, 'inc3D_Re3900_blocks_truncated')...
     % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
     % %     end
 elseif strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
-    subplot(2,2,param.nb_modes/2);
-% subplot(2,2,log2(param.nb_modes));
-    %     subplot(3,2,log2(param.nb_modes));
-    % % elseif ( strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated') ) ...
-    % %         && (param.nb_modes<=16)
-    % %     subplot(2,2,log2(param.nb_modes));
-    % % %     if log2(param.nb_modes) == 3
-    % % %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
-    % % % %         subplot(2,2,0.51+log2(param.nb_modes));
-    % % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
-    % % %     end
+    subplot(3,1,log2(param.nb_modes));
+%     subplot(2,2,param.nb_modes/2);
+% % subplot(2,2,log2(param.nb_modes));
+%     %     subplot(3,2,log2(param.nb_modes));
+%     % % elseif ( strcmp(param.type_data, 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated') ) ...
+%     % %         && (param.nb_modes<=16)
+%     % %     subplot(2,2,log2(param.nb_modes));
+%     % % %     if log2(param.nb_modes) == 3
+%     % % %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
+%     % % % %         subplot(2,2,0.51+log2(param.nb_modes));
+%     % % % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
+%     % % %     end
 elseif ( strcmp(param.type_data, 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') ) ...
         && (param.nb_modes<=16)
-        subplot(2,2,(param.nb_modes)/2);
-%     subplot(2,2,log2(param.nb_modes));
-    %     if log2(param.nb_modes) == 3
-    %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
-    % %         subplot(2,2,0.51+log2(param.nb_modes));
-    % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
-    %     end
-% else
-%     subplot(2,2,(param.nb_modes)/2);
+        subplot(3,1,log2(param.nb_modes));
+%         subplot(2,2,(param.nb_modes)/2);
+% %     subplot(2,2,log2(param.nb_modes));
+%     %     if log2(param.nb_modes) == 3
+%     %         subplot('Position',[width/4/2+width/4/5 height/4*2/5 width/4*(1-1/5) height/4*(1-1/5)]);
+%     % %         subplot(2,2,0.51+log2(param.nb_modes));
+%     % %         subplot(2,2,[0 1 ]+log2(param.nb_modes));
+%     %     end
+% % else
+% %     subplot(2,2,(param.nb_modes)/2);
  end
 k=1;
 
@@ -446,11 +448,12 @@ if param.plot_EV_noise
 %     h_MEV = area(time_ref, [struct_bt_MEV_noise.qtl(:,k), ...
 %         struct_bt_MEV_noise.diff(:,k)]);
     set (h_MEV(1), 'FaceColor', 'none');
-    %         set (h_MEV(2), 'FaceColor', [0.6 0.9 0.9]);
-    %         set (h_MEV(2), 'FaceColor', [0.8 0.95 0.95]);
-    set (h_MEV(2), 'FaceColor', [0.85 0.95 0.95]);
-    %         set (h_MEV(2), 'FaceColor', [0.9 0.975 0.975]);
-    %         set (h_MEV(2), 'FaceColor', [0.6 0.8 0.8]);
+    set (h_MEV(2), 'FaceColor', [0.8 0.8 0.8 ]);
+%     %         set (h_MEV(2), 'FaceColor', [0.6 0.9 0.9]);
+%     %         set (h_MEV(2), 'FaceColor', [0.8 0.95 0.95]);
+%     set (h_MEV(2), 'FaceColor', [0.85 0.95 0.95]);
+%     %         set (h_MEV(2), 'FaceColor', [0.9 0.975 0.975]);
+%     %         set (h_MEV(2), 'FaceColor', [0.6 0.8 0.8]);
     set (h_MEV, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
     % Raise current axis to the top layer, to prevent it
     % from being hidden by the grayed area
@@ -458,34 +461,38 @@ if param.plot_EV_noise
     
 end
 
-delta = sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
-% delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
-
-h = area (time_ref, [sqrt(err_fix), ...
-     delta]);
-
-%     set(h(1),'FaceColor',[0,0.25,0.25]);
-%     set(h(2),'FaceColor',[0,0.5,0.5]);
-
-set (h(1), 'FaceColor', 'none');
-set (h(2), 'FaceColor', [0.8 0.8 0.8]);
-set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
-
-% Raise current axis to the top layer, to prevent it
-% from being hidden by the grayed area
-set (gca, 'Layer', 'top');
-
+if ~param.plot_EV_noise
+    delta = sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
+    % delta = (1.96) * sqrt(abs (struct_bt_MCMC.tot.var(:,k)));
+    
+    h = area (time_ref, [sqrt(err_fix), ...
+        delta]);
+    
+    %     set(h(1),'FaceColor',[0,0.25,0.25]);
+    %     set(h(2),'FaceColor',[0,0.5,0.5]);
+    
+    set (h(1), 'FaceColor', 'none');
+    set (h(2), 'FaceColor', [0.8 0.8 0.8]);
+    set (h, 'LineStyle', '-', 'LineWidth', 1, 'EdgeColor', 'none');
+    
+    % Raise current axis to the top layer, to prevent it
+    % from being hidden by the grayed area
+    set (gca, 'Layer', 'top');
+end
 
 if param.plot_EV_noise
-    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g--o', 'LineWidth',...
-        LineWidth_small,'MarkerSize',20*LineWidth_small);
-    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r--o', 'LineWidth',...
-        LineWidth_small,'MarkerSize',20*LineWidth_small);
-    plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m--o', 'LineWidth',...
-        LineWidth_small,'MarkerSize',20*LineWidth_small);
-%     plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g-+', 'LineWidth', LineWidth_small);
-%     plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r-+', 'LineWidth', LineWidth_small);
-%     plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m-+', 'LineWidth', LineWidth_small);
+    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m', 'LineWidth', LineWidth);
+%     plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g--o', 'LineWidth',...
+%         LineWidth_small,'MarkerSize',20*LineWidth_small);
+%     plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r--o', 'LineWidth',...
+%         LineWidth_small,'MarkerSize',20*LineWidth_small);
+%     plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m--o', 'LineWidth',...
+%         LineWidth_small,'MarkerSize',20*LineWidth_small);
+% %     plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g-+', 'LineWidth', LineWidth_small);
+% %     plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r-+', 'LineWidth', LineWidth_small);
+% %     plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m-+', 'LineWidth', LineWidth_small);
 end
 
 
@@ -502,13 +509,14 @@ if plot_EV
 end
 % plot(time,sqrt(bt_pseudoSto(:,k))','r--', 'LineWidth', LineWidth);
 
-plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
-% plot(time,sqrt(struct_bt_MCMC.fv.mean(:,k))','c', 'LineWidth', LineWidth);
-
-plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
-% plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
-plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
-
+if ~param.plot_EV_noise
+    plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
+    % plot(time,sqrt(struct_bt_MCMC.fv.mean(:,k))','c', 'LineWidth', LineWidth);
+    
+    plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
+    % plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
+end
 % if plot_modal_dt
 %     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);
 %     plot(time,sqrt(bt_forecast_sto_a_NC_modal_dt(:,k))','om', 'LineWidth', LineWidth);

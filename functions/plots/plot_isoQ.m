@@ -398,7 +398,11 @@ for q=1:n1
 %         double(param.data_in_blocks.len_blocks ) + q
 %     index_time = (big_T-1)*param.data_in_blocks.len_blocks + q;
     time = param.dt * index_time;
-    bool_assimilation_step = any(index_time == param.DA.index_of_filtering);
+    if param.DA.bool
+        bool_assimilation_step = any(index_time == param.DA.index_of_filtering);
+    else
+        bool_assimilation_step = false;
+    end
     
     hold on;
     ax=axis;

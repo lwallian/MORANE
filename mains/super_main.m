@@ -7,12 +7,12 @@ init;
 igrida=false;
 
 %% Number of modes for the the ROM
-vect_nb_modes = 2 % For debugging
-% vect_nb_modes = [ 8 6 4 2] % For a full test
+% vect_nb_modes = 2 % For debugging
+vect_nb_modes = [ 8 6 4 2] % For a full test
  % vect_nb_modes = 2.^(4:-1:1)
 vect_reconstruction = [ false] % for the super_main_from_existing_ROM
-vect_adv_corrected = [ false]
-% vect_adv_corrected = [ true false]
+% vect_adv_corrected = [ false]
+vect_adv_corrected = [ true false]
 
 %% Type of data
 % Other datasets (do not use)
@@ -54,7 +54,7 @@ switch type_data
     case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
         % Threshold used in the estimation of the optimal subsampling time step
         v_threshold=1e-6 % BEST
-        modal_dt=1
+        modal_dt=0
     case 'turb2D_blocks_truncated'
         v_threshold= [1e-5]
         modal_dt=0:1
@@ -109,7 +109,7 @@ stochastic_integration = 'Ito'
 
 % Choose the correlated model (if true)
 global correlated_model;
-correlated_model = true
+correlated_model = false
 
 % Definition of global variable to manage methods more easily
 global choice_n_subsample;
@@ -119,7 +119,7 @@ choice_n_subsample = decor_by_subsampl.choice_n_subsample;
 % remove the finite-variation part of the chronos
 global estim_rmv_fv;
 % estim_rmv_fv = false
-estim_rmv_fv = false
+estim_rmv_fv = true
 
 if ~strcmp(choice_n_subsample, 'auto_shanon')
     v_threshold = NaN;
@@ -132,7 +132,7 @@ end
 % Projection on the free-divergence-function space
 % 0 : no projection / 1 : projection of deterministic terms
 %  / 2 :projection of noise terms
-eq_proj_div_free = 1
+eq_proj_div_free = 2
 
 % Compute the variance tensor in the PIV space
 % (if yes do not run the main code until the end)

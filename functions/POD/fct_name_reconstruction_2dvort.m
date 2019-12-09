@@ -195,6 +195,10 @@ if isfield(param,'param_obs')
     param.name_file_Reconstruction_omega = [ param.name_file_Reconstruction_omega '/' ...
         name_simu];
 end
+if param.DA.bool == 0
+    param.name_file_Reconstruction_omega = [ param.name_file_Reconstruction_omega '/' ...
+        name_simu];
+end
 param.name_file_Reconstruction_omega = [ param.name_file_Reconstruction_omega '/'];
 mkdir(param.name_file_Reconstruction_omega);
 

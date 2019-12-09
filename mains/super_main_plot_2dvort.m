@@ -30,7 +30,7 @@ if nargin == 0
     %             vect_nb_modes = 2.^(1:5)
     %     vect_nb_modes = 2;
     %     vect_nb_modes = [8];
-    vect_nb_modes = 6
+    vect_nb_modes = [2 4 8]
     %     vect_nb_modes = [16 8 6 4 2];
     %     vect_nb_modes = [2 4 6 8];
     %             vect_nb_modes = 2.^(1:4)
@@ -49,25 +49,25 @@ if nargin == 0
     % type_data = 'incompact3d_wake_episode3_cut';
     %             type_data = 'incompact3d_wake_episode3_cut_truncated';
     % type_data = 'inc3D_Re3900_blocks_truncated';
-    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+%    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     %         type_data = 'turb2D_blocks_truncated'
-    choice_n_subsample = 'auto_shanon'
+    choice_n_subsample = 'htgen'
     stochastic_integration = 'Ito'
-    estim_rmv_fv = false
+    estim_rmv_fv = true
     svd_pchol = 1
-    eq_proj_div_free = 1
+    eq_proj_div_free = 2
     
     no_subampl_in_forecast = false;
     % reconstruction = false;
     vect_reconstruction = [ false ]
     % vect_reconstruction = [true ]
     % adv_corrected = true
-    vect_adv_corrected = [ false]
+    vect_adv_corrected = [ true]
     %     vect_adv_corrected = [true false]
     %                 vect_adv_corrected = [true ]
     
-    vect_data_assimilation = [ 2 ]
+    vect_data_assimilation = [ 0 ]
     % vect_data_assimilation = [ true ]
 %     vect_fake_PIV = [ true false ]
     if vect_data_assimilation == 2
@@ -97,7 +97,7 @@ if nargin == 0
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-6 % BEST
-            vect_modal_dt=1
+            vect_modal_dt=0
             %             vect_modal_dt=0:1
             
             %             %             v_threshold=[1e-4]
@@ -126,7 +126,7 @@ if nargin == 0
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-4 % BEST
             %             vect_modal_dt=true % BEST
-            vect_modal_dt=true
+            vect_modal_dt=0
             
             %             v_threshold=[1e-1 1e-2]
             %             vect_modal_dt=0:2

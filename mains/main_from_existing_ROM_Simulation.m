@@ -1,6 +1,6 @@
 function main_from_existing_ROM_Simulation(type_data,nb_modes,...
     threshold,no_subampl_in_forecast,reconstruction,adv_corrected,...
-    modal_dt,test_fct,svd_pchol,eq_proj_div_free)
+    modal_dt,test_fct,svd_pchol,eq_proj_div_free,plot_EV_noise)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -13,8 +13,8 @@ tic
 
 % Plots to do
 plot_deterministic=true; % deterministic POD-Galerkin
-plot_EV=true; % estimated Eddy Visocvity
-plot_EV_noise=false; % estimated Eddy Visocvity
+plot_EV=false; % estimated Eddy Visocvity
+% plot_EV_noise=true; % estimated Eddy Visocvity
 plot_tuned=false; % estimated corrective coefficients
 
 if nargin < 7

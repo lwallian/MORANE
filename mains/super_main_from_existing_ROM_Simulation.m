@@ -7,18 +7,20 @@ function super_main_from_existing_ROM_Simulation(...
 %
 
 close all
-
+plot_EV_noise = false;
 
 if nargin == 0
     init;
+    plot_EV_noise = true
     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
     global correlated_model;
     
     %% Number of modes for the the ROM
+    vect_nb_modes = [2 4 8]
 %     vect_nb_modes = [2 4 6 8]
-    vect_nb_modes = [16]
+%     vect_nb_modes = [16]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
@@ -28,9 +30,9 @@ if nargin == 0
     % To choose between the shannon and correlation time downsampling
     % methods
 %     choice_n_subsample = 'auto_shannon';
-    choice_n_subsample = 'auto_shanon'; % 'auto_shanon' 'htgen' 'lms'
-    stochastic_integration = 'Str'; % 'Str'  'Ito'
-    estim_rmv_fv = false;
+    choice_n_subsample = 'htgen'; % 'auto_shanon' 'htgen' 'lms'
+    stochastic_integration = 'Ito'; % 'Str'  'Ito'
+    estim_rmv_fv = true;
     test_fct ='b';
     vect_svd_pchol = true
     correlated_model = false
@@ -38,7 +40,7 @@ if nargin == 0
     % Projection on the free-divergence-function space
     % 0 : no projection / 1 : projection of deterministic terms
     %  / 2 :projection of noise terms
-    eq_proj_div_free = 1;
+    eq_proj_div_free = 2;
     
     %% Type of data
     % Other datasets (do not use)
@@ -59,10 +61,10 @@ if nargin == 0
     % % type_data = 'turb2D_blocks_truncated'
     
     % These 3D data ( Re 300) gives good results
-    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+   type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
     
     % These 2D data ( Re 100) gives good results
-%     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
+%      type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
@@ -80,7 +82,7 @@ if nargin == 0
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-6 % BEST
-            vect_modal_dt=1
+            vect_modal_dt=0
         case 'turb2D_blocks_truncated'
             v_threshold= [1e-5]
             vect_modal_dt=0:1
@@ -97,7 +99,7 @@ if nargin == 0
             vect_modal_dt=true
         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
             v_threshold=1e-4 % BEST
-            vect_modal_dt=true;
+            vect_modal_dt=0;
         otherwise
             v_threshold=0.0005
             vect_modal_dt=false
@@ -125,7 +127,8 @@ for modal_dt=vect_modal_dt
                     main_from_existing_ROM_Simulation(type_data,k,...
                         v_threshold(q),...
                         no_subampl_in_forecast,reconstruction,...
-                        adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
+                        adv_corrected,modal_dt,test_fct,svd_pchol,...
+                        eq_proj_div_free,plot_EV_noise)
                     
                     switch type_data
                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
@@ -142,10 +145,11 @@ for modal_dt=vect_modal_dt
                 
                 fig1=figure(1);
                 ax=axis;
-                fig1.Position = [0 0 4*(ax(2)-ax(1))/20 4];
-%                 gca(fig1,'Units','inches', ...
-%                     'Position',[0 0 4*(ax(2)-ax(1))/20 4], ...
-%                     'PaperPositionMode','auto');
+                fig1.Position = [0 0 (ax(2)-ax(1))/15 6];
+%                 fig1.Position = [0 0 4*(ax(2)-ax(1))/20 4];
+% %                 gca(fig1,'Units','inches', ...
+% %                     'Position',[0 0 4*(ax(2)-ax(1))/20 4], ...
+% %                     'PaperPositionMode','auto');
                 %% Save plot
                 folder_results = [ pwd '/resultats/current_results/summary/'];
                 current_pwd = pwd; cd ..
@@ -158,6 +162,9 @@ for modal_dt=vect_modal_dt
                 
                 dir = [ folder_results type_data '/sum_modes_n=' ...
                     num2str(nb_modes_max) ];
+                if plot_EV_noise
+                    dir = [ dir '/EV'];
+                end
                 mkdir(dir);
                 
                 switch choice_n_subsample

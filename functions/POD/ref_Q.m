@@ -73,6 +73,10 @@ param.d = double(param.d);
 first_big_T = big_T+1;
 index_time = 0;
 
+if ~param.DA.bool
+    param.N_test=N_tot-1;
+end
+
 for t=1:n_subsampl*param.N_test % loop for all time
     if param.data_in_blocks.bool && ...
             ((t_local == len_blocks + 1) || t==1) % A new file needs to be loaded

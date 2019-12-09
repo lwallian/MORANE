@@ -22,8 +22,9 @@ if nargin == 0
     vect_nb_modes = [4]
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
-    vect_adv_corrected = [ false]
-    vect_svd_pchol = svd_pchol
+    vect_adv_corrected = [ true ]
+    vect_svd_pchol = true
+%     vect_svd_pchol = svd_pchol
     
     %% Type of data
     % Other datasets (do not use)
@@ -65,7 +66,7 @@ if nargin == 0
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-6 % BEST
-            vect_modal_dt=1
+            vect_modal_dt=0
         case 'turb2D_blocks_truncated'
             v_threshold= [1e-5]
             vect_modal_dt=0:1
@@ -98,7 +99,7 @@ if nargin == 0
     % Meth to choose the time sub-sampling
     % ('auto_shanon'=maxim frequency of resolved chronos)
     % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
-    decor_by_subsampl.choice_n_subsample='auto_shanon'; % 'htgen' 'auto_shanon' 'lms'
+    decor_by_subsampl.choice_n_subsample='htgen'; % 'htgen' 'auto_shanon' 'lms'
     % decor_by_subsampl.choice_n_subsample = 'corr_time';
     
     % Stochastic integration path : 'Ito' or 'Str'
@@ -114,7 +115,7 @@ if nargin == 0
     % Projection on the free-divergence-function space
     % 0 : no projection / 1 : projection of deterministic terms
     %  / 2 :projection of noise terms
-    eq_proj_div_free = 1;
+    eq_proj_div_free = 2;
     
     correlated_model = false
 else    

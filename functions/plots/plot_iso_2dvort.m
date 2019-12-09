@@ -255,7 +255,7 @@ for q=1:n1
 %         '_big_T_' num2str(big_T) '_t_loc_' num2str(q)];
 
     time = param.dt * index_time;
-    if isfield(param,'DA')
+    if isfield(param,'DA') && param.DA.bool
         bool_assimilation_step = ...
             any(index_time == param.DA.index_of_filtering);
     else

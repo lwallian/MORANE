@@ -29,7 +29,8 @@ if nargin == 0
     %             vect_nb_modes = 2.^(1:5)
     %     vect_nb_modes = 16;
 %     vect_nb_modes = 6;
-    vect_nb_modes = [2 4 6 8 16];
+    vect_nb_modes = [2 4 8];
+%     vect_nb_modes = [2 4 6 8 16];
     %             vect_nb_modes = 2.^(1:4)
     %         vect_nb_modes = 2.^(1:4)
     %             vect_nb_modes = 2.^(1:6)
@@ -53,10 +54,9 @@ if nargin == 0
     choice_n_subsample = 'htgen'  
 %     choice_n_subsample = 'auto_shanon'
     stochastic_integration = 'Ito'
-    estim_rmv_fv = false
+    estim_rmv_fv = true
     svd_pchol = 1
-    eq_proj_div_free = 1
-    estim_rmv_fv = false
+    eq_proj_div_free = 2
     correlated_model = false
     
     no_subampl_in_forecast = false;
@@ -64,11 +64,11 @@ if nargin == 0
     vect_reconstruction = [ false ]
     % vect_reconstruction = [true ]
     % adv_corrected = true
-    vect_adv_corrected = [ false]
+    vect_adv_corrected = [ true]
     %     vect_adv_corrected = [true false]
     %                 vect_adv_corrected = [true ]
     
-    vect_data_assimilation = [ 2 ]
+    vect_data_assimilation = [ 0 ] % 0 1 2
     
     if vect_data_assimilation == 2
         vect_coef_bruit_obs = nan
@@ -120,7 +120,7 @@ if nargin == 0
             % if true, (mimic the use of a) disctinct subsampling time step for the
             % differentials equations of distincts chronos
             %             modal_dt=true
-            vect_modal_dt=0:1
+            vect_modal_dt=0
             %             vect_modal_dt=1
             %             vect_modal_dt=false
         case {'incompact3d_wake_episode3_cut',...
@@ -139,7 +139,7 @@ if nargin == 0
             % Threshold used in the estimation of the optimal subsampling time step
             v_threshold=1e-4 % BEST
             %             vect_modal_dt=true % BEST
-            vect_modal_dt=1
+            vect_modal_dt=0
 %             vect_modal_dt=0:1
             
             %             v_threshold=[1e-1 1e-2]
