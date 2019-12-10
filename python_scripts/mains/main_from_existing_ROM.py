@@ -2331,45 +2331,49 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
        
         
         
-        line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Red LUM particles mean')
-        if heavy_real_time_plot:
-            line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
-        if EV:
-            line31EV, = ax_3.plot(time[-1], particles_mean_now_EV[2], '-', \
-                                    color=color_mean_EV,label = 'EV particles mean')
+        if bt_tot.shape[1]>2:
+            line31, = ax_3.plot(time[-1], particles_mean_now[2], 'b-',label = 'Red LUM particles mean')
             if heavy_real_time_plot:
-                line32EV  = ax_3.fill_between([0], quantiles_now_EV[0:1,2],quantiles_now[1:2,2], color=color_quantile_EV)
-        line33,  = ax_3.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
+                line32 = ax_3.fill_between([0], quantiles_now[0:1,2],quantiles_now[1:2,2], color='gray')
+            if EV:
+                line31EV, = ax_3.plot(time[-1], particles_mean_now_EV[2], '-', \
+                                        color=color_mean_EV,label = 'EV particles mean')
+                if heavy_real_time_plot:
+                    line32EV  = ax_3.fill_between([0], quantiles_now_EV[0:1,2],quantiles_now[1:2,2], color=color_quantile_EV)
+            line33,  = ax_3.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
-        line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Red LUM particles mean')
-        if heavy_real_time_plot:
-            line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
-        if EV:
-            line41EV, = ax_4.plot(time[-1], particles_mean_now_EV[3], '-', \
-                                    color=color_mean_EV,label = 'EV particles mean')
+        if bt_tot.shape[1]>3:
+            line41, = ax_4.plot(time[-1], particles_mean_now[3], 'b-',label = 'Red LUM particles mean')
             if heavy_real_time_plot:
-                line42EV  = ax_4.fill_between([0], quantiles_now_EV[0:1,3],quantiles_now[1:2,3], color=color_quantile_EV)
-        line43,  = ax_4.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
-    
-        line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Red LUM particles mean')
-        if heavy_real_time_plot:
-            line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
-        if EV:
-            line51EV, = ax_5.plot(time[-1], particles_mean_now_EV[4], '-', \
-                                    color=color_mean_EV,label = 'EV particles mean')
+                line42 = ax_4.fill_between([0], quantiles_now[0:1,3],quantiles_now[1:2,3], color='gray')
+            if EV:
+                line41EV, = ax_4.plot(time[-1], particles_mean_now_EV[3], '-', \
+                                        color=color_mean_EV,label = 'EV particles mean')
+                if heavy_real_time_plot:
+                    line42EV  = ax_4.fill_between([0], quantiles_now_EV[0:1,3],quantiles_now[1:2,3], color=color_quantile_EV)
+            line43,  = ax_4.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
+
+        if bt_tot.shape[1]>4:
+            line51, = ax_5.plot(time[-1], particles_mean_now[4], 'b-',label = 'Red LUM particles mean')
             if heavy_real_time_plot:
-                line52EV  = ax_5.fill_between([0], quantiles_now_EV[0:1,4],quantiles_now[1:2,4], color=color_quantile_EV)
-        line53,  = ax_5.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
-       
-        line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Red LUM particles mean')
-        if heavy_real_time_plot:
-            line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
-        if EV:
-            line61EV, = ax_6.plot(time[-1], particles_mean_now_EV[5], '-', \
-                                    color=color_mean_EV,label = 'EV particles mean')
+                line52 = ax_5.fill_between([0], quantiles_now[0:1,4],quantiles_now[1:2,4], color='gray')
+            if EV:
+                line51EV, = ax_5.plot(time[-1], particles_mean_now_EV[4], '-', \
+                                        color=color_mean_EV,label = 'EV particles mean')
+                if heavy_real_time_plot:
+                    line52EV  = ax_5.fill_between([0], quantiles_now_EV[0:1,4],quantiles_now[1:2,4], color=color_quantile_EV)
+            line53,  = ax_5.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
+
+        if bt_tot.shape[1]>5:
+            line61, = ax_6.plot(time[-1], particles_mean_now[5], 'b-',label = 'Red LUM particles mean')
             if heavy_real_time_plot:
-                line6EV2  = ax_6.fill_between([0], quantiles_now_EV[0:1,5],quantiles_now[1:2,5], color=color_quantile_EV)
-        line63,  = ax_6.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
+                line62 = ax_6.fill_between([0], quantiles_now[0:1,5],quantiles_now[1:2,5], color='gray')
+            if EV:
+                line61EV, = ax_6.plot(time[-1], particles_mean_now_EV[5], '-', \
+                                        color=color_mean_EV,label = 'EV particles mean')
+                if heavy_real_time_plot:
+                    line6EV2  = ax_6.fill_between([0], quantiles_now_EV[0:1,5],quantiles_now[1:2,5], color=color_quantile_EV)
+            line63,  = ax_6.plot([0],[pos_Mes*1],'r.',label = 'Assimilate True')
         
         
         if plot_ref==True:
