@@ -2670,8 +2670,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                     Q = np.reshape(Q,(MX))
                     
     #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                    name_file_data_temp = path_Q_crit_EV.joinpath('sequence_teste_Q'+str(index)+'_temp.json')
-                    name_file_data = path_Q_crit_EV.joinpath('sequence_teste_Q'+str(index)+'.json')
+                    name_file_data_temp = path_Q_crit_EV.joinpath(str(index)+'_temp.json')
+                    name_file_data = path_Q_crit_EV.joinpath(str(index)+'.json')
                     
                     if os.path.exists(str(name_file_data)):
                         os.remove(str(name_file_data))
@@ -2708,8 +2708,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                     Q = np.reshape(Q,(MX))
                     
     #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                    name_file_data_temp = path_Q_crit_ref.joinpath('sequence_teste_Q'+str(index)+'_temp.json')
-                    name_file_data = path_Q_crit_ref.joinpath('sequence_teste_Q'+str(index)+'.json')
+                    name_file_data_temp = path_Q_crit_ref.joinpath(str(index)+'_temp.json')
+                    name_file_data = path_Q_crit_ref.joinpath(str(index)+'.json')
                     
                     if os.path.exists(str(name_file_data)):
                         os.remove(str(name_file_data))
@@ -2741,8 +2741,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,no_subamp
                 Q = np.reshape(Q,(MX))
                 
 #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                name_file_data_temp = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'_temp.json')
-                name_file_data = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'.json')
+                name_file_data_temp = path_Q_crit.joinpath(str(index)+'_temp.json')
+                name_file_data = path_Q_crit.joinpath(str(index)+'.json')
 #                name_file_data_ready = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'_ready.json')
                 
 #                with open(str(name_file_data), 'w') as f:
