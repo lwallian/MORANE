@@ -34,7 +34,7 @@ factor_satur = 1.3;
 
 
 Q=reshape(Q,[param.MX n1]);
-if param.data_assimilation == 2
+if param.data_assimilation == 2 && (1/param.viscosity == 300)
     x_cylinder=0;
     %     param.name_file_omega_mode = [ param.folder_data_PIV ...
     %         '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];

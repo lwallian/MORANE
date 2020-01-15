@@ -46,7 +46,7 @@ else
     %     siz = size(U);
     %     N_tot= floor(siz(end-1)/n_subsampl);
 end
-if param.data_assimilation ==2
+if param.data_assimilation ==2 && (1/param.viscosity == 300)
     param.folder_file_U_fake_PIV = ...
         [ param.folder_data_PIV '/wake_Re' num2str(1/param.viscosity) ...
         '_fake/'];
@@ -56,6 +56,9 @@ if param.data_assimilation ==2
         param.folder_file_U_fake_PIV = [ param.folder_file_U_fake_PIV(1:end-1) ...
             '_noNoise/'];
     end
+elseif (1/param.viscosity ~= 100)
+    error(['Use one of the above cases : either refernce in the' ...
+        '"DNS space" or in the "PIV space"']);
 end
 
 
@@ -85,7 +88,7 @@ index_time = 0;
 param.d = double(param.d);
 
 
-if param.data_assimilation == 2
+if param.data_assimilation == 2 && (1/param.viscosity == 300)
     name_file_U_fake_PIV=[param.folder_file_U_fake_PIV 'strat' ...
         num2str(big_T+1) '_U_temp'];
     param.name_file_U_fake_PIV{1} = ...
@@ -118,7 +121,7 @@ for t=1:n_subsampl*param.N_test % loop for all time
         omega= [];
         
         % Load new file
-        if param.data_assimilation == 2
+        if param.data_assimilation == 2 && (1/param.viscosity == 300)
             name_file_U_fake_PIV=[param.folder_file_U_fake_PIV 'strat' ...
                 num2str(big_T) '_U_temp'];
             param.name_file_U_fake_PIV{big_T - param.data_in_blocks.nb_blocks} = ...
