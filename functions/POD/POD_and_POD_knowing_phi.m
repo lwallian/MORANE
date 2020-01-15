@@ -198,14 +198,17 @@ if param.decor_by_subsampl.bool
             case 'auto_shanon'
                 param.decor_by_subsampl.n_subsampl_decor = fct_cut_frequency(bt,lambda,param);
             case 'lms'
-                param.decor_by_subsampl.tau_corr = max(correlationTimeLMS(c, bt, param.dt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeLMS(c, bt, param.dt)), 1);
+                cor_t = correlationTimeLMS(c, bt, param.dt);
+                param.decor_by_subsampl.tau_corr = max( cor_t , 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor( cor_t ), 1);
             case 'htgen'
-                param.decor_by_subsampl.tau_corr = max(htgenCorrelationTime(c, bt, param.dt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(htgenCorrelationTime(c, bt, param.dt)), 1);
+                cor_t = htgenCorrelationTime(c, bt, param.dt);
+                param.decor_by_subsampl.tau_corr = max( cor_t , 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor( cor_t ), 1);
             case 'truncated'
-                param.decor_by_subsampl.tau_corr = max(correlationTimeCut(c, bt), 1);
-                param.decor_by_subsampl.n_subsampl_decor = max(floor(correlationTimeCut(c, bt)), 1);
+                cor_t = correlationTimeCut(c, bt);
+                param.decor_by_subsampl.tau_corr = max( cor_t , 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor( cor_t ), 1);
             otherwise
                 error('Invalid downsampling method.')
         end
