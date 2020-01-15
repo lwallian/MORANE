@@ -241,20 +241,20 @@ if compute_PIV_modes
     PIV_modes(param);
     toc;tic;
     disp('Fake PIV computation done');
-    keyboard;
+    return;
 end
 if compute_fake_PIV
     Fake_PIV_data(param);
     toc;tic;
     disp('Fake PIV computation done');
-    keyboard;
+    return;
 end
 global correlated_model;
 if computed_PIV_variance_tensor
     quadratic_variation_estimation_PIV(param,bt_tot);
     toc;tic;
     disp('PIV variance tensor estimation done');
-    keyboard;
+    return;
 end
 % Computation of the variance tensor a
 % or computation of its parameters z_i(x)

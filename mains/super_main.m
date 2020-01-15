@@ -175,6 +175,9 @@ for q = 1:length(v_threshold)
             save_all_bi,decor_by_subsampl_temp,a_t,adv_corrected,eq_proj_div_free);
     end
 end
+if compute_PIV_modes + compute_fake_PIV + computed_PIV_variance_tensor > 0
+    return;
+end
 
 %% The ROM is simulated on a test basis
 super_main_from_existing_ROM(...
