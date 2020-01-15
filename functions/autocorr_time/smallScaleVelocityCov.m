@@ -11,12 +11,13 @@ function cov_s = smallScaleVelocityCov(cov_v, bt)
 N = size(cov_v, 2);
 
 % Calculate the large and small scale covariance matrices
-cov_w = zeros(size(cov_v));
-for i = 1 : N
-    for j = 1 : N
-        cov_w(i,j) = bt(i,:) * bt(j,:)' / N;
-    end
-end
+% cov_w = zeros(size(cov_v));
+% for i = 1 : N
+%     for j = 1 : N
+%         cov_w(i,j) = bt(i,:) * bt(j,:)' / N;
+%     end
+% end
+cov_w = (1/ N) * bt * bt' ;
 
 cov_s = (cov_v - cov_w);
 
