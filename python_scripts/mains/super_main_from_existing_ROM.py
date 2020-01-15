@@ -39,12 +39,16 @@ if __name__ == '__main__':
     vect_nb_modes = [2] # Select the number of solved temporal modes
     no_subampl_in_forecast = False 
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
-    vect_adv_corrected = [False]
+    vect_adv_corrected = [True,False]
     test_fct = 'b'
     svd_pchol = True
     choice_n_subsample = 'htgen'
 #    choice_n_subsample = 'auto_shanon'
+    stochastic_integration = 'Ito'
+    estim_rmv_fv = True
+    eq_proj_div_free = 2
     EV = True
+    
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
     type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
@@ -57,9 +61,13 @@ if __name__ == '__main__':
 #           differentials equations of distincts chronos
     
     # Get threshold and modal_dt
-    v_threshold,vect_modal_dt = switch_type_data(type_data)
-    if not( choice_n_subsample == 'auto_shanon'):
-        vect_modal_dt = [False]
+    if choice_n_subsample == 'auto_shanon' :
+        v_threshold,vect_modal_dt = switch_type_data(type_data)
+    else:
+         v_threshold = [float('nan')]
+         vect_modal_dt = [False]
+#    if not( choice_n_subsample == 'auto_shanon'):
+#        vect_modal_dt = [False]
     
     nb_period_test = math.nan
     nb_modes_max = np.max(vect_nb_modes)
@@ -73,7 +81,10 @@ if __name__ == '__main__':
                         main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
                                                no_subampl_in_forecast,reconstruction,\
                                                adv_corrected,modal_dt,n_particle,\
-                                               test_fct,svd_pchol,choice_n_subsample,EV)
+                                               test_fct,svd_pchol,\
+                                               stochastic_integration,\
+                                               estim_rmv_fv,eq_proj_div_free,\
+                                               choice_n_subsample,EV)
     
 
     
