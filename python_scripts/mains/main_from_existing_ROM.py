@@ -390,12 +390,57 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
 #    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
 #    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
     
+    lambda_values = param['lambda'] # Define the constant lambda (The integral in one period of the square temporal modes )
 
         
     #%% Reduction of the noise matrix
     if svd_pchol:
+        sq_lambda = np.sqrt(lambda_values)
+        
+        pchol_cov_noises_add = pchol_cov_noises[range(nb_modes),:]
+#        pchol_cov_noises_add = pchol_cov_noises_add[np.newaxis,:,:]
+        pchol_cov_noises = pchol_cov_noises[nb_modes:,:]
+        pchol_cov_noises= np.reshape(pchol_cov_noises, \
+                    (nb_modes,nb_modes,(nb_modes+1)*nb_modes),order='F') 
+        
+        for j in range(nb_modes):
+            pchol_cov_noises_add[j,:] = (1/sq_lambda[j]) * \
+                                                pchol_cov_noises_add[j,:]
+        for i in range(nb_modes):
+            for j in range(nb_modes):
+                pchol_cov_noises[i,j,:] = (sq_lambda[i]/sq_lambda[j]) \
+                                               * pchol_cov_noises[i,j,:]
+                                               
+        pchol_cov_noises= np.reshape(pchol_cov_noises, \
+                    (nb_modes*nb_modes,(nb_modes+1)*nb_modes),order='F') 
+        pchol_cov_noises = np.concatenate( \
+                    (pchol_cov_noises_add,pchol_cov_noises),axis=0)
+        
+
         U_cov_noises, S_cov_noises, _ = sps.linalg.svds(pchol_cov_noises, k=nb_modes)
         pchol_cov_noises = U_cov_noises @ np.diag(S_cov_noises)
+        
+        pchol_cov_noises_add = pchol_cov_noises[range(nb_modes),:]
+        pchol_cov_noises = pchol_cov_noises[nb_modes:,:]
+        pchol_cov_noises= np.reshape(pchol_cov_noises, \
+                    (nb_modes,nb_modes,nb_modes),order='F') 
+        
+        for i in range(nb_modes):
+            for j in range(nb_modes):
+                pchol_cov_noises[i,j,:] = (1/(sq_lambda[i]/sq_lambda[j])) \
+                                               * pchol_cov_noises[i,j,:]
+        for j in range(nb_modes):
+            pchol_cov_noises_add[j,:] = (1/(1/sq_lambda[j])) * \
+                                                pchol_cov_noises_add[j,:]
+##        pchol_cov_noises_add = pchol_cov_noises[0,:,:]
+#        pchol_cov_noises_add= np.reshape(pchol_cov_noises_add, \
+#                    (nb_modes,nb_modes),order='F') 
+#        pchol_cov_noises = pchol_cov_noises[1:,:,:]
+        pchol_cov_noises= np.reshape(pchol_cov_noises, \
+                    (nb_modes*nb_modes,nb_modes),order='F') 
+        pchol_cov_noises = np.concatenate( \
+                    (pchol_cov_noises_add,pchol_cov_noises),axis=0)
+        
 #        if EV:
 #            U_cov_noises_EV, S_cov_noises_EV, _ = \
 #            sps.linalg.svds(ILC_EV['pchol_cov_noises'], k=nb_modes)
@@ -613,12 +658,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     
     
 #    Reconstruction in the stochastic case
-    lambda_values = param['lambda'] # Define the constant lambda (The integral in one period of the square temporal modes )
-#    lambda_values = param['lambda'][:,0] # Define the constant lambda (The integral in one period of the square temporal modes )
-    
-#    lambda_values = lambda_values[0]*np.ones(lambda_values.shape)
-    
-    
+  
 
     
     if init_centred_on_ref:
