@@ -25,7 +25,6 @@ pho = 0.998                             # Constant that constrol the balance in 
 ##nb_mutation_steps = 300  # 150 30                # Number of mutation steps in particle filter 
 
 assimilate = 'fake_real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
-nb_mutation_steps = 30                # Number of mutation steps in particle filter 
 
 
 #    L = 0.75*0.00254/(32*10**(-3))         # Incertitude associated with PIV data estimated before. It was used in the Sigma matrix estimation. 
@@ -42,7 +41,7 @@ center_cil_grid_dns_y_index = 49        # Index that represents the center of th
 center_cil_grid_PIV_x_distance = -75.60 # Center of the cylinder in X in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 center_cil_grid_PIV_y_distance = 0.75   # Center of the cylinder in Y in the PIV grid (See the .png image in the respective PIV folder with all measured constants). It ust be in mm.
 
-SECONDS_OF_SIMU = 70. #70. #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+#SECONDS_OF_SIMU = 70. #70. #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
 sub_sampling_PIV_data_temporaly = True  # True                                                           # We can choose not assimilate all possible moments(time constraints or filter performance constraints or benchmark constraints or decorraltion hypotheses). Hence, select True if subsampling necessary 
 ## factor_of_PIV_time_subsampling_gl = 10  
 #factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
@@ -194,7 +193,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                            adv_corrected,modal_dt,n_particles,test_fct,svd_pchol,\
                                                stochastic_integration,\
                                                estim_rmv_fv,eq_proj_div_free,\
-                                               choice_n_subsample,EV):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
+                                               choice_n_subsample,EV,\
+                                               nb_mutation_steps,\
+                                               SECONDS_OF_SIMU):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     
     
     param_ref['N_particules'] = n_particles # Number of particles to select  
@@ -1141,7 +1142,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
         nb_snapshots_each_file = vector_flow.shape[1]
         time_per_file = (nb_snapshots_each_file)*dt_PIV
         if SECONDS_OF_SIMU%time_per_file == 0:
-            number_of_FAKE_PIV_files = SECONDS_OF_SIMU/time_per_file
+            number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file)
+#            number_of_FAKE_PIV_files = intSECONDS_OF_SIMU/time_per_file
         else:
             number_of_FAKE_PIV_files = int(SECONDS_OF_SIMU/time_per_file) + 1
         
