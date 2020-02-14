@@ -1617,13 +1617,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                     MX = param['MX'].astype(int)
                     Q = np.reshape(Q,(MX))
                     
+                    time_CPU = time_exe_EV
+                    time_phy = index*param['dt']
+                    time_CPU_phy = np.array([time_CPU, time_phy])
+                    
     #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                    name_file_data_temp = path_Q_crit_EV.joinpath(str(index)+'_temp.json')
-                    name_file_data = path_Q_crit_EV.joinpath(str(index)+'.json')
+                    name_file_data_temp = path_Q_crit_EV.joinpath(str(index)+'_temp.txt')
+                    name_file_data = path_Q_crit_EV.joinpath(str(index)+'.txt')
                     
                     if os.path.exists(str(name_file_data)):
                         os.remove(str(name_file_data))
                     with open(str(name_file_data_temp), 'w') as f:
+                        json.dump(time_CPU_phy.tolist(), f)
                         json.dump(Q.tolist(), f)
                     os.rename(r'' + str(name_file_data_temp),r'' + str(name_file_data))
                     del Q
@@ -1655,13 +1660,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                     MX = param['MX'].astype(int)
                     Q = np.reshape(Q,(MX))
                     
+                    time_CPU = 0
+                    time_phy = index*param['dt']
+                    time_CPU_phy = np.array([time_CPU, time_phy])
+                    
     #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                    name_file_data_temp = path_Q_crit_ref.joinpath(str(index)+'_temp.json')
-                    name_file_data = path_Q_crit_ref.joinpath(str(index)+'.json')
+                    name_file_data_temp = path_Q_crit_ref.joinpath(str(index)+'_temp.txt')
+                    name_file_data = path_Q_crit_ref.joinpath(str(index)+'.txt')
                     
                     if os.path.exists(str(name_file_data)):
                         os.remove(str(name_file_data))
                     with open(str(name_file_data_temp), 'w') as f:
+                        json.dump(time_CPU_phy.tolist(), f)
                         json.dump(Q.tolist(), f)
                     os.rename(r'' + str(name_file_data_temp),r'' + str(name_file_data))
                     del Q
@@ -1688,13 +1698,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                 MX = param['MX'].astype(int)
                 Q = np.reshape(Q,(MX))
                 
+                time_CPU = time_exe
+                time_phy = index*param['dt']
+                time_CPU_phy = np.array([time_CPU, time_phy])
+                
 #                file = Path(__file__).parents[3].joinpath('data_after_filtering').joinpath('aurore')
-                name_file_data_temp = path_Q_crit.joinpath(str(index)+'_temp.json')
-                name_file_data = path_Q_crit.joinpath(str(index)+'.json')
+                name_file_data_temp = path_Q_crit.joinpath(str(index)+'_temp.txt')
+                name_file_data = path_Q_crit.joinpath(str(index)+'.txt')
 #                name_file_data_ready = path_Q_crit.joinpath('sequence_teste_Q'+str(index)+'_ready.json')
                 
 #                with open(str(name_file_data), 'w') as f:
                 with open(str(name_file_data_temp), 'w') as f:
+                    json.dump(time_CPU_phy.tolist(), f)
                     json.dump(Q.tolist(), f)
                 os.rename(r'' + str(name_file_data_temp),r'' + str(name_file_data))
                 del Q
