@@ -244,7 +244,8 @@ if compute_PIV_modes
     return;
 end
 if compute_fake_PIV
-    Fake_PIV_data(param);
+    Fake_PIV_data(param,true);
+    Fake_PIV_data(param,false);
     toc;tic;
     disp('Fake PIV computation done');
     return;
