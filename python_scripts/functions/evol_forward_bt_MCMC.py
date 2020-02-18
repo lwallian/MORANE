@@ -12,7 +12,7 @@ def evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt, bt,bt_fv,bt_m,mutation,noi
 #    - I : m
 #    - L : m x m
 #    - C : m x m x m
-#    - bt : 1 x m x nb_pcl
+#    - bt : m x nb_pcl
 #    The result has the size : 1 x m
     
     
