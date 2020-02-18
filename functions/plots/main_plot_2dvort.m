@@ -1,7 +1,7 @@
 function main_plot_2dvort(type_data,nb_modes,...
     threshold,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,...
     svd_pchol,eq_proj_div_free,...
-    data_assimilation,coef_bruit_obs,param_obs)
+    data_assimilation,coef_bruit_obs,param_obs,plot_EV)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -27,7 +27,7 @@ param.DA.init_centred_on_ref = false;  % If True, the initial condition is cente
 
 % Plots to do
 plot_deterministic=true; % deterministic POD-Galerkin
-plot_EV=true; % estimated Eddy Visocvity
+% plot_EV=true; % estimated Eddy Visocvity
 plot_tuned=false; % estimated corrective coefficients
 
 if nargin < 7
@@ -215,8 +215,10 @@ switch data_assimilation
             error('Not available')
         end
     case 2
-        n_simu = 100
-        param.n_simu = n_simu;
+%         n_simu = 30
+% %         n_simu = 100
+%         param.n_simu = n_simu;
+        n_simu = param_obs.n_simu;
         current_pwd = pwd; cd ..
         param.folder_results = [ pwd '/3rdresult/'];
         cd(current_pwd); clear current_pwd
@@ -236,7 +238,9 @@ switch data_assimilation
 
         [time,i_time,~] = unique(time,'last');
         bt_MCMC = bt_MCMC(i_time,:,:);
-        bt_forecast_EV = bt_forecast_EV(i_time,:,:);        
+        if plot_EV
+            bt_forecast_EV = bt_forecast_EV(i_time,:,:); 
+        end
 
         [time_inter,i_time,i_time_bt_tot] = intersect(time,time_bt_tot);
         time = time_inter;
@@ -250,11 +254,15 @@ switch data_assimilation
         
         bt_tot = bt_tot(i_time_bt_tot,:);
         bt_MCMC = bt_MCMC(i_time,:,:);
-        bt_forecast_EV = bt_forecast_EV(i_time,:,:);
+        if plot_EV
+            bt_forecast_EV = bt_forecast_EV(i_time,:,:);
+        end
         param.N_test = size(bt_tot,1);
         
         bt_MCMC = mean(bt_MCMC,3);
-        bt_forecast_EV = mean(bt_forecast_EV,3);
+        if plot_EV
+            bt_forecast_EV = mean(bt_forecast_EV,3);
+        end
         
 %         time_max = max([time time_bt_tot]);
 %         time(time>time_max)=[];
@@ -512,12 +520,16 @@ switch data_assimilation
         param.param_obs = param_obs;
         param.param_obs.no_noise = true;
         param = ref_2dvort(param,reconstruction);
-        param.param_obs.no_noise = false;
-        param = ref_2dvort(param,reconstruction);
-%         param = reconstruction_2dvort( ...
-%             param,bt_forecast_EV(1:param.N_test,:),['PF_EV', ...
-%             num2str(param.DA.coef_bruit_obs) ],...
-%             modal_dt,reconstruction,param_obs);
+        if (1/param.viscosity == 300)
+            param.param_obs.no_noise = false;
+            param = ref_2dvort(param,reconstruction);
+        end
+        if plot_EV
+            param = reconstruction_2dvort( ...
+            param,bt_forecast_EV(1:param.N_test,:),[ 'PF_EV' ...
+            '_' param.name_simu ],...
+            modal_dt,reconstruction);
+        end
         param = reconstruction_2dvort( ...
             param,bt_tot(1:param.N_test,:),'PODROM_Opt',...
             modal_dt,reconstruction);

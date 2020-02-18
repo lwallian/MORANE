@@ -24,18 +24,19 @@ omega_phi_m_U = permute(omega_phi_m_U, [3 1 2 4]);
 %% Save
 param_from_file = param;
 
-switch data_assimilation
-    case {0,1}
+if (data_assimilation < 2) || (1/param.viscosity == 100)
         param.name_file_omega_mode = [ param.folder_data ...
             '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
         save(param.name_file_omega_mode,'param_from_file',...
             'omega_phi_m_U','-v7.3');
-    case 2
+elseif (1/param.viscosity == 300)
         param.name_file_omega_mode = [ param.folder_data_PIV ...
             '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
         save(param.name_file_omega_mode,'param_from_file','MX_PIV',...
             'x_unique_PIV','y_unique_PIV',...
             'omega_phi_m_U','-v7.3');
+else
+    error('Choose one of the two above cases');
 end
 % param.name_file_omega_mode = [ param.folder_data ...
 %     '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];

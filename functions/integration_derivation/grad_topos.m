@@ -1,4 +1,4 @@
-function [param,dphi_m_U] = grad_topos(type_data,nb_modes,data_assimilation)
+function [param,dphi_m_U] = grad_topos(type_data,nb_modes,data_assimilation,viscosity)
 % Compute the gradient of topos
 %
 % m is the number of modes
@@ -13,6 +13,7 @@ function [param,dphi_m_U] = grad_topos(type_data,nb_modes,data_assimilation)
 
 if nargin < 3
     data_assimilation = false;
+    viscosity = 300
 end
 
 %% Get Param
@@ -22,8 +23,7 @@ param.folder_data = [ pwd '/data/' ];
 cd(current_pwd); clear current_pwd
 param.type_data = type_data;
 
-switch data_assimilation
-    case {0,1}
+if (data_assimilation < 2) || (1/viscosity == 100)
         trun='_truncated';
         if (length(param.type_data)>= 10) ...
                 && strcmp(param.type_data(end-9:end),trun)
@@ -39,6 +39,8 @@ switch data_assimilation
             param.data_in_blocks.type_whole_data = nan;
             param=read_param_data(param.type_data,param.folder_data);
         end
+elseif (1/viscosity ~= 300)
+    error('Choose one of the two above cases');    
 end
 % keyboard;
 current_pwd = pwd; cd ..
@@ -51,16 +53,17 @@ cd(current_pwd); clear current_pwd
 param.type_data = type_data; clear type_data
 param.nb_modes = nb_modes; clear nb_modes
 
-switch data_assimilation
-    case {0,1}
+if (data_assimilation < 2) || (1/param.viscosity == 100)
         param.name_file_mode = [ param.folder_data ...
             'mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
         load(param.name_file_mode,'phi_m_U');
-    case 2
+elseif (1/param.viscosity == 300)
         param.name_file_mode = [ param.folder_data_PIV ...
             'mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
         load(param.name_file_mode,'phi_m_U','MX_PIV',...
             'x_PIV_after_crop','y_PIV_after_crop');
+else
+    error('Choose one of the two above cases');
 end
 % param.name_file_mode = [ param.folder_data ...
 %     'mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
@@ -71,7 +74,7 @@ end
 m=m-1;
 param.d = d;
 
-if data_assimilation == 2
+if data_assimilation == 2 && (1/viscosity == 300)
     param.MX = MX_PIV;
     x_unique_PIV = unique(x_PIV_after_crop);
     y_unique_PIV = unique(y_PIV_after_crop);
@@ -104,16 +107,17 @@ dphi_m_U = gradient_mat(phi_m_U,dX);
 %% Save
 param_from_file = param;
 
-switch data_assimilation
-    case {0,1}
+if (data_assimilation < 2) || (1/param.viscosity == 100)
         param.name_file_grad_mode = [ param.folder_data....
             'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
         save(param.name_file_grad_mode,'param_from_file','dphi_m_U','-v7.3');
-    case 2
+elseif (1/param.viscosity == 300)
         param.name_file_grad_mode = [ param.folder_data_PIV....
             'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
         save(param.name_file_grad_mode,'param_from_file','dphi_m_U','MX_PIV',...
             'x_unique_PIV','y_unique_PIV','-v7.3');
+else
+    error('Choose one of the two above cases');
 end
 % param.name_file_grad_mode = [ param.folder_data....
 %     'grad_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
