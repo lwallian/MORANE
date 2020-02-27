@@ -14,29 +14,8 @@ if nargin == 0
     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
-    % % figure;
-    % nb_modes_min=2;
-    % nb_modes_max=32;
-    % % nb_modes_max=2;
     
-    % nb_modes_min=2
-    % nb_modes_max=6
-    % % % nb_modes_min=28
-    % % % nb_modes_max=32
-    % % vect_nb_modes = [8 16]
-    % % vect_nb_modes = nb_modes_min:2:nb_modes_max
-    % vect_nb_modes = 2.^5
-    %     vect_nb_modes = 2.^(1:3)
-    %             vect_nb_modes = 2.^(1:5)
-    %     vect_nb_modes = 2;
-    %     vect_nb_modes = [8];
-    vect_nb_modes = [2 4 8]
-    %     vect_nb_modes = [16 8 6 4 2];
-    %     vect_nb_modes = [2 4 6 8];
-    %             vect_nb_modes = 2.^(1:4)
-    %         vect_nb_modes = 2.^(1:4)
-    %             vect_nb_modes = 2.^(1:6)
-    
+    vect_nb_modes = [2 4 6 8]
     plot_EV=true
     % Type of data
     
@@ -64,13 +43,13 @@ if nargin == 0
     vect_reconstruction = [ false ]
     % vect_reconstruction = [true ]
     % adv_corrected = true
-    vect_adv_corrected = [ true]
-    %     vect_adv_corrected = [true false]
+        vect_adv_corrected = [ true]
+%     vect_adv_corrected = [true false]
     %                 vect_adv_corrected = [true ]
     
-    vect_data_assimilation = [ 0 ]
+    vect_data_assimilation = [ 2 ]
     % vect_data_assimilation = [ true ]
-%     vect_fake_PIV = [ true false ]
+    %     vect_fake_PIV = [ true false ]
     if vect_data_assimilation == 2
         vect_coef_bruit_obs = nan
         %         vect_coef_bruit_obs = 0.06
@@ -82,8 +61,8 @@ if nargin == 0
         
         %         param_obs.n_simu = 30;
         param_obs.n_simu = 100;
-%         param_obs.nb_mutation_steps = 30;
         param_obs.nb_mutation_steps = 0;
+        %         param_obs.nb_mutation_steps = 0;
         
         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
         param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
@@ -92,7 +71,32 @@ if nargin == 0
         param_obs.y0_index = 10;   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
         param_obs.nbPoints_y = 1;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
         param_obs.assimilation_period = 5/10;
+        
+        %         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
+        %         param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+        %         param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+        %         param_obs.nbPoints_x = 3;     %    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        %         param_obs.y0_index = 10;   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+        %         param_obs.nbPoints_y = 3;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        %         param_obs.assimilation_period = 5;
         param_obs
+        
+%                 param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
+%                 param_obs.subsampling_PIV_grid_factor = 10;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+%                 param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+%                 param_obs.nbPoints_x = 3;     %    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+%                 param_obs.y0_index = 10;   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+%                 param_obs.nbPoints_y = 3;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+%                 param_obs.assimilation_period = 5/10;
+        
+        %         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
+        %         param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+        %         param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+        %         param_obs.nbPoints_x = 1;     %    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        %         param_obs.y0_index = 10;   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+        %         param_obs.nbPoints_y = 1;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+        %         param_obs.assimilation_period = 5/10;
+        %         param_obs
     else
         vect_coef_bruit_obs = [0.1 0.8]
         param_obs = nan
@@ -103,7 +107,9 @@ if nargin == 0
     switch type_data
         case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
             % Threshold used in the estimation of the optimal subsampling time step
-            v_threshold=1e-6 % BEST
+            %             v_threshold=1e-6 % BEST
+            v_threshold=NaN
+            viscosity = 1/100;
             vect_modal_dt=0
             %             vect_modal_dt=0:1
             
@@ -131,9 +137,11 @@ if nargin == 0
             vect_modal_dt = true
         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
             % Threshold used in the estimation of the optimal subsampling time step
-            v_threshold=1e-4 % BEST
+            %             v_threshold=1e-4 % BEST
+            v_threshold = NaN
             %             vect_modal_dt=true % BEST
             vect_modal_dt=0
+            viscosity = 1/300;
             
             %             v_threshold=[1e-1 1e-2]
             %             vect_modal_dt=0:2
@@ -200,6 +208,14 @@ for data_assimilation = vect_data_assimilation
         else
             error('Choose one of the two above cases');
         end
+        %         switch data_assimilation
+        %             case {0,1}
+        %                 name_file_tensor_mode = [ param.folder_data ...
+        %                     '2dvort_mode_' type_data '_' num2str(k) '_modes.mat'];
+        %             case 2
+        %                 name_file_tensor_mode = [ param.folder_data_PIV ...
+        %                     '2dvort_mode_PIV_' type_data '_' num2str(k) '_modes.mat'];
+        %         end
         if ~ (exist(name_file_tensor_mode,'file') == 2)
             % Compute topos gradients
             [param_temp,dphi_m_U] = grad_topos(type_data,k,...
