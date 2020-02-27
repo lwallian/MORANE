@@ -31,11 +31,17 @@ end
 factor_satur = 1.3;
 % factor_satur = 1.5;
 
+%%
+param.name_file_mode_PIV = [ param.folder_data_PIV ...
+    'mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+load(param.name_file_mode_PIV,'x_PIV_after_crop','y_PIV_after_crop');
+x_unique_PIV = unique(x_PIV_after_crop);
+y_unique_PIV = unique(y_PIV_after_crop);
 
-
-param.name_file_omega_mode = [ param.folder_data_PIV ...
-    '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
-load(param.name_file_omega_mode,'x_unique_PIV','y_unique_PIV');
+% param.name_file_omega_mode = [ param.folder_data_PIV ...
+%     '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+% load(param.name_file_omega_mode,'x_unique_PIV','y_unique_PIV');
+%%
 
 Q=reshape(Q,[param.MX n1]);
 if param.data_assimilation == 2 && (1/param.viscosity == 300)
