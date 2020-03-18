@@ -43,8 +43,16 @@ no_subampl_in_forecast = False
 plot_debug = False
 data_assimilate_dim = 2
 nb_modes = 2
-dt_PIV = 0.080833
-Re = 300
+switcher = {
+'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': float(0.080833),
+'DNS100_inc3d_2D_2018_11_16_blocks_truncated' : float(0.05625)
+}
+dt_PIV = switcher.get(type_data,[float('Nan')])
+switcher = {
+'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 300 ,
+'DNS100_inc3d_2D_2018_11_16_blocks_truncated': 100  
+}
+Re = switcher.get(type_data,[float('Nan')])
 test_fct = 'b'
 #svd_pchol = True
 choice_n_subsample = 'auto_shanon'
