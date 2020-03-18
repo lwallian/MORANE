@@ -179,6 +179,8 @@ if compute_PIV_modes + compute_fake_PIV + computed_PIV_variance_tensor > 0
     return;
 end
 
+disp('Super_main done');
+
 %% The ROM is simulated on a test basis
 super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,modal_dt,...

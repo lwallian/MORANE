@@ -12,14 +12,13 @@ global correlated_model;
 % if nargin < 6
 %     param_obs = nan;
 % end
-switch param.data_assimilation
-    case {0,1}
+if (param.data_assimilation < 2) || (1/param.viscosity == 100)
         param.name_file_omega_mode = [ param.folder_data ...
             '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];
         load(param.name_file_omega_mode,'param_from_file',...
             'omega_phi_m_U');
         param_obs = nan;
-    case 2
+elseif (1/param.viscosity == 300)
         param.name_file_omega_mode = [ param.folder_data_PIV ...
             '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
         load(param.name_file_omega_mode,'param_from_file',...
@@ -27,6 +26,8 @@ switch param.data_assimilation
         param.MX = MX_PIV;
         param.d = 2;
 %         param.param_obs = param_obs;
+else
+    error('Choose one of the two above cases');
 end
 % param.name_file_omega_mode = [ param.folder_data ...
 %     '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes.mat'];

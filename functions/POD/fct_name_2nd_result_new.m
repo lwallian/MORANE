@@ -29,7 +29,7 @@ end
 % end
 param.name_file_2nd_result=[param.name_file_2nd_result '_fullsto'];
 mkdir(param.name_file_2nd_result)
-param.name_file_2nd_result=[param.name_file_2nd_result '\'];
+param.name_file_2nd_result=[param.name_file_2nd_result '/'];
 % if modal_dt
 %     param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
 % end

@@ -31,16 +31,26 @@ end
 factor_satur = 1.3;
 % factor_satur = 1.5;
 
+%%
+param.name_file_mode_PIV = [ param.folder_data_PIV ...
+    'mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+load(param.name_file_mode_PIV,'x_PIV_after_crop','y_PIV_after_crop');
+x_unique_PIV = unique(x_PIV_after_crop);
+y_unique_PIV = unique(y_PIV_after_crop);
 
+% param.name_file_omega_mode = [ param.folder_data_PIV ...
+%     '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+% load(param.name_file_omega_mode,'x_unique_PIV','y_unique_PIV');
+%%
 
 Q=reshape(Q,[param.MX n1]);
 if param.data_assimilation == 2 && (1/param.viscosity == 300)
     x_cylinder=0;
-    %     param.name_file_omega_mode = [ param.folder_data_PIV ...
-    %         '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
-    param.name_file_omega_mode = [ param.folder_data_PIV ...
-        '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
-    load(param.name_file_omega_mode,'x_unique_PIV','y_unique_PIV');
+%     %     param.name_file_omega_mode = [ param.folder_data_PIV ...
+%     %         '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+%     param.name_file_omega_mode = [ param.folder_data_PIV ...
+%         '2dvort_mode_' param.type_data '_' num2str(param.nb_modes) '_modes_PIV.mat'];
+%     load(param.name_file_omega_mode,'x_unique_PIV','y_unique_PIV');
     X = x_unique_PIV; Y = y_unique_PIV;
     x_cut = x_unique_PIV(1);
     if strcmp(param.type_data,'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated')
@@ -64,6 +74,7 @@ else
     
     X=param.dX(1)*(0:(param.MX(1)-1));
     X = X + x_cut;
+    x_unique_PIV = x_unique_PIV + x_cylinder;
     Y=param.dX(2)*(0:(param.MX(2)-1));
     Y=Y-mean(Y);
     % [X,Y]=ndgrid(X,Y);
@@ -152,27 +163,33 @@ Q_save=Q;
 
 
 if param.data_assimilation    
-    switch param.type_data
-        case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-            %             %             X_mes = x_unique_PIV(1+([10]));
-            %             %             Y_mes = y_unique_PIV(1+([10]));
-            %             %             X_mes = x_unique_PIV(1+([10 13 16]));
-            %             %             Y_mes = y_unique_PIV(1+([10 13 16]));
-            %             if (~isstruct(param.param_obs)) && isnan(param.param_obs)
-            %                 X_mes =[];Y_mes=[];
-            %             else
+%     switch param.type_data
+%         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
+%             %             %             X_mes = x_unique_PIV(1+([10]));
+%             %             %             Y_mes = y_unique_PIV(1+([10]));
+%             %             %             X_mes = x_unique_PIV(1+([10 13 16]));
+%             %             %             Y_mes = y_unique_PIV(1+([10 13 16]));
+%             %             if (~isstruct(param.param_obs)) && isnan(param.param_obs)
+%             %                 X_mes =[];Y_mes=[];
+%             %             else
+%             X_mes = x_unique_PIV( 1 + param.param_obs.x0_index + ...
+%                 param.param_obs.subsampling_PIV_grid_factor * ...
+%                 (1:param.param_obs.nbPoints_x) );
+%             Y_mes = y_unique_PIV( 1 + param.param_obs.y0_index + ...
+%                 param.param_obs.subsampling_PIV_grid_factor * ...
+%                 (1:param.param_obs.nbPoints_y) );
             X_mes = x_unique_PIV( 1 + param.param_obs.x0_index + ...
                 param.param_obs.subsampling_PIV_grid_factor * ...
-                (1:param.param_obs.nbPoints_x) );
+                (0:(param.param_obs.nbPoints_x-1)) );
             Y_mes = y_unique_PIV( 1 + param.param_obs.y0_index + ...
                 param.param_obs.subsampling_PIV_grid_factor * ...
-                (1:param.param_obs.nbPoints_y) );
+                (0:(param.param_obs.nbPoints_y-1)) );
 %             end
             
-        otherwise
-            X_mes = nan;
-            Y_mes = nan;
-    end
+%         otherwise
+%             X_mes = nan;
+%             Y_mes = nan;
+%     end
     [X_mes,Y_mes]=ndgrid(X_mes,Y_mes);
     X_mes=X_mes(:);
     Y_mes=Y_mes(:);

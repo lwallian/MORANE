@@ -55,8 +55,12 @@ switcher = {
 Re = switcher.get(type_data,[float('Nan')])
 test_fct = 'b'
 #svd_pchol = True
-choice_n_subsample = 'auto_shanon'
 adv_corrected = False
+choice_n_subsample = 'htgen'
+#    choice_n_subsample = 'auto_shanon'
+stochastic_integration = 'Ito'
+estim_rmv_fv = True
+eq_proj_div_free = 2
 #adv_corrected = [False]
 u_inf_measured = 0.388 
 #number_of_PIV_files = 300
@@ -80,50 +84,71 @@ a_t = '_a_cst_'
 
 ############################ Construct the path to select the model constants I,L,C,pchol and etc.
 
-file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-        a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample 
+file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_'  \
+          + choice_n_subsample
 if choice_n_subsample == 'auto_shanon' :
     file = file + '_threshold_' + str(threshold)
-file = file +'fct_test_' + test_fct    
-#    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
-#            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
-#            'fct_test_' + test_fct    
-#    var_exits =  'var' in locals() or 'var' in globals()
-#    period_estim = 'period_estim' in locals() or 'period_estim' in globals()
-#    if var_exits == True and period_estim == True:
-#        file = file + '_p_estim_' + str(period_estim);
+file = file + test_fct   
 file = file + '_fullsto' # File where the ROM coefficients are save
-print(file)
-#    file_save = file
-if not adv_corrected:
-    file = file + '_no_correct_drift'
-file = file + '.mat'
-file_res = folder_results / Path(file)
-if not os.path.exists(file_res):
-    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_'  \
-              + choice_n_subsample
-    if choice_n_subsample == 'auto_shanon' :
-        file = file + '_threshold_' + str(threshold)
-    file = file + test_fct   
-    file = file + '_fullsto' # File where the ROM coefficients are save
 #        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
 #            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
 #        file = file_save
-    if not adv_corrected:
-        file = file + '/_no_correct_drift'
-    file_save = file
-    file = file + '.mat'
-    file_res = folder_results / Path(file)
-    if not os.path.exists(file_res):
-        
-        file = file_save + '/'
-        if not adv_corrected:
-            file = file + '_no_correct_drift'
-        file = file_save + '_integ_Ito'
-        
+file = file + '/'
+if not adv_corrected:
+    file = file + '_no_correct_drift'
+file = file + '_integ_' + stochastic_integration
+if estim_rmv_fv:
+    file = file + '_estim_rmv_fv'
+if eq_proj_div_free == 2:
+    file = file + '_DFSPN'            
+#    file_save = file
+file = file + '.mat'
+file_res = folder_results / Path(file)
+    
+#file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+#        a_t + '_decor_by_subsampl_bt_decor_choice_' + choice_n_subsample 
+#if choice_n_subsample == 'auto_shanon' :
+#    file = file + '_threshold_' + str(threshold)
+#file = file +'fct_test_' + test_fct    
+##    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+##            a_t + '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' + str(threshold) + \
+##            'fct_test_' + test_fct    
+##    var_exits =  'var' in locals() or 'var' in globals()
+##    period_estim = 'period_estim' in locals() or 'period_estim' in globals()
+##    if var_exits == True and period_estim == True:
+##        file = file + '_p_estim_' + str(period_estim);
+#file = file + '_fullsto' # File where the ROM coefficients are save
+#print(file)
+##    file_save = file
+#if not adv_corrected:
+#    file = file + '_no_correct_drift'
+#file = file + '.mat'
+#file_res = folder_results / Path(file)
+#if not os.path.exists(file_res):
+#    file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_'  \
+#              + choice_n_subsample
+#    if choice_n_subsample == 'auto_shanon' :
+#        file = file + '_threshold_' + str(threshold)
+#    file = file + test_fct   
+#    file = file + '_fullsto' # File where the ROM coefficients are save
+##        file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \
+##            choice_n_subsample + '_threshold_' + str(threshold) + test_fct   
+##        file = file_save
+#    if not adv_corrected:
+#        file = file + '/_no_correct_drift'
+#    file_save = file
+#    file = file + '.mat'
+#    file_res = folder_results / Path(file)
+#    if not os.path.exists(file_res):
+#        
+#        file = file_save + '/'
+#        if not adv_corrected:
+#            file = file + '_no_correct_drift'
 #        file = file_save + '_integ_Ito'
-        file = file + '.mat'
-        file_res = folder_results / Path(file)
+#        
+##        file = file_save + '_integ_Ito'
+#        file = file + '.mat'
+#        file_res = folder_results / Path(file)
     
 
 #file = '1stresult_' + type_data + '_' + str(nb_modes) + '_modes_' + \

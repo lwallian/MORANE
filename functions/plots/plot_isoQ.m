@@ -3,7 +3,8 @@ function [v_threshold] = ...
     big_T,first_big_T,Q,v_index_time)
 %
 
-zoom = 2;
+% zoom = 2;
+zoom = 3;
 % zoom=false;
 % zoom=true;
 
@@ -70,6 +71,9 @@ clear width2
 ratio_width = 1.5;
 % ratio_width = 2;
 switch zoom
+    case 3
+        height2=1.25;
+        add_height2=1.3;
     case 2
         height2=1.25;
         add_height2=1.3;
@@ -141,6 +145,29 @@ Z=dX(3)*(-((param.MX(3)-1)/2):((param.MX(3)-1)/2));
 % end
 
 switch zoom
+    case 3
+        Y_max = 2;
+        idx_x=(X<15)&(X>4.5);
+        X=X(idx_x);
+        idx_y=(abs(Y)<Y_max);
+        Y=Y(idx_y);
+        idx= bsxfun(@and,idx_x' , idx_y);
+        idx = repmat(idx, [ 1 1 param.MX(3)]);
+        idx=idx(:);
+        %         div_z = div_z(idx,:,:);
+        Q = Q(idx,:);
+        vol_cyl = vol_cyl(idx,:);
+        %         V = V(idx,:,:,:);
+        %         V=V(idx,:,:,:);
+        %         D=D(idx,:,:);
+        param.MX=[sum(idx_x) sum(idx_y) param.MX(3)];
+        %         param.MX=[sum(idx_x) sum(idx_y)];
+        M=prod(param.MX);
+        axis_set = [ 4.5 15 -Y_max Y_max Z(1) Z(end)];
+        %         axis_set = [ 4.5 10 -1.5 1.5];
+        %         axis_set = [-1.5 1.5 4.5 10];
+        
+        nb_subsample_begin=10;
     case 2
         idx_x=(X<15)&(X>4.5);
         X=X(idx_x);
@@ -226,6 +253,10 @@ switch zoom
     case 2
         param.name_file_Reconstruction_Q = ...
             [ param.name_file_Reconstruction_Q 'zoom2/'];
+        mkdir(param.name_file_Reconstruction_Q);
+    case 3
+%         param.name_file_Reconstruction_Q = ...
+%             [ param.name_file_Reconstruction_Q 'zoom3/'];
         mkdir(param.name_file_Reconstruction_Q);
 end
 

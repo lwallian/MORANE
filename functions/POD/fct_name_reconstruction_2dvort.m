@@ -16,6 +16,10 @@ switch param.data_assimilation
 end
 param.name_file_Reconstruction_omega =[ folder_data 'Reconstruction_2dvort_' ...
     param.type_data '_subSampl_' num2str(param.decor_by_subsampl.n_subsampl_decor) '/'];
+if param.DA.bool
+    param.name_file_Reconstruction_omega=[ param.name_file_Reconstruction_omega ...
+        '_DA_2/'];
+end
 if ~strcmp(name_simu,'ref')
     % if strcmp(name_simu,'ref')
     %     param.name_file_Reconstruction_omega=[ folder_data 'Reconstruction_2dvort_' ...
