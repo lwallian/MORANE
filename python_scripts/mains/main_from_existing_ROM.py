@@ -237,7 +237,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
 #        vector_of_assimilation_time = np.arange(start=dt_PIV,stop=(number_of_PIV_files+1)*dt_PIV,step=dt_PIV) # Construct the moments that can be assimilated.
         vector_of_assimilation_time = vector_of_assimilation_time[::factor_of_PIV_time_subsampling]              # Using the factor to select the moments that we will take to assimilate
     elif assimilate == 'fake_real_data':
-        plot_ref = True                     # Plot bt_tot
+        plot_ref = plot_ref_gl                     # Plot bt_tot
         switcher = {
         'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated': 80 ,
         'DNS100_inc3d_2D_2018_11_16_blocks_truncated': 14  
