@@ -48,12 +48,13 @@ sub_sampling_PIV_data_temporaly = True  # True                                  
 
 
 plt_real_time = True                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
-plot_period = float(5/10)/2
-heavy_real_time_plot = True
+plot_period = 2 * float(5/10)/2
+heavy_real_time_plot = True # Compute confidence interval for real-time plots
 #n_frame_plots = 20           
-fig_width= 18
-fig_height = 8
+fig_width= 9
+fig_height = 4      
 plot_Q_crit = True
+plot_ref_gl = False
 
 
 mask_obs = True      # True            # Activate spatial mask in the observed data
@@ -117,7 +118,6 @@ color_mean_EV = 'deepskyblue'
 color_quantile_EV = 'paleturquoise'
         
 plot_debug = False
-plot_ref_gl = True
 pos_Mes = -7
 
 #import matplotlib.pyplot as plt
