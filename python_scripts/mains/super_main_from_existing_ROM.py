@@ -40,7 +40,7 @@ if __name__ == '__main__':
     vect_nb_modes = [2] # Select the number of solved temporal modes
     no_subampl_in_forecast = False 
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
-    vect_adv_corrected = [True,False]
+    vect_adv_corrected = [True]
     test_fct = 'b'
     svd_pchol = True
     choice_n_subsample = 'htgen'
@@ -49,21 +49,22 @@ if __name__ == '__main__':
     estim_rmv_fv = True
 #    eq_proj_div_free = 1
 #    vect_eq_proj_div_free = 2
-    vect_eq_proj_div_free = [2,1]
-    EV = True
+    vect_eq_proj_div_free = [2]
+    EV = False
     
     #nb_mutation_steps = 0                # Number of mutation steps in particle filter 
-#    vect_nb_mutation_steps = 30                # Number of mutation steps in particle filter 
-    vect_nb_mutation_steps = [30,0]                # Number of mutation steps in particle filter 
+    vect_nb_mutation_steps = [0]                # Number of mutation steps in particle filter 
+#    vect_nb_mutation_steps = [30,0]                # Number of mutation steps in particle filter 
 
 
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
-#    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
-#    SECONDS_OF_SIMU = 70. #70. #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
+    
+    type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
+    SECONDS_OF_SIMU = 70. #70. #0.5                    # We have 331 seconds of real PIV data for reynolds=300 beacuse we have 4103 files. --> ( 4103*0.080833 = 331).....78 max in the case of fake_PIV
 
-    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'  # Reynolds 100
-    SECONDS_OF_SIMU = 100. #70. #0.5                   
+#    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'  # Reynolds 100
+#    SECONDS_OF_SIMU = 100. #70. #0.5                   
     
 #%%   
 #Important parameters    
