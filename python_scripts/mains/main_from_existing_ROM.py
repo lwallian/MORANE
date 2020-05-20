@@ -752,11 +752,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             - THE NOISE IS UNCORRELATED IN TIME AND IN SPACE. SUBSAMPLING SPATIALLY AND TEMPORALLY CAN INCREASE THE POSSIBILITY OF BE TRUE.
     
     '''
-    threshold_ = str(threshold).replace('.', '_',)
+#    threshold_ = str(threshold).replace('.', '_',)
     path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').\
     joinpath('HSigSigH_PIV_'+type_data+'_'+str(nb_modes)\
-             +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
-#    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
+             +'_modes_a_cst_threshold_NaN')  # Load Sigma_inverse
+#             +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
+##    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
     Sigma_inverse_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
     
     
