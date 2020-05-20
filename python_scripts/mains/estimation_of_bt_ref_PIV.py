@@ -22,23 +22,25 @@ Plot_error_bar = True
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
 type_data = 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated' # Reynolds 300
 #    type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'  # Reynolds 100
-switcher = {
-    'incompact3D_noisy2D_40dt_subsampl_truncated': [[1e-05],[False]],
-    'DNS100_inc3d_2D_2018_11_16_blocks_truncated': [[1e-06],[True]], # BEST
-    'turb2D_blocks_truncated': [[1e-05],[False,True]],
-    'incompact3d_wake_episode3_cut_truncated': [[1e-06],[False]],
-    'incompact3d_wake_episode3_cut': [[1e-06],[False]],
-    'LES_3D_tot_sub_sample_blurred': [[1e-03],[True]],
-    'inc3D_Re3900_blocks': [[1e-03],[True]],
-    'inc3D_Re3900_blocks_truncated': [[1e-03],[True]],
-    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':[[1e-04],[True]] # BEST
-   
-}
-#switcher.get(argument,[[0.0005],[False]])
-# Get threshold and modal_dt
-threshold,modal_dt = switcher.get(type_data)
-threshold=threshold[0]
-modal_dt=modal_dt[0]
+#switcher = {
+#    'incompact3D_noisy2D_40dt_subsampl_truncated': [[1e-05],[False]],
+#    'DNS100_inc3d_2D_2018_11_16_blocks_truncated': [[1e-06],[True]], # BEST
+#    'turb2D_blocks_truncated': [[1e-05],[False,True]],
+#    'incompact3d_wake_episode3_cut_truncated': [[1e-06],[False]],
+#    'incompact3d_wake_episode3_cut': [[1e-06],[False]],
+#    'LES_3D_tot_sub_sample_blurred': [[1e-03],[True]],
+#    'inc3D_Re3900_blocks': [[1e-03],[True]],
+#    'inc3D_Re3900_blocks_truncated': [[1e-03],[True]],
+#    'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':[[1e-04],[True]] # BEST
+#   
+#}
+##switcher.get(argument,[[0.0005],[False]])
+## Get threshold and modal_dt
+#threshold,modal_dt = switcher.get(type_data)
+#threshold=threshold[0]
+#modal_dt=modal_dt[0]
+threshold = float('NaN')
+modal_dt = 0
 no_subampl_in_forecast = False 
 plot_debug = False
 data_assimilate_dim = 2
@@ -236,11 +238,16 @@ Hpiv_Topos = np.reshape(Hpiv_Topos,\
 #%%   Calculate Sigma for LS variance estimation
 #if Plot_error_bar:
 print('Loading Sigma')
-threshold_ = str(threshold).replace('.', '_',)
-path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
-joinpath('diffusion_mode_PIV_'+type_data+'_'+str(int(param['nb_modes']))\
-         +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
-#    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
+if choice_n_subsample == 'auto_shanon' :
+    threshold_ = str(threshold).replace('.', '_',)
+    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
+    joinpath('diffusion_mode_PIV_'+type_data+'_'+str(int(param['nb_modes']))\
+             +'_modes_a_cst_threshold_'+ threshold_)  # Load Sigma_inverse
+else:
+    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data').\
+    joinpath('diffusion_mode_PIV_'+type_data+'_'+str(int(param['nb_modes']))\
+         +'_modes_a_cst_threshold_NaN')  # Load Sigma_inverse
+##    path_Sigma_inverse = Path(__file__).parents[3].joinpath('data_PIV').joinpath('HSigSigH_PIV_'+type_data+'_'+str(param['nb_modes'])+'_modes_a_cst_threshold_0_'+str(threshold)[2:])  # Load Sigma_inverse
 Sigma_data = hdf5storage.loadmat(str(path_Sigma_inverse)) # Select Sigma_inverse
 Sigma = Sigma_data['z_on_tau'][:,0,:,:]                             # Load Sigma inverse 
 ##### Transform this matrix in a square matrix
