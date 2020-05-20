@@ -56,7 +56,7 @@ if param.data_assimilation ==2 && (1/param.viscosity == 300)
         param.folder_file_U_fake_PIV = [ param.folder_file_U_fake_PIV(1:end-1) ...
             '_noNoise/'];
     end
-elseif (1/param.viscosity ~= 100)
+elseif (param.data_assimilation > 1) && (1/param.viscosity ~= 100)
     error(['Use one of the above cases : either refernce in the' ...
         '"DNS space" or in the "PIV space"']);
 end
