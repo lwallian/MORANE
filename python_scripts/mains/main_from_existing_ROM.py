@@ -1228,28 +1228,40 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     
     # Defining figure to plot if real data is True 
     if plt_real_time==True:
+        if bt_tot.shape[1]<=2:
+            fig_height_loc = int(float(fig_height)/2)
+        else:
+            fig_height_loc = fig_height
         plt.ion()
-        fig = plt.figure(0,figsize =[fig_width,fig_height])
+        fig = plt.figure(0,figsize =[fig_width,fig_height_loc])
         plt.rcParams['axes.grid'] = True
         
         
-        ax_1 = fig.add_subplot(2,2,1)
-        ax_1.set_ylim([-10, 10])
         
-        ax_2 = fig.add_subplot(2,2,2)
-        ax_2.set_ylim([-10, 10])
-        
-        ax_3 = fig.add_subplot(2,4,5)
-        ax_3.set_ylim([-10, 10])
-        
-        ax_4 = fig.add_subplot(2,4,6)
-        ax_4.set_ylim([-10, 10])
-        
-        ax_5 = fig.add_subplot(2,4,7)
-        ax_5.set_ylim([-10, 10])
-        
-        ax_6 = fig.add_subplot(2,4,8)
-        ax_6.set_ylim([-10, 10])
+        if bt_tot.shape[1]<=2:
+            ax_1 = fig.add_subplot(1,2,1)
+            ax_1.set_ylim([-10, 10])
+            
+            ax_2 = fig.add_subplot(1,2,2)
+            ax_2.set_ylim([-10, 10])
+        else:
+            ax_1 = fig.add_subplot(2,2,1)
+            ax_1.set_ylim([-10, 10])
+            
+            ax_2 = fig.add_subplot(2,2,2)
+            ax_2.set_ylim([-10, 10])
+            
+            ax_3 = fig.add_subplot(2,4,5)
+            ax_3.set_ylim([-10, 10])
+            
+            ax_4 = fig.add_subplot(2,4,6)
+            ax_4.set_ylim([-10, 10])
+            
+            ax_5 = fig.add_subplot(2,4,7)
+            ax_5.set_ylim([-10, 10])
+            
+            ax_6 = fig.add_subplot(2,4,8)
+            ax_6.set_ylim([-10, 10])
         
         quantiles_now = np.quantile(bt_MCMC[-1,:,:],q=[0.025,0.975],axis=1)
         particles_mean_now = np.mean(bt_MCMC[-1,:,:],axis=1)
