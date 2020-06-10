@@ -205,6 +205,10 @@ if param.decor_by_subsampl.bool
                 cor_t = htgenCorrelationTime(c, bt, param.dt);
                 param.decor_by_subsampl.tau_corr = max( cor_t , 1);
                 param.decor_by_subsampl.n_subsampl_decor = max(floor( cor_t ), 1);
+            case 'htgen2'
+                cor_t = htgenCorrelationTime2(c, bt, param.dt);
+                param.decor_by_subsampl.tau_corr = max( cor_t , 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor( cor_t ), 1);
             case 'truncated'
                 cor_t = correlationTimeCut(c, bt);
                 param.decor_by_subsampl.tau_corr = max( cor_t , 1);
@@ -231,6 +235,12 @@ if param.decor_by_subsampl.bool
                 param.decor_by_subsampl.tau_corr = max(htgenCorrelationTime(dt_c, dbt, param.dt), 1);
                 param.decor_by_subsampl.n_subsampl_decor = max(floor(htgenCorrelationTime(dt_c, dbt, param.dt)), 1);
                 tau_ss = max(htgenCorrelationTime(c, bt, param.dt), 1);
+                param.tau_ss = tau_ss * param.dt;
+            case 'htgen2'
+                dbt = diff(bt, 1, 1) ./ param.dt;
+                param.decor_by_subsampl.tau_corr = max(htgenCorrelationTime2(dt_c, dbt, param.dt), 1);
+                param.decor_by_subsampl.n_subsampl_decor = max(floor(htgenCorrelationTime2(dt_c, dbt, param.dt)), 1);
+                tau_ss = max(htgenCorrelationTime2(c, bt, param.dt), 1);
                 param.tau_ss = tau_ss * param.dt;
             case 'truncated'
                 dbt = diff(bt, 1, 1) ./ param.dt;
