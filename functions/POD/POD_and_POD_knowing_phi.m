@@ -81,6 +81,7 @@ if param.save_all_bi
     lambda=lambda(end:-1:1);
     lambda=max(lambda,0);
     W=W(:,end:-1:1);
+    plot_lambda_decrease
 else
     if param.save_all_bi
         [W,S]=eig(c);
