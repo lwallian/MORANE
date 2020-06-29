@@ -7,11 +7,11 @@ function super_main_from_existing_ROM_Simulation(...
 %
 
 close all
-plot_EV_noise = false;
+vect_plot_EV_noise = false;
 
 if nargin == 0
     init;
-    plot_EV_noise = true
+    vect_plot_EV_noise = [ true false ]
     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
@@ -71,39 +71,8 @@ if nargin == 0
     % % type_data = 'incompact3d_wake_episode3_cut_truncated';
     
     %% Important parameters
-    switch type_data
-        %  - Threshold used in the estimation of the optimal subsampling time step
-        % - if modal-dt = true,
-        %   (mimic the use of a) disctinct subsampling time step for the
-        %   differentials equations of distincts chronos
-        case {'incompact3D_noisy2D_40dt_subsampl_truncated'}
-            v_threshold=[1e-5]
-            vect_modal_dt=false
-        case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
-            % Threshold used in the estimation of the optimal subsampling time step
-            v_threshold=1e-6 % BEST
-            vect_modal_dt=0
-        case 'turb2D_blocks_truncated'
-            v_threshold= [1e-5]
-            vect_modal_dt=0:1
-        case {'incompact3d_wake_episode3_cut_truncated',...
-                'incompact3d_wake_episode3_cut'}
-            v_threshold=1e-6
-            % %         v_threshold=1e-4
-            vect_modal_dt=false
-            %         vect_modal_dt=true;
-        case {'LES_3D_tot_sub_sample_blurred',...
-                'inc3D_Re3900_blocks',...
-                'inc3D_Re3900_blocks_truncated'}
-            v_threshold=1e-3
-            vect_modal_dt=true
-        case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-            v_threshold=1e-4 % BEST
-            vect_modal_dt=0;
-        otherwise
-            v_threshold=0.0005
-            vect_modal_dt=false
-    end
+    v_threshold=nan;
+    vect_modal_dt=false
     
     if strcmp(choice_n_subsample, 'corr_time')
         v_threshold = NaN;
@@ -116,6 +85,7 @@ else
 end
 nb_modes_max = max(vect_nb_modes);
 
+for plot_EV_noise=vect_plot_EV_noise
 for svd_pchol=vect_svd_pchol
 for modal_dt=vect_modal_dt
     for adv_corrected=vect_adv_corrected
@@ -145,11 +115,12 @@ for modal_dt=vect_modal_dt
                 
                 fig1=figure(1);
                 ax=axis;
-                fig1.Position = [0 0 (ax(2)-ax(1))/15 6];
-%                 fig1.Position = [0 0 4*(ax(2)-ax(1))/20 4];
-% %                 gca(fig1,'Units','inches', ...
-% %                     'Position',[0 0 4*(ax(2)-ax(1))/20 4], ...
-% %                     'PaperPositionMode','auto');
+                fig1.Position = [0 0 2.65 4];
+%                 fig1.Position = [0 0 (ax(2)-ax(1))/15 6];
+% %                 fig1.Position = [0 0 4*(ax(2)-ax(1))/20 4];
+% % %                 gca(fig1,'Units','inches', ...
+% % %                     'Position',[0 0 4*(ax(2)-ax(1))/20 4], ...
+% % %                     'PaperPositionMode','auto');
                 %% Save plot
                 folder_results = [ pwd '/resultats/current_results/summary/'];
                 current_pwd = pwd; cd ..
@@ -196,8 +167,14 @@ for modal_dt=vect_modal_dt
                 if estim_rmv_fv
                     str=[str '_estim_rmv_fv'];
                 end
-                if svd_pchol
-                    str=[str '_svd_pchol'];
+%                 if svd_pchol
+%                     str=[str '_svd_pchol'];
+%                 end
+                switch svd_pchol
+                    case 1
+                        str=[str '_svd_pchol'];
+                    case 2
+                        str=[str '_svd_pchol2'];
                 end
                 if eq_proj_div_free == 2
                     str=[str '_DFSPN'];                    
@@ -213,6 +190,7 @@ for modal_dt=vect_modal_dt
             end
         end
     end
+end
 end
 end
 end
