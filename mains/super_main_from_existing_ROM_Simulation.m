@@ -34,7 +34,7 @@ if nargin == 0
     stochastic_integration = 'Ito'; % 'Str'  'Ito'
     estim_rmv_fv = true;
     test_fct ='b';
-    vect_svd_pchol = true
+    vect_svd_pchol = [ 2 true ]
     correlated_model = false
     
     % Projection on the free-divergence-function space

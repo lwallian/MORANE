@@ -24,6 +24,8 @@ if nargin == 0
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
     vect_adv_corrected = [ true ]
     vect_svd_pchol = true
+    vect_adv_corrected = [ true false ]
+    vect_svd_pchol = 2
 %     vect_svd_pchol = svd_pchol
     
     %% Type of data

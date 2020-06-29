@@ -395,7 +395,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
 
         
     #%% Reduction of the noise matrix
-    if svd_pchol:
+    if svd_pchol>0:
         sq_lambda = np.sqrt(lambda_values)
         
         pchol_cov_noises_add = pchol_cov_noises[range(nb_modes),:]
@@ -404,12 +404,18 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
         pchol_cov_noises= np.reshape(pchol_cov_noises, \
                     (nb_modes,nb_modes,(nb_modes+1)*nb_modes),order='F') 
         
-        for j in range(nb_modes):
-            pchol_cov_noises_add[j,:] = (1/sq_lambda[j]) * \
-                                                pchol_cov_noises_add[j,:]
-        for i in range(nb_modes):
+        if svd_pchol==1:
             for j in range(nb_modes):
-                pchol_cov_noises[i,j,:] = (sq_lambda[i]/sq_lambda[j]) \
+                pchol_cov_noises_add[j,:] = (1/sq_lambda[j]) * \
+                                                    pchol_cov_noises_add[j,:]
+            for i in range(nb_modes):
+                for j in range(nb_modes):
+                    pchol_cov_noises[i,j,:] = (sq_lambda[i]/sq_lambda[j]) \
+                                                   * pchol_cov_noises[i,j,:]
+        elif svd_pchol==2:
+            for i in range(nb_modes):
+                for j in range(nb_modes):
+                    pchol_cov_noises[i,j,:] = (sq_lambda[i]) \
                                                * pchol_cov_noises[i,j,:]
                                                
         pchol_cov_noises= np.reshape(pchol_cov_noises, \
@@ -426,13 +432,19 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
         pchol_cov_noises= np.reshape(pchol_cov_noises, \
                     (nb_modes,nb_modes,nb_modes),order='F') 
         
-        for i in range(nb_modes):
+        if svd_pchol==1:
+            for i in range(nb_modes):
+                for j in range(nb_modes):
+                    pchol_cov_noises[i,j,:] = (1/(sq_lambda[i]/sq_lambda[j])) \
+                                                   * pchol_cov_noises[i,j,:]
             for j in range(nb_modes):
-                pchol_cov_noises[i,j,:] = (1/(sq_lambda[i]/sq_lambda[j])) \
-                                               * pchol_cov_noises[i,j,:]
-        for j in range(nb_modes):
-            pchol_cov_noises_add[j,:] = (1/(1/sq_lambda[j])) * \
-                                                pchol_cov_noises_add[j,:]
+                pchol_cov_noises_add[j,:] = (1/(1/sq_lambda[j])) * \
+                                                    pchol_cov_noises_add[j,:]
+        elif svd_pchol==2:
+            for i in range(nb_modes):
+                for j in range(nb_modes):
+                    pchol_cov_noises[i,j,:] = (1/(sq_lambda[i])) \
+                                                   * pchol_cov_noises[i,j,:]
 ##        pchol_cov_noises_add = pchol_cov_noises[0,:,:]
 #        pchol_cov_noises_add= np.reshape(pchol_cov_noises_add, \
 #                    (nb_modes,nb_modes),order='F') 
@@ -465,8 +477,10 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     file_plots = file_plots + '_integ_' + stochastic_integration
     if estim_rmv_fv:
         file_plots = file_plots + '_estim_rmv_fv'
-    if svd_pchol:
+    if svd_pchol==1:
         file_plots = file_plots + '_svd_pchol'
+    elif svd_pchol==2:
+        file_plots = file_plots + '_svd_pchol2'
     if eq_proj_div_free == 2:
         file_plots = file_plots + '_DFSPN'       
     file_plots = file_plots + '/' + assimilate + \
