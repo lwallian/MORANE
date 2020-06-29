@@ -48,6 +48,7 @@ d_bt_obs = deriv_num_bt(bt(:,1:nb_modes_used),dt); % N x m
 
 % Remove boundary pixels
 d_bt_obs=d_bt_obs(2:(end-1),:);% (N-2) x m
+bt_ini = bt;
 bt=bt(2:(end-1),:);% (N-2) x m
 bt=bt(1:N_learn_coef_a,:);% (N-2) x m
 d_bt_obs=d_bt_obs(1:N_learn_coef_a,:);% (N-2) x m
@@ -105,10 +106,32 @@ if param.add_noise
     
     d_b_deter = deriv_bt(ILC.EV.I,ILC.EV.L,ILC.EV.C, bt); % (N-2) x m
     % Error
+    
+    if param.rigorous_EV_noise_estim
+        % Time diff
+        d_bt_obs = bt_ini(3:end,1:nb_modes_used) ...
+            - bt_ini(2:end-1,1:nb_modes_used);
+        d_bt_obs = d_bt_obs / dt ;
+    end
+
     err = (d_bt_obs - d_b_deter)';
     % Remove bias
     err = bsxfun(@plus, err, - mean(err,2));
     mat_cov_error = 1/(size(err,2)-1) * (err * err') * dt  ;
+    
+    if param.rigorous_EV_noise_estim
+        c_prime = 1/(size(err,1)) * (err' * err);
+        correlation = estimateCovS(c_prime);
+        % correlation = estimateAutocorrelation(cov_s);
+        dt_correlation = diff(correlation);
+        % dt_correlation = diff(correlation)./ dt;
+        dt_correlation = [ 0; dt_correlation ];
+        % The time derivative is always 0 at delta t = 0 because of the symetry
+        tau = sqrt(2 * mean(correlation.^2) / mean( dt_correlation.^2));
+        % tau = sqrt(2 * mean((correlation).^2) / mean((diff(correlation) ./ dt).^2));
+        % tau = tau / dt;
+        mat_cov_error = tau * mat_cov_error;
+    end
     
     p_chol = zeros([param.nb_modes*(param.nb_modes+1),param.nb_modes]);
     p_chol(1:param.nb_modes,:) = chol(mat_cov_error,'lower');

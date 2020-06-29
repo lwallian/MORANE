@@ -1,4 +1,4 @@
-function main_EV(nb_modes,type_data,add_noise)
+function main_EV(nb_modes,type_data,add_noise,rigorous_EV_noise_estim)
 % param = main_EV(nb_modes,type_data,threshold,igrida,coef_correctif_estim)
 % Load simulation results, estimate modal time step by Shanon 
 % and compare it with modal Eddy Viscosity ROM and
@@ -52,6 +52,7 @@ if nargin == 0
 end
 if nargin < 3
     add_noise = false;
+    rigorous_EV_noise_estim = false;
 end
 
 % % On which function the Shanon ctriterion is used
@@ -223,6 +224,7 @@ param.N_learn_coef_a = inf;
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 param.nb_period_test = nan;
 param.add_noise = add_noise;
+param.rigorous_EV_noise_estim = rigorous_EV_noise_estim;
 
 [coef_beta, ILC_beta] = estim_vector_mat_beta(bt_tot,ILC,param);
 param.coef_correctif_estim.type_estim='scalar';
