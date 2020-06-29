@@ -30,7 +30,7 @@ if nargin == 0
     % To choose between the shannon and correlation time downsampling
     % methods
 %     choice_n_subsample = 'auto_shannon';
-    choice_n_subsample = 'htgen'; % 'auto_shanon' 'htgen' 'lms'
+    choice_n_subsample = 'htgen2'; % 'auto_shanon' 'htgen' 'lms'
     stochastic_integration = 'Ito'; % 'Str'  'Ito'
     estim_rmv_fv = true;
     test_fct ='b';

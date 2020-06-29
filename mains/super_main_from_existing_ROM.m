@@ -101,7 +101,7 @@ if nargin == 0
     % Meth to choose the time sub-sampling
     % ('auto_shanon'=maxim frequency of resolved chronos)
     % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
-    decor_by_subsampl.choice_n_subsample='htgen'; % 'htgen' 'auto_shanon' 'lms'
+    decor_by_subsampl.choice_n_subsample='htgen2'; % 'htgen' 'auto_shanon' 'lms'
     % decor_by_subsampl.choice_n_subsample = 'corr_time';
     
     % Stochastic integration path : 'Ito' or 'Str'
