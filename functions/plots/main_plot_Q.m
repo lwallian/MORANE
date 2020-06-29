@@ -182,6 +182,8 @@ param.decor_by_subsampl.meth = 'bt_decor';
 param.decor_by_subsampl.choice_n_subsample = 'auto_shanon';
 param.data_assimilation=data_assimilation;
 
+param.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
+
 switch data_assimilation
     case 0
         param = fct_name_2nd_result_new(param,modal_dt,reconstruction);
@@ -395,12 +397,12 @@ if plot_EV && (~ param.DA.bool)
     %         'bt_forecast_MEV','bt_forecast_EV','bt_forecast_NLMEV');
     %     if modal_dt ~= 1
     bt_forecast_MEV = bt_forecast_EV;
-    %     end
-%     clear bt_forecast_EV
-    bt_forecast_EV = ...
-        bt_forecast_EV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
-    bt_forecast_MEV = ...
-        bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+%     %     end
+% %     clear bt_forecast_EV
+%     bt_forecast_EV = ...
+%         bt_forecast_EV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
+%     bt_forecast_MEV = ...
+%         bt_forecast_MEV(1:param.decor_by_subsampl.n_subsampl_decor:end,:);
 end
 
 %% Plots
@@ -412,6 +414,9 @@ end
 param = ref_Q(param,reconstruction);
 switch data_assimilation
     case 0
+        param = reconstruction_Q( ...
+            param,bt_tot(1:param.N_test,:),'PODROM_Opt',...
+            modal_dt,reconstruction);
         bt_err_min=nan(size(bt_MCMC(1:param.N_test,:,idx_min_err_tot)));
         for t=1:param.N_test
             bt_err_min(t,:,:) = bt_MCMC(t,:,idx_min_error(t));

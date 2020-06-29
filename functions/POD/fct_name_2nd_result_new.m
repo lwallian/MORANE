@@ -4,23 +4,23 @@ function param = fct_name_2nd_result_new(param,modal_dt,reconstruction)
 %
 global stochastic_integration;
 global estim_rmv_fv;
-global choice_n_subsample;
+% global choice_n_subsample;
 global correlated_model;
 
 % if param.decor_by_subsampl.bool
 %     switch param.decor_by_subsampl.choice_n_subsample
-switch choice_n_subsample
+switch param.decor_by_subsampl.choice_n_subsample
     case 'auto_shanon'
         param.name_file_2nd_result=[ param.folder_results '2ndresult_' ...
             param.type_data '_' num2str(param.nb_modes) '_modes_' ...
-            choice_n_subsample  ...
+            param.decor_by_subsampl.choice_n_subsample  ...
             '_threshold_' num2str(param.decor_by_subsampl.spectrum_threshold) ...
             param.decor_by_subsampl.test_fct ];
 %     case {'lms', 'truncated', 'htgen', 'corr_time'} % corr_time for compatibility
     otherwise
         param.name_file_2nd_result=[ param.folder_results '2ndresult_' ...
             param.type_data '_' num2str(param.nb_modes) '_modes_' ...
-            choice_n_subsample '_'  ...
+            param.decor_by_subsampl.choice_n_subsample '_'  ...
             param.decor_by_subsampl.test_fct ];
 end
 % else
@@ -35,7 +35,7 @@ param.name_file_2nd_result=[param.name_file_2nd_result '/'];
 %     param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
 % end
 if ~correlated_model
-    if strcmp(choice_n_subsample,'auto_shanon')
+    if strcmp(param.decor_by_subsampl.choice_n_subsample,'auto_shanon')
         if modal_dt == 1
             param.name_file_2nd_result=[param.name_file_2nd_result '_modal_dt'];
         elseif modal_dt == 2

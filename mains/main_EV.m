@@ -5,7 +5,16 @@ function main_EV(nb_modes,type_data,add_noise)
 % tuned version of the loaded results
 %
 reconstruction = false;
-no_subampl_in_forecast= false;
+no_subampl_in_forecast= true;
+% no_subampl_in_forecast= false;
+
+global stochastic_integration;
+stochastic_integration = 'Ito';
+svd_pchol=true;
+eq_proj_div_free=2;
+adv_corrected = true;
+choice_n_subsample = 'htgen';
+warning('TO DO : change to htgen2');
 
 clear param bt_forecast_sto bt_forecast_deter bt_tot
 
@@ -116,35 +125,26 @@ param_ref.folder_data =folder_data ;
 % % bt_sans_coef_a_NC = bt_forecast_sto;
 
 %%
-a_t='_a_cst_';
-switch type_data 
-    case 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
-        threshold = 1e-6;
-    case 'incompact3d_wake_episode3_cut_truncated'
-        threshold = 1e-6;
-%         threshold = 0.0005;
-    case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-        threshold=1e-4 
-    otherwise
-        threshold = 1e-5;
-        % threshold = 1e-4;
-end
-
-% file_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-file_res=[ folder_results '1stresult_' type_data '_' num2str(nb_modes) '_modes_' ...
-    a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
-    num2str(threshold) ...
-    'fct_test_' test_fct ];
-% if exist('period_estim','var')
-%     file_res=[file_res '_p_estim_' num2str(period_estim)]; 
-% end
-file_res=[ file_res '_fullsto'];
-file_res=[ file_res '.mat'];
-load(file_res)
-% load([ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...
 %     a_t '_decor_by_subsampl_bt_decor_choice_auto_shanon_threshold_' ...
 %     num2str(threshold) ...
-%     'fct_test_' test_fct '.mat']);
+param_ref.svd_pchol=svd_pchol;
+param_ref.eq_proj_div_free=eq_proj_div_free;
+
+param_ref.a_time_dependant = 0; % to account for the a_t
+param_ref.decor_by_subsampl.bool = true; % we'll subsample
+
+param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
+param_ref.decor_by_subsampl.spectrum_threshold = nan;
+param_ref.type_data = type_data;
+param_ref.nb_modes = nb_modes;
+param_ref.decor_by_subsampl.meth = 'bt_decor';
+
+param_ref.adv_corrected = adv_corrected;
+
+param_ref.decor_by_subsampl.test_fct = test_fct;
+
+param_ref = fct_name_1st_result_new(param_ref);
+load(param_ref.name_file_1st_result)
 
 %% Load chronos
 param_ROM = param;

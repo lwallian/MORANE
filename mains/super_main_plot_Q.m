@@ -51,8 +51,8 @@ if nargin == 0
     %             type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     %         type_data = 'turb2D_blocks_truncated'
     
-    choice_n_subsample = 'htgen'  
 %     choice_n_subsample = 'auto_shanon'
+    choice_n_subsample = 'htgen2'  
     stochastic_integration = 'Ito'
     estim_rmv_fv = true
     svd_pchol = 1
@@ -82,6 +82,7 @@ if nargin == 0
 %         param_obs.nb_mutation_steps = 30;
         param_obs.nb_mutation_steps = 0;
         
+%         % Case 1
 %         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
 %         param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
 %         param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
@@ -90,6 +91,7 @@ if nargin == 0
 %         param_obs.nbPoints_y = 1;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
 %         param_obs.assimilation_period = 5/10;
         
+%         % Case 2
 %         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
 %         param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
 %         param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
@@ -98,6 +100,7 @@ if nargin == 0
 %         param_obs.nbPoints_y = 3;  % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       # Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
 %         param_obs.assimilation_period = 5;
 
+        % Case 3
         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
         param_obs.subsampling_PIV_grid_factor = 10;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
         param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
