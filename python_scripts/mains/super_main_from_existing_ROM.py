@@ -2,7 +2,7 @@
 """
 Created on Mon Mar 25 16:13:50 2019
 
-@author: matheus.ladvig
+@author: matheus.ladvig, valentin resseguier
 .
 
 
