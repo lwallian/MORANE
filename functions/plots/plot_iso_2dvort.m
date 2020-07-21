@@ -162,7 +162,7 @@ x_cyl=r.*c + x_cylinder;y_cyl=r.*s;
 Q_save=Q;
 
 
-if param.data_assimilation    
+if param.data_assimilation > 0   
 %     switch param.type_data
 %         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
 %             %             %             X_mes = x_unique_PIV(1+([10]));

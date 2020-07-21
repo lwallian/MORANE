@@ -310,7 +310,7 @@ end
 
 %% Reduction of the noise matrix
 
-if param.svd_pchol
+if param.svd_pchol>0
 %     figure;plot(diag(pchol_cov_noises*pchol_cov_noises'))
 %     cov = pchol_cov_noises*pchol_cov_noises';
     
@@ -342,10 +342,16 @@ if param.svd_pchol
     
     
     for k=1:n_plus
-        for i=1:(param.nb_modes)
-%             (sq_lambda_cat(k)/sq_lambda(i))
-            pchol_cov_noises(k,i,:) = (sq_lambda_cat(k)/sq_lambda(i)) * ...
-                pchol_cov_noises(k,i,:);
+        switch  param.svd_pchol
+            case 1
+                for i=1:(param.nb_modes)
+                    %             (sq_lambda_cat(k)/sq_lambda(i))
+                    pchol_cov_noises(k,i,:) = (sq_lambda_cat(k)/sq_lambda(i)) * ...
+                        pchol_cov_noises(k,i,:);
+                end
+            case 2
+                pchol_cov_noises(k,:,:) = (sq_lambda_cat(k)) * ...
+                    pchol_cov_noises(k,:,:);
         end
     end
     
@@ -406,12 +412,18 @@ if param.svd_pchol
     
     
     for k=1:n_plus
-        for i=1:(param.nb_modes)
-            pchol_cov_noises(k,i,:) = (sq_lambda(i)/sq_lambda_cat(k)) * ...
-                pchol_cov_noises(k,i,:);
+        switch  param.svd_pchol
+            case 1
+                for i=1:(param.nb_modes)
+                    pchol_cov_noises(k,i,:) = (sq_lambda(i)/sq_lambda_cat(k)) * ...
+                        pchol_cov_noises(k,i,:);
+                end
+            case 2
+                pchol_cov_noises(k,:,:) = (1/sq_lambda_cat(k)) * ...
+                    pchol_cov_noises(k,:,:);
         end
     end
-    
+        
     %     if ~correlated_model
     pchol_add_noise = pchol_cov_noises(1,:,:);
     pchol_cov_noises(1,:,:)=[];

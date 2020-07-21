@@ -43,40 +43,8 @@ type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
 % type_data = 'incompact3d_wake_episode3_cut_truncated'
 
 %% Important parameters
-switch type_data
-        %  - Threshold used in the estimation of the optimal subsampling time step
-        % - if modal-dt = true, 
-        %   (mimic the use of a) disctinct subsampling time step for the
-        %   differentials equations of distincts chronos
-    case {'incompact3D_noisy2D_40dt_subsampl_truncated'}
-        v_threshold=[1e-5]
-        modal_dt=false
-    case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
-        % Threshold used in the estimation of the optimal subsampling time step
-        v_threshold=1e-6 % BEST
-        modal_dt=0
-    case 'turb2D_blocks_truncated'
-        v_threshold= [1e-5]
-        modal_dt=0:1
-    case {'incompact3d_wake_episode3_cut_truncated',...
-            'incompact3d_wake_episode3_cut'}
-        v_threshold=1e-6
-        % %         v_threshold=1e-4
-        modal_dt=false
-        %         modal_dt=true;
-    case {'LES_3D_tot_sub_sample_blurred',...
-            'inc3D_Re3900_blocks',...
-            'inc3D_Re3900_blocks_truncated'}
-        v_threshold=1e-3
-        modal_dt=true
-    case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-        v_threshold=1e-4 % BEST
-        modal_dt=true;
-    otherwise
-        v_threshold=0.0005
-        modal_dt=false
-        modal_dt=0:2
-end
+v_threshold=nan
+modal_dt=false
 
 %% Parameters which should not be modified
 no_subampl_in_forecast = false;
@@ -101,8 +69,8 @@ decor_by_subsampl.meth='bt_decor';
 % ('lms' = correlation time estimation of the unresolved chronos through an lms filtered correlation function)
 % ('truncated' = correlation time estimation of the unresolved chronos through a truncated correlation function)
 % ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
-decor_by_subsampl.choice_n_subsample = 'htgen';
 % 'auto_shanon' 'lms', 'truncated', 'htgen'
+decor_by_subsampl.choice_n_subsample = 'htgen2';
 % Stochastic integration path: 'Ito' or 'Str'
 global stochastic_integration;
 stochastic_integration = 'Ito'
