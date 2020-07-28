@@ -13,7 +13,7 @@ tic
 
 % Plots to do
 plot_deterministic=true; % deterministic POD-Galerkin
-plot_EV=false; % estimated Eddy Visocvity
+plot_EV=true; % estimated Eddy Visocvity
 % plot_EV_noise=true; % estimated Eddy Visocvity
 plot_tuned=false; % estimated corrective coefficients
 

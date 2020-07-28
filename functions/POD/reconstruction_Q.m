@@ -20,7 +20,8 @@ load(param.name_file_tensor_mode,'param_from_file',...
 bt = cat( 2, bt, ones([size(bt,1),1]));
 
 %%
-n_subsampl = param.decor_by_subsampl.n_subsampl_decor;
+n_subsampl = 1
+% n_subsampl = param.decor_by_subsampl.n_subsampl_decor;
 
 if isfield(param,'data_in_blocks') && ...
         isfield(param.data_in_blocks,'bool') && ...

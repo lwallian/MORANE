@@ -22,8 +22,8 @@ if nargin == 0
     vect_nb_modes = [4]
     no_subampl_in_forecast = false;
     vect_reconstruction = [ false] % for the super_main_from_existing_ROM
-    vect_adv_corrected = [ true ]
-    vect_svd_pchol = true
+    vect_adv_corrected = [ true false ]
+    vect_svd_pchol = 2
 %     vect_svd_pchol = svd_pchol
     
     %% Type of data
@@ -55,39 +55,8 @@ if nargin == 0
     % % type_data = 'incompact3d_wake_episode3_cut_truncated';
     
     %% Important parameters
-    switch type_data
-        %  - Threshold used in the estimation of the optimal subsampling time step
-        % - if modal-dt = true,
-        %   (mimic the use of a) disctinct subsampling time step for the
-        %   differentials equations of distincts chronos
-        case {'incompact3D_noisy2D_40dt_subsampl_truncated'}
-            v_threshold=[1e-5]
-            vect_modal_dt=[false]
-        case {'DNS100_inc3d_2D_2018_11_16_blocks_truncated'}
-            % Threshold used in the estimation of the optimal subsampling time step
-            v_threshold=1e-6 % BEST
-            vect_modal_dt=0
-        case 'turb2D_blocks_truncated'
-            v_threshold= [1e-5]
-            vect_modal_dt=0:1
-        case {'incompact3d_wake_episode3_cut_truncated',...
-                'incompact3d_wake_episode3_cut'}
-            v_threshold=1e-6
-            % %         v_threshold=1e-4
-            vect_modal_dt=false
-            %         vect_modal_dt=true;
-        case {'LES_3D_tot_sub_sample_blurred',...
-                'inc3D_Re3900_blocks',...
-                'inc3D_Re3900_blocks_truncated'}
-            v_threshold=1e-3
-            vect_modal_dt=true
-        case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
-            v_threshold=1e-4 % BEST
-            vect_modal_dt=true;
-        otherwise
-            v_threshold=0.0005
-            vect_modal_dt=false
-    end
+    v_threshold=nan
+    vect_modal_dt=false
     
     % (specific) time sub-sampling (forced time-decorrelation of unresolved chronos)
     decor_by_subsampl.bool=true;
@@ -99,7 +68,7 @@ if nargin == 0
     % Meth to choose the time sub-sampling
     % ('auto_shanon'=maxim frequency of resolved chronos)
     % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
-    decor_by_subsampl.choice_n_subsample='htgen'; % 'htgen' 'auto_shanon' 'lms'
+    decor_by_subsampl.choice_n_subsample='htgen2'; % 'htgen' 'auto_shanon' 'lms'
     % decor_by_subsampl.choice_n_subsample = 'corr_time';
     
     % Stochastic integration path : 'Ito' or 'Str'

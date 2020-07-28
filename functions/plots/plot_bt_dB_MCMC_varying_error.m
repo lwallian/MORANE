@@ -22,6 +22,13 @@ FontSize = 10;
 FontSizeTtitle = 11;
 width=1;
 height=0.7;
+color_sexy(1,:) = [0.8500, 0.3250, 0.0980];
+color_sexy(2,:) = [0.9290, 0.6940, 0.1250];
+color_sexy(3,:) = [0.4940, 0.1840, 0.5560];
+color_sexy(4,:) = [0.4660, 0.6740, 0.1880] 	;
+color_sexy(5,:) = [0.3010, 0.7450, 0.9330];
+color_sexy(6,:) = [0.6350, 0.0780, 0.1840];
+Color3=[0.0 0.5 0.0];
 
 height = height*3/2;
 
@@ -481,8 +488,10 @@ if ~param.plot_EV_noise
 end
 
 if param.plot_EV_noise
-    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g', 'LineWidth', LineWidth);
-    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))','r', 'LineWidth', LineWidth);
+    plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))',...
+        'Color','g', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_forecast_MEV_noise_RMSE(:,k))',...
+        'Color',color_sexy(6,:), 'LineWidth', LineWidth);
     plot(time,sqrt(bt_forecast_MEV_noise_min_error(:,k))','m', 'LineWidth', LineWidth);
 %     plot(time,sqrt(struct_bt_MEV_noise.tot.mean(:,k))','g--o', 'LineWidth',...
 %         LineWidth_small,'MarkerSize',20*LineWidth_small);
@@ -503,19 +512,31 @@ plot(time,sqrt(err_fix),'--k', 'LineWidth', LineWidth);
 if plot_deter
     plot(time,sqrt(bt_forecast_deter(:,k))','b', 'LineWidth', LineWidth);
 end
-if plot_EV
-    plot(time,sqrt(bt_forecast_MEV(:,k))','b--', 'LineWidth', LineWidth);
-    %     plot(time,sqrt(bt_forecast_MEV(:,k))','g', 'LineWidth', LineWidth);
-end
 % plot(time,sqrt(bt_pseudoSto(:,k))','r--', 'LineWidth', LineWidth);
 
 if ~param.plot_EV_noise
-    plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))','g', 'LineWidth', LineWidth);
+    plot(time,sqrt(struct_bt_MCMC.tot.mean(:,k))',...
+        'Color','g', 'LineWidth', LineWidth);
     % plot(time,sqrt(struct_bt_MCMC.fv.mean(:,k))','c', 'LineWidth', LineWidth);
     
-    plot(time,sqrt(bt_MCMC_RMSE(:,k))','r', 'LineWidth', LineWidth);
+    plot(time,sqrt(bt_MCMC_RMSE(:,k))',...
+        'Color',color_sexy(6,:), 'LineWidth', LineWidth);
     % plot(time,sqrt(bt_MCMC_RMSE(:,k))','+m', 'LineWidth', LineWidth);
     plot(time,sqrt(bt_MCMC_min_error(:,k))','m', 'LineWidth', LineWidth);
+end
+if plot_EV
+%     plot(time,sqrt(bt_forecast_MEV(:,k))','b--', 'LineWidth', LineWidth);
+%     %     plot(time,sqrt(bt_forecast_MEV(:,k))','g', 'LineWidth', LineWidth);
+    LineStyle_ =[ '-' ];
+    Marker_ = {'none','o','+','*','x','s'};
+    plot(time,sqrt(bt_forecast_MEV(:,k))','--', ...
+        'LineWidth', LineWidth , ...
+        'Color',color_sexy(5,:),...
+        'LineStyle','--' );
+%         plot(time,sqrt(bt_forecast_MEV(:,k))','--', ...
+%         'LineWidth', LineWidth , ...
+%         'Color',color_sexy(3,:),...
+%         'LineStyle','--' );
 end
 % if plot_modal_dt
 %     plot(time,sqrt(bt_forecast_sto_a_cst_modal_dt(:,k))','or', 'LineWidth', LineWidth);

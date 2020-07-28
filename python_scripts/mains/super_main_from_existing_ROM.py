@@ -2,7 +2,7 @@
 """
 Created on Mon Mar 25 16:13:50 2019
 
-@author: matheus.ladvig
+@author: matheus.ladvig, valentin resseguier
 .
 
 
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     vect_reconstruction = [False] # for the super_main_from_existing_ROM
     vect_adv_corrected = [True]
     test_fct = 'b'
-    svd_pchol = True
-    choice_n_subsample = 'htgen'
+    svd_pchol = 2
+    choice_n_subsample = 'htgen2'
 #    choice_n_subsample = 'auto_shanon'
     stochastic_integration = 'Ito'
     estim_rmv_fv = True

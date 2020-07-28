@@ -42,11 +42,14 @@ type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
 % Additive noise ?
 add_noise = true;
 
+% Adapt time differntiation and time scale
+rigorous_EV_noise_estim = true;
+
 %% With correctif coefficient
 % for q=1:length(v_threshold)
 
 for k=vect_nb_modes
     % for k=2:2:nb_modes_max
-    main_EV(k,type_data,add_noise);
+    main_EV(k,type_data,add_noise,rigorous_EV_noise_estim);
 end
 
