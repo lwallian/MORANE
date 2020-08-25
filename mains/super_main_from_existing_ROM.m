@@ -13,7 +13,7 @@ function super_main_from_existing_ROM(...
 if nargin == 0
     init;
     global correlated_model
-    global choice_n_subsample;
+%     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
     
@@ -70,6 +70,7 @@ if nargin == 0
     % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
     decor_by_subsampl.choice_n_subsample='htgen2'; % 'htgen' 'auto_shanon' 'lms'
     % decor_by_subsampl.choice_n_subsample = 'corr_time';
+    decor_by_subsampl.bug_sampling = false ;
     
     % Stochastic integration path : 'Ito' or 'Str'
     stochastic_integration = 'Ito';
@@ -88,7 +89,7 @@ if nargin == 0
     
     correlated_model = false
 else    
-    global choice_n_subsample;
+%     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
     global correlated_model
@@ -114,7 +115,8 @@ for modal_dt=vect_modal_dt
     for q=1:length(v_threshold)
         % parfor q=1:length(v_threshold)
         threshold=v_threshold(q);
-        %     decor_by_subsampl_temp.spectrum_threshold=threshold;
+        decor_by_subsampl_temp=decor_by_subsampl;
+        decor_by_subsampl_temp.spectrum_threshold=threshold;
         for adv_corrected = vect_adv_corrected
             for reconstruction = vect_reconstruction
                 % for k=vect_nb_modes
@@ -124,8 +126,10 @@ for modal_dt=vect_modal_dt
                     main_from_existing_ROM(k,threshold,type_data,...
                         nb_period_test,...
                         no_subampl_in_forecast,reconstruction,...
-                        adv_corrected,modal_dt,decor_by_subsampl.test_fct,...
+                        adv_corrected,modal_dt,decor_by_subsampl_temp,...
                         svd_pchol,eq_proj_div_free)
+%                         adv_corrected,modal_dt,decor_by_subsampl.test_fct,...
+%                         svd_pchol,eq_proj_div_free)
                     %         main_full_sto_vect_modal_dt_2nd_res(k,v_threshold(q))
                 end
                 %% Save plot
@@ -170,5 +174,6 @@ end
 super_main_from_existing_ROM_Simulation(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
-    decor_by_subsampl.test_fct,vect_svd_pchol,eq_proj_div_free)
+    decor_by_subsampl,vect_svd_pchol,eq_proj_div_free)
+%     decor_by_subsampl.test_fct,vect_svd_pchol,eq_proj_div_free)
 

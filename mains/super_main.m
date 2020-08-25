@@ -64,6 +64,12 @@ decor_by_subsampl.test_fct='b';
 % Way the subsampling is done (in which part of the code)
 % (can be  'bt_decor' or  'a_estim_decor')
 decor_by_subsampl.meth='bt_decor';
+
+
+% decor_by_subsampl.bug_sampling = true ; % bug 
+% introduced in summer 2018, and kept until summer 2020
+decor_by_subsampl.bug_sampling = false ; 
+
 % Meth to choose the time sub-sampling
 % ('auto_shanon'=maxim frequency of resolved chronos)
 % ('lms' = correlation time estimation of the unresolved chronos through an lms filtered correlation function)

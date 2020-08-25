@@ -43,6 +43,9 @@ end
 if correlated_model
     param.name_file_1st_result=[param.name_file_1st_result '_correlated'];
 end
+if ~ param.decor_by_subsampl.bug_sampling
+    param.name_file_1st_result = [param.name_file_1st_result, '_noBugSubsampl'];
+end
 if param.eq_proj_div_free == 2
     param.name_file_1st_result = [param.name_file_1st_result '_DFSPN'];    
 end

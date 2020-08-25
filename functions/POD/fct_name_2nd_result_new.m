@@ -59,6 +59,9 @@ param.name_file_2nd_result = [param.name_file_2nd_result '_integ_' stochastic_in
 if correlated_model
     param.name_file_2nd_result = [param.name_file_2nd_result '_correlated'];
 end
+if ~ param.decor_by_subsampl.bug_sampling
+    param.name_file_2nd_result = [param.name_file_2nd_result, '_noBugSubsampl'];
+end
 if estim_rmv_fv
     param.name_file_2nd_result=[param.name_file_2nd_result '_estim_rmv_fv'];
 end

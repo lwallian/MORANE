@@ -1,6 +1,7 @@
 function main_from_existing_ROM_Simulation(type_data,nb_modes,...
     threshold,no_subampl_in_forecast,reconstruction,adv_corrected,...
-    modal_dt,test_fct,svd_pchol,eq_proj_div_free,plot_EV_noise)
+    modal_dt,decor_by_subsampl,svd_pchol,eq_proj_div_free,plot_EV_noise)
+%     modal_dt,test_fct,svd_pchol,eq_proj_div_free,plot_EV_noise)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -95,7 +96,8 @@ end
 % if nargin < 10 
 %     svd_pchol = false;
 % end
-param_ref2.decor_by_subsampl.test_fct = test_fct;
+param_ref2.decor_by_subsampl = decor_by_subsampl;
+% param_ref2.decor_by_subsampl.test_fct = test_fct;
 param_ref2.svd_pchol=svd_pchol;
 
 % % On which function the Shanon ctriterion is used
@@ -133,19 +135,20 @@ folder_data_ref = folder_data;
 
 a_t='_a_cst_';
 
-global choice_n_subsample;
+% global choice_n_subsample;
 global stochastic_integration;
 global estim_rmv_fv;
 global correlated_model;
 
-param_ref2.decor_by_subsampl.spectrum_threshold = threshold;
+param_ref2.decor_by_subsampl = decor_by_subsampl;
+% param_ref2.decor_by_subsampl.spectrum_threshold = threshold;
 param_ref2.type_data = type_data;
 param_ref2.nb_modes = nb_modes;
 param_ref2.adv_corrected = adv_corrected;
-param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
+% param_ref2.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
 param_ref2.eq_proj_div_free = eq_proj_div_free;
 
-if (~ strcmp(choice_n_subsample,'auto_shanon'))
+if (~ strcmp(param_ref2.decor_by_subsampl.choice_n_subsample,'auto_shanon'))
     modal_dt = true;
 end
 param_ref2 = fct_name_2nd_result_new(param_ref2,modal_dt,reconstruction);
@@ -235,7 +238,7 @@ if ~ (exist(file_res_2nd_res,'file') == 2)
     end
 end
 load(file_res_2nd_res)
-if (~ strcmp(choice_n_subsample,'auto_shanon'))
+if (~ strcmp(param_ref2.decor_by_subsampl.choice_n_subsample,'auto_shanon'))
     modal_dt = false;
 end
 
@@ -269,7 +272,7 @@ param.folder_data = folder_data;
 modal_dt = modal_dt_ref;
 modal_dt
 
-param.decor_by_subsampl.test_fct=test_fct;
+param.decor_by_subsampl=decor_by_subsampl;
 
 folder_data = param_ref2.folder_data;
 folder_results = param_ref2.folder_results;

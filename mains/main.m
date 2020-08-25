@@ -127,6 +127,7 @@ switch param.type_data
         if param.nb_modes > 16
             param.big_data=true;
         end
+        param.decor_by_subsampl.bug_sampling = false ;
 end
 
 % Parameters used for the time subsampling of data

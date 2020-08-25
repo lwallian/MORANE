@@ -29,6 +29,9 @@ param.name_file_3rd_result = [param.name_file_3rd_result '_integ_' stochastic_in
 if correlated_model
     param.name_file_3rd_result = [param.name_file_3rd_result '_correlated'];
 end
+if ~ param.decor_by_subsampl.bug_sampling
+    param.name_file_3rd_result = [param.name_file_3rd_result, '_noBugSubsampl'];
+end
 if estim_rmv_fv
     param.name_file_3rd_result=[param.name_file_3rd_result '_estim_rmv_fv'];
 end

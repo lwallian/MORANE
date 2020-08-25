@@ -1,12 +1,14 @@
 function main_from_existing_ROM(nb_modes,threshold,type_data,...
     nb_period_test,...
-    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
+    no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,...
+    decor_by_subsampl,svd_pchol,eq_proj_div_free)
+%     no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
 %
 global correlated_model
-global choice_n_subsample;
+% global choice_n_subsample;
 global stochastic_integration;
 global estim_rmv_fv;
 
@@ -20,12 +22,13 @@ tic
 
 %% Parameters choice
 if nargin < 9
-    test_fct = 'b';
+%     test_fct = 'b';
+error('unknown decorelation method');
 end
 if nargin < 10
     svd_pchol = false;
 end
-if ~ strcmp(choice_n_subsample,'auto_shanon')
+if ~ strcmp(decor_by_subsampl.choice_n_subsample,'auto_shanon')
     modal_dt = 0;
 end
 % param_ref.n_simu = 2;
@@ -164,17 +167,18 @@ modal_dt_ref = modal_dt;
 % test_fct='b'; % 'b' is better than db
 a_t = '_a_cst_';
 param_ref.a_time_dependant = 0; % to account for the a_t
-param_ref.decor_by_subsampl.bool = true; % we'll subsample
+% param_ref.decor_by_subsampl.bool = true; % we'll subsample
 
-param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
-param_ref.decor_by_subsampl.spectrum_threshold = threshold;
+% param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
+% param_ref.decor_by_subsampl.spectrum_threshold = threshold;
+param_ref.decor_by_subsampl = decor_by_subsampl;
 param_ref.type_data = type_data;
 param_ref.nb_modes = nb_modes;
-param_ref.decor_by_subsampl.meth = 'bt_decor';
+% param_ref.decor_by_subsampl.meth = 'bt_decor';
 
 param_ref.adv_corrected = adv_corrected;
 
-param_ref.decor_by_subsampl.test_fct = test_fct;
+% param_ref.decor_by_subsampl.test_fct = test_fct;
 
 param_ref = fct_name_1st_result_new(param_ref);
 if exist(param_ref.name_file_1st_result,'file') == 2
@@ -275,7 +279,7 @@ ILC_a_cst=ILC;
 
 %% Redefined path to get access to data
 param.nb_period_test=nb_period_test;
-param.decor_by_subsampl.test_fct=test_fct;
+% param.decor_by_subsampl.test_fct=test_fct;
 
 svd_pchol = param_ref.svd_pchol;
 folder_data = param_ref.folder_data;

@@ -22,6 +22,9 @@ end
 if correlated_model
     param.name_file_noise_cov = [param.name_file_noise_cov, 'correlated'];
 end
+if ~ param.decor_by_subsampl.bug_sampling
+    param.name_file_noise_cov = [param.name_file_noise_cov, '_noBugSubsampl'];
+end
 if estim_rmv_fv
     param.name_file_noise_cov = [param.name_file_noise_cov '_estim_rmv_fv'];
 end

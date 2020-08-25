@@ -93,7 +93,12 @@ else
             load(name_file_U_centered, 'U');
             
         end
-        if mod(t, n_subsampl_decor)==0 %CRITICAL PART
+        if param.decor_by_subsampl.bug_sampling % bug introduced in 2018
+            bool_temp = mod(t, n_subsampl_decor)==0 ;%CRITICAL PART
+        else
+            bool_temp = mod(t, n_subsampl_decor)==1 ;
+        end
+        if bool_temp
             % This snapshot is kept by the subsampling
             t_local_sub = t_local_sub + 1;
         else % This snapshot is not kept by the subsampling

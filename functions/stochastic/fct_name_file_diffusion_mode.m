@@ -35,5 +35,8 @@ end
 if correlated_model
     param.name_file_diffusion_mode = [param.name_file_diffusion_mode, 'correlated'];
 end
+if ~ param.decor_by_subsampl.bug_sampling
+    param.name_file_diffusion_mode = [param.name_file_diffusion_mode, '_noBugSubsampl'];
+end
 param.name_file_diffusion_mode = ...
     [param.name_file_diffusion_mode '.mat'];

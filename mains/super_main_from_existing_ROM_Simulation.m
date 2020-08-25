@@ -1,7 +1,8 @@
 function super_main_from_existing_ROM_Simulation(...
     vect_nb_modes,type_data,v_threshold,vect_modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected,...
-    test_fct,vect_svd_pchol,eq_proj_div_free)
+    decor_by_subsampl,vect_svd_pchol,eq_proj_div_free)
+%     test_fct,vect_svd_pchol,eq_proj_div_free)
 % Launch a set of simulations with a several set of parameters
 % Especially several number of modes
 %
@@ -12,7 +13,7 @@ vect_plot_EV_noise = false;
 if nargin == 0
     init;
     vect_plot_EV_noise = [ true false ]
-    global choice_n_subsample;
+%     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
     global correlated_model;
@@ -29,11 +30,26 @@ if nargin == 0
     
     % To choose between the shannon and correlation time downsampling
     % methods
-%     choice_n_subsample = 'auto_shannon';
-    choice_n_subsample = 'htgen2'; % 'auto_shanon' 'htgen' 'lms'
+    
+    % (specific) time sub-sampling (forced time-decorrelation of unresolved chronos)
+    decor_by_subsampl.bool=true;
+    % Choice of subsampling time step based on chronos
+    decor_by_subsampl.test_fct='b';
+    % Way the subsampling is done (in which part of the code)
+    % (can be  'bt_decor' or  'a_estim_decor')
+    decor_by_subsampl.meth='bt_decor';
+    % Meth to choose the time sub-sampling
+    % ('auto_shanon'=maxim frequency of resolved chronos)
+    % ('corr_time' = autocorrelation time estimation of the unresolved chronos)
+    decor_by_subsampl.choice_n_subsample='htgen2'; % 'htgen' 'auto_shanon' 'lms'
+%     % decor_by_subsampl.choice_n_subsample = 'corr_time';
+% %     choice_n_subsample = 'auto_shannon';
+%     choice_n_subsample = 'htgen2'; % 'auto_shanon' 'htgen' 'lms'
+    decor_by_subsampl.bug_sampling = false ;
+    
     stochastic_integration = 'Ito'; % 'Str'  'Ito'
     estim_rmv_fv = true;
-    test_fct ='b';
+%     test_fct ='b';
     vect_svd_pchol = [ 2 true ]
     correlated_model = false
     
@@ -78,7 +94,7 @@ if nargin == 0
         v_threshold = NaN;
     end
 else
-    global choice_n_subsample;
+%     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
     global correlated_model;
@@ -97,8 +113,11 @@ for modal_dt=vect_modal_dt
                     main_from_existing_ROM_Simulation(type_data,k,...
                         v_threshold(q),...
                         no_subampl_in_forecast,reconstruction,...
-                        adv_corrected,modal_dt,test_fct,svd_pchol,...
+                        adv_corrected,modal_dt,...
+                        decor_by_subsampl,svd_pchol,...
                         eq_proj_div_free,plot_EV_noise)
+%                         adv_corrected,modal_dt,test_fct,svd_pchol,...
+%                         eq_proj_div_free,plot_EV_noise)
                     
                     switch type_data
                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
@@ -138,13 +157,13 @@ for modal_dt=vect_modal_dt
                 end
                 mkdir(dir);
                 
-                switch choice_n_subsample
+                switch decor_by_subsampl.choice_n_subsample
                     case 'auto_shanon'
-                        str = ['print -dpng ' dir '/' choice_n_subsample ...
+                        str = ['print -dpng ' dir '/' decor_by_subsampl.choice_n_subsample ...
                             'threshold_' threshold ...
                             '_fullsto'];
                     otherwise
-                        str = ['print -dpng ' dir '/' choice_n_subsample ...
+                        str = ['print -dpng ' dir '/' decor_by_subsampl.choice_n_subsample ...
                             'auto_corr_time_fullsto'];
                 end
 %                 str = ['print -dpng ' folder_results type_data '_sum_modes_n=' ...
@@ -181,6 +200,9 @@ for modal_dt=vect_modal_dt
                 end
                 if correlated_model
                     str = [str '_correlated']
+                end
+                if ~ decor_by_subsampl.bug_sampling
+                    str = [str, '_noBugSubsampl'];
                 end
                 str =[ str '.png'];
                 str
