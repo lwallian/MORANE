@@ -9,9 +9,7 @@ m = param.nb_modes;
 k = m;
 global stochastic_integration;
 while (~ bool) && ( k <= MAX_possible_nb_modes )
-%     name_file_ILC_deter=[ param.folder_results 'ILC_deter_' ...
-    name_file_ILC_deter=[ param.folder_data 'ILC_deter_' ...
-        param.type_data '_' num2str(k) '_modes_integ_' stochastic_integration '.mat'];
+    name_file_ILC_deter=fct_name_file_ILC_deter(param,k);
     bool = ( exist(name_file_ILC_deter,'file')==2 );
     k = k + 1;
 end

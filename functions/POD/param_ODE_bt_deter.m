@@ -283,8 +283,7 @@ end
 
 %% Save
 % name_file_ILC_deter=[ param.folder_results 'ILC_deter_' ...
-name_file_ILC_deter=[ param.folder_data 'ILC_deter_' ...
-    param.type_data '_' num2str(k) '_modes.mat'];
+name_file_ILC_deter=fct_name_file_ILC_deter(param,param.nb_modes);
 L_deter = L; C_deter = C;
 save(name_file_ILC_deter,'L_deter','C_deter','C_deter_residu');
 
