@@ -41,7 +41,9 @@ switch param.svd_pchol
     case 2
         param.name_file_3rd_result=[param.name_file_3rd_result '_svd_pchol2'];
 end
-if param.eq_proj_div_free == 2
+if param.eq_proj_div_free == 1
+    param.name_file_1st_result = [param.name_file_1st_result '_DFSP'];  
+elseif param.eq_proj_div_free == 2
     param.name_file_3rd_result = [param.name_file_3rd_result '_DFSPN'];
 end
 %         param.name_file_3rd_result = [param.name_file_3rd_result  '_integ_Ito'];
