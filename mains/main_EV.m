@@ -10,11 +10,19 @@ no_subampl_in_forecast= true;
 
 global stochastic_integration;
 stochastic_integration = 'Ito';
+global estim_rmv_fv;
+estim_rmv_fv = true;
 svd_pchol=true;
 eq_proj_div_free=2;
 adv_corrected = true;
-choice_n_subsample = 'htgen';
-warning('TO DO : change to htgen2');
+choice_n_subsample = 'htgen2';
+% choice_n_subsample = 'htgen';
+% warning('TO DO : change to htgen2');
+threshold_effect_on_tau_corrected=false;
+noise_type=0;
+bug_sampling=false;
+% bug_sampling=true;
+% warning('TO DO ? : change to bug_sampling=false ??');
 
 clear param bt_forecast_sto bt_forecast_deter bt_tot
 
@@ -135,7 +143,11 @@ param_ref.a_time_dependant = 0; % to account for the a_t
 param_ref.decor_by_subsampl.bool = true; % we'll subsample
 
 param_ref.decor_by_subsampl.choice_n_subsample = choice_n_subsample; % for testing
+param_ref.decor_by_subsampl.bug_sampling = bug_sampling;
+param_ref.decor_by_subsampl.threshold_effect_on_tau_corrected = ...
+    threshold_effect_on_tau_corrected ;
 param_ref.decor_by_subsampl.spectrum_threshold = nan;
+param_ref.noise_type = noise_type;
 param_ref.type_data = type_data;
 param_ref.nb_modes = nb_modes;
 param_ref.decor_by_subsampl.meth = 'bt_decor';
