@@ -224,6 +224,64 @@ param.name_file_mode=['mode_' param.type_data '_' num2str(param.nb_modes) '_mode
 param.igrida=igrida; clear igrida
 param.name_file_mode=[ param.folder_data param.name_file_mode ];
 
+%% Correction tau threshold from previous files
+
+bool=false;
+param_ref=param;
+param_temp = param;
+param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected = false;
+param_temp = fct_name_1st_result_new(param_temp);
+if param.decor_by_subsampl.threshold_effect_on_tau_corrected && ...
+        (~param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected) && ...
+        (exist(param_temp.name_file_1st_result,'file')==2)
+    load(param_temp.name_file_1st_result);
+    rate_dt = param.decor_by_subsampl.tau_corr ...
+        / param.decor_by_subsampl.n_subsampl_decor;
+    bool = true;
+end
+param_temp = param;
+param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected = true;
+param_temp = fct_name_1st_result_new(param_temp);
+if param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected && ...
+        (~param.decor_by_subsampl.threshold_effect_on_tau_corrected) && ...
+        (exist(param_temp.name_file_1st_result,'file')==2)
+    load(param_temp.name_file_1st_result);        
+    rate_dt = 1/( param.decor_by_subsampl.tau_corr ...
+        / param.decor_by_subsampl.n_subsampl_decor );
+    bool = true;
+end
+param.decor_by_subsampl.threshold_effect_on_tau_corrected = ...
+    param_ref.decor_by_subsampl.threshold_effect_on_tau_corrected ;
+if bool
+    I_deter=ILC.deter.I;
+    L_deter=ILC.deter.L;
+    C_deter=ILC.deter.C;
+    I_sto=ILC.sto.I;
+    L_sto=ILC.sto.L;
+    C_sto=ILC.sto.C;
+    
+    C_sto= rate_dt * C_sto;
+    L_sto= rate_dt * L_sto;
+    for q=1:param.nb_modes
+        I_sto(q)=-trace(diag(param.lambda)*C_sto(:,:,q));
+    end
+    ILC.tot.I=I_sto+I_deter;
+    ILC.tot.L=L_sto+L_deter;
+    ILC.tot.C=C_sto+C_deter;
+    
+    % Noise terms
+    r_rate_dt = sqrt(rate_dt);
+    pchol_cov_noises = r_rate_dt * pchol_cov_noises;
+    Cov_noises = pchol_cov_noises * pchol_cov_noises';
+    
+    param = fct_name_1st_result_new(param);
+    save(param.name_file_1st_result,'-v7.3');
+    toc;tic;
+    disp('1st result saved');
+    return
+end
+clear param_temp param_ref bool;
+
 %% POD
 
 % Computation of the reference Chronos (bt_tot) and Topos, from the snapshots
