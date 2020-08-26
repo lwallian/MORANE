@@ -38,6 +38,11 @@ vect_adv_corrected = [ true false]
 % These 2D data ( Re 100) gives good results
 % type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
 
+% Data of the Re 100 OpenFOAM simulation
+% type_data = 'DNS100_OpenFOAM_2D_2020_blocks_truncated'
+% type_data = 'DNS100_OpenFOAM_2D_2020_blocks'
+% type_data = 'DNS100_OpenFOAM_2D_2020'
+
 % Smaller dataset for debuging
 type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'
 % type_data = 'incompact3d_wake_episode3_cut_truncated'

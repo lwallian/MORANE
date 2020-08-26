@@ -22,6 +22,18 @@ switch type_data
 %         10 periods
 % %         param.data_in_blocks.nb_blocks=10; % data are saved in 10 files
         param.data_in_blocks.len_blocks=1000; % In each files, there are 1000 snapshots
+    case 'DNS100_OpenFOAM_2D_2020_blocks'
+        param.data_in_blocks.bool=true; % data are saved in several files
+        param.data_in_blocks.nb_blocks=17; % data are saved in 17 files : ~100 periods
+        param.data_in_blocks.len_blocks=681; % In each files, there are 681 snapshots
+    case 'DNS100_OpenFOAM_2D_2020_blocks_truncated'
+        param.data_in_blocks.bool=true; % data are saved in several files
+        param.data_in_blocks.nb_blocks=12; % data are saved in 17 files : ~100 periods
+        param.data_in_blocks.len_blocks=681; % In each files, there are 681 snapshots
+    case 'DNS100_OpenFOAM_2D_2020_blocks_test_basis'
+        param.data_in_blocks.bool=true; % data are saved in several files
+        param.data_in_blocks.nb_blocks=2; % data are saved in 17 files : ~100 periods
+        param.data_in_blocks.len_blocks=681; % In each files, there are 681 snapshots
     case 'inc3D_Re300_40dt_blocks'
         param.data_in_blocks.bool=true; % data are saved in several files
         param.data_in_blocks.nb_blocks=5; % data are saved in 5 files
