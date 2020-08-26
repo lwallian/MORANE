@@ -227,7 +227,7 @@ param.name_file_mode=[ param.folder_data param.name_file_mode ];
 %% Correction tau threshold from previous files
 
 bool=false;
-param_ref=param;
+param_ref_tau=param;
 param_temp = param;
 param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected = false;
 param_temp = fct_name_1st_result_new(param_temp);
@@ -235,6 +235,8 @@ if param.decor_by_subsampl.threshold_effect_on_tau_corrected && ...
         (~param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected) && ...
         (exist(param_temp.name_file_1st_result,'file')==2)
     load(param_temp.name_file_1st_result);
+    param.decor_by_subsampl.threshold_effect_on_tau_corrected = ...
+        param_ref_tau.decor_by_subsampl.threshold_effect_on_tau_corrected ;
     rate_dt = param.decor_by_subsampl.tau_corr ...
         / param.decor_by_subsampl.n_subsampl_decor;
     bool = true;
@@ -246,12 +248,12 @@ if param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected && ...
         (~param.decor_by_subsampl.threshold_effect_on_tau_corrected) && ...
         (exist(param_temp.name_file_1st_result,'file')==2)
     load(param_temp.name_file_1st_result);        
+    param.decor_by_subsampl.threshold_effect_on_tau_corrected = ...
+        param_ref_tau.decor_by_subsampl.threshold_effect_on_tau_corrected ;
     rate_dt = 1/( param.decor_by_subsampl.tau_corr ...
         / param.decor_by_subsampl.n_subsampl_decor );
     bool = true;
 end
-param.decor_by_subsampl.threshold_effect_on_tau_corrected = ...
-    param_ref.decor_by_subsampl.threshold_effect_on_tau_corrected ;
 if bool
     I_deter=ILC.deter.I;
     L_deter=ILC.deter.L;
