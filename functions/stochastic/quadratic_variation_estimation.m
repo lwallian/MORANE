@@ -172,7 +172,7 @@ else
     z=dt/N_tot*z;
     
     % To circumvent the effect of the threshold of the downsampling rate
-    if strcmp(param.decor_by_subsampl.choice_n_subsample, 'corr_time')
+    if param.decor_by_subsampl.threshold_effect_on_tau_corrected
         z = z * param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor;
     end
     

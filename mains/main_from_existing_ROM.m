@@ -239,6 +239,9 @@ else
     load(file_res)
 end
 
+if ~isfield(param.decor_by_subsampl,'threshold_effect_on_tau_corrected')
+    param.decor_by_subsampl.threshold_effect_on_tau_corrected = false;
+end
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 
 % % file_res=[ folder_results '2ndresult_' type_data '_' num2str(nb_modes) '_modes_' ...

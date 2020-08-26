@@ -35,6 +35,10 @@ if ~correlated_model
         param.name_file_1st_result=[param.name_file_1st_result '_no_correct_drift'];
     end
 end
+if param.decor_by_subsampl.threshold_effect_on_tau_corrected
+    param.name_file_1st_result = [param.name_file_1st_result, ...
+        '_thrDtCorrect'];    
+end
 param.name_file_1st_result=[param.name_file_1st_result '_integ_' stochastic_integration];
 if estim_rmv_fv
     param.name_file_1st_result=[param.name_file_1st_result '_estim_rmv_fv'];

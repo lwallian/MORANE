@@ -77,6 +77,13 @@ decor_by_subsampl.bug_sampling = false ;
 % ('htgen' = correlation time estimation of the unresolved chronos through an heterogeneous estimator)
 % 'auto_shanon' 'lms', 'truncated', 'htgen'
 decor_by_subsampl.choice_n_subsample = 'htgen2';
+
+% Threshold effect on dt_subsampling and effect on the variance tenosr and noise 
+decor_by_subsampl.threshold_effect_on_tau_corrected=false % historically
+% decor_by_subsampl.threshold_effect_on_tau_corrected=true % new
+
+% Definition of global variable to manage methods more easily
+
 % Stochastic integration path: 'Ito' or 'Str'
 global stochastic_integration;
 stochastic_integration = 'Ito'
@@ -85,9 +92,6 @@ stochastic_integration = 'Ito'
 global correlated_model;
 correlated_model = false
 
-% Definition of global variable to manage methods more easily
-global choice_n_subsample;
-choice_n_subsample = decor_by_subsampl.choice_n_subsample;
 
 % During the noise covariance estimation,
 % remove the finite-variation part of the chronos
@@ -95,10 +99,10 @@ global estim_rmv_fv;
 % estim_rmv_fv = false
 estim_rmv_fv = true
 
-if ~strcmp(choice_n_subsample, 'auto_shanon')
+if ~strcmp(decor_by_subsampl.choice_n_subsample, 'auto_shanon')
     v_threshold = NaN;
 end
-if correlated_model && strcmp(choice_n_subsample, 'auto_shanon')
+if correlated_model && strcmp(decor_by_subsampl.choice_n_subsample, 'auto_shanon')
     warning('Wrong choice of test function for correlated model. Switching to db')
     decor_by_subsampl.test_fct = 'db';
 end

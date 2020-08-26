@@ -88,10 +88,9 @@ else
     pseudo_chol = V*diag(sqrt(D));
     
     % To circumvent the effect of thresholding on the downsampling rate
-    if strcmp(param.decor_by_subsampl.choice_n_subsample, 'lms') || ...
-            strcmp(param.decor_by_subsampl.choice_n_subsample, 'truncated') || ...
-            strcmp(param.decor_by_subsampl.choice_n_subsample, 'htgen')
-        pseudo_chol = pseudo_chol * sqrt(param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor);
+    if param.decor_by_subsampl.threshold_effect_on_tau_corrected
+        pseudo_chol = pseudo_chol * ...
+            sqrt(param.decor_by_subsampl.tau_corr / param.decor_by_subsampl.n_subsampl_decor);
     end
     
     % %% Remove temporary files

@@ -23,6 +23,10 @@ if ~correlated_model
         param.name_file_3rd_result = [param.name_file_3rd_result  '_no_correct_drift'];
     end
 end
+if param.decor_by_subsampl.threshold_effect_on_tau_corrected
+    param.name_file_3rd_result = [param.name_file_3rd_result, ...
+        '_thrDtCorrect'];    
+end
 
 
 param.name_file_3rd_result = [param.name_file_3rd_result '_integ_' stochastic_integration];

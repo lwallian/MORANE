@@ -46,6 +46,10 @@ if ~correlated_model
         param.name_file_2nd_result=[param.name_file_2nd_result '_no_correct_drift'];
     end
 end
+if param.decor_by_subsampl.threshold_effect_on_tau_corrected
+    param.name_file_2nd_result = [param.name_file_2nd_result, ...
+        '_thrDtCorrect'];    
+end
 % if param.decor_by_subsampl.no_subampl_in_forecast
 %     param.name_file_2nd_result=[param.name_file_2nd_result '_no_subampl_in_forecast'];
 % end

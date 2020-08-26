@@ -19,6 +19,10 @@ else
         num2str(param.nb_modes) '_modes' ...
         'meth_' param.decor_by_subsampl.choice_n_subsample ];
 end
+if param.decor_by_subsampl.threshold_effect_on_tau_corrected
+    param.name_file_noise_cov = [param.name_file_noise_cov, ...
+        '_thrDtCorrect'];    
+end
 if correlated_model
     param.name_file_noise_cov = [param.name_file_noise_cov, 'correlated'];
 end
