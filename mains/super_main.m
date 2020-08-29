@@ -131,6 +131,14 @@ compute_PIV_modes = false
 % DEFAULT : compute_PIV_modes = false
 
 svd_pchol = true
+% Type of noise ( new )
+noise_type = 0 ; % usual red lum : v'.grad(w)
+% noise_type = 1 ; % v'.grad(w)+w.grad(v')
+% noise_type = 2 ; % SALT : TO DO
+if (noise_type > 0) && ~strcmp(stochastic_integration , 'Str')
+    error('Very complex quadratic term');
+end
+
 
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis
@@ -150,7 +158,8 @@ for q = 1:length(v_threshold)
     for k=vect_nb_modes
         k
         main(type_data,k,igrida,coef_correctif_estim,...
-            save_all_bi,decor_by_subsampl_temp,a_t,adv_corrected,eq_proj_div_free);
+            save_all_bi,decor_by_subsampl_temp,a_t,adv_corrected,...
+            eq_proj_div_free,noise_type);
     end
 end
 if compute_PIV_modes + compute_fake_PIV + computed_PIV_variance_tensor > 0
@@ -163,5 +172,5 @@ disp('Super_main done');
 super_main_from_existing_ROM(...
     vect_nb_modes,type_data,v_threshold,modal_dt,...
     no_subampl_in_forecast,vect_reconstruction,vect_adv_corrected...
-    ,decor_by_subsampl,eq_proj_div_free, svd_pchol)
+    ,decor_by_subsampl,eq_proj_div_free, svd_pchol,noise_type)
 

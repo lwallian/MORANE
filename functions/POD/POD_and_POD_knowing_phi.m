@@ -54,6 +54,7 @@ if exist([param_ref.folder_data param_ref.type_data '_pre_c.mat'],'file')==2
     param.folder_data = param_ref.folder_data ;
     param.adv_corrected = param_ref.adv_corrected;
     param.save_bi_before_subsampling = param_ref.save_bi_before_subsampling;
+    param.noise_type = param_ref.noise_type;
     clear param_ref
 else
     if correlated_model

@@ -14,6 +14,9 @@ d = param.d;
 N_tot = N_tot - 1;
 T = T -dt;
 
+if param.noise_type > 0
+    error('not coded yet');
+end
 %% load U
 
 % Initialization

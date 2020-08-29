@@ -1,7 +1,7 @@
 function main_from_existing_ROM(nb_modes,threshold,type_data,...
     nb_period_test,...
     no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,...
-    decor_by_subsampl,svd_pchol,eq_proj_div_free)
+    decor_by_subsampl,svd_pchol,eq_proj_div_free,noise_type)
 %     no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt,test_fct,svd_pchol,eq_proj_div_free)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
@@ -154,6 +154,7 @@ param_ref.folder_results=folder_results;
 param_ref.folder_data =folder_data ;
 param_ref.svd_pchol=svd_pchol;
 param_ref.eq_proj_div_free=eq_proj_div_free;
+param_ref.noise_type=noise_type;
 
 % if nargin > 0
 %     plot_each_mode=false;
@@ -238,9 +239,11 @@ else
     % end
     load(file_res)
 end
-
 if ~isfield(param.decor_by_subsampl,'threshold_effect_on_tau_corrected')
     param.decor_by_subsampl.threshold_effect_on_tau_corrected = false;
+end
+if ~isfield(param,'noise_type')
+    param.noise_type = 0;
 end
 param.decor_by_subsampl.no_subampl_in_forecast = no_subampl_in_forecast;
 

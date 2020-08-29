@@ -114,7 +114,6 @@ for i=1:m
     phi_0 = permute(phi_0,[2 3 1]);%(1,d,M)
     phi_0 = reshape(phi_0,[1 d MX]);%(1,d,Mx,My,(Mz))
     dphi_0 = gradient_mat(phi_0,dX);
-    clear phi_0;
     dphi_0 = permute(dphi_0,[ndims(dphi_0)+1 1 ndims(dphi_0) 3:ndims(dphi_0)-1 2]);%(1,1,d!,Mx,My,(Mz),d
     
     % for i = 1:m
@@ -128,11 +127,27 @@ for i=1:m
     Lap_del_i = permute(Lap_del_i, [1 2 4:ndims(Lap_del_i) 3]);%(1,1,Mx,My,(Mz),d)
     
     % compute the advection term_i ::adv_i
+    if param.noise_type > 0
+        if param.noise_type > 1
+            error('not coded yet');
+        end
+        ddel_i = gradient_mat(del_i,dX);
+        ddel_i = permute(ddel_i,[ndims(ddel_i)+1 1 ndims(ddel_i) 3:ndims(ddel_i)-1 2]);%(1,1,d!,Mx,My,(Mz),d
+        
+        phi_0_per = permute(phi_0,[ndims(phi_0)+1 1:ndims(phi_0)]);%(1,1,d,Mx ,My,(Mz))
+        adv_i_2 = bsxfun(@times,ddel_i,phi_0_per); % 1 x (1) x d x Mx x My (x Mz) d
+        adv_i_2 = sum(adv_i_2,3);
+        adv_i_2 = permute(adv_i_2,[1 2 4:ndims(adv_i_2) 3]);%(1 1 Mx My (Mz) d)
+    end
+    clear phi_0;
     del_i = permute(del_i,[ndims(del_i)+1 1:ndims(del_i)]);%(1,1,d,Mx ,My,(Mz))
     adv_i = bsxfun(@times,dphi_0,del_i); % 1 x (1) x d x Mx x My (x Mz) d
     clear del_i;
     adv_i = sum(adv_i,3);
     adv_i = permute(adv_i,[1 2 4:ndims(adv_i) 3]);%(1 1 Mx My (Mz) d)
+    if param.noise_type > 0
+        adv_i = adv_i + adv_i_2;
+    end
     
     % compute the sum -adv_i and Lap_del_i
     sum_i= Lap_del_i - adv_i;
@@ -186,11 +201,26 @@ for i=1:m
         Lap_del_pi = permute(Lap_del_pi, [1 2 4:ndims(Lap_del_pi) 3]);%(1,1,Mx,My,(Mz),d)
         
         % compute the advection term_i ::adv_i
+        if param.noise_type > 0
+            if param.noise_type > 1
+                error('not coded yet');
+            end
+            ddel_p_i = gradient_mat(del_p_i,dX);
+            ddel_p_i = permute(ddel_p_i,[ndims(ddel_p_i)+1 1 ndims(ddel_p_i) 3:ndims(ddel_p_i)-1 2]);%(1,1,d!,Mx,My,(Mz),d
+            
+%             phi_0 = permute(phi_0,[ndims(phi_0)+1 1:ndims(phi_0)]);%(1,1,d,Mx ,My,(Mz))
+            adv_pi_2 = bsxfun(@times,ddel_p_i,phi_0_per); % 1 x (1) x d x Mx x My (x Mz) d
+            adv_pi_2 = sum(adv_pi_2,3);
+            adv_pi_2 = permute(adv_pi_2,[1 2 4:ndims(adv_pi_2) 3]);%(1 1 Mx My (Mz) d)
+        end
         del_p_i = permute(del_p_i,[ndims(del_p_i)+1 1:ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
         adv_pi = bsxfun(@times,dphi_0,del_p_i); % 1 x (1) x d x Mx x My (x Mz) d
         clear del_p_i;
         adv_pi = sum(adv_pi,3);
         adv_pi = permute(adv_pi,[1 2 4:ndims(adv_pi) 3]);%(1 1 Mx My (Mz) d)
+        if param.noise_type > 0
+            adv_pi = adv_pi + adv_pi_2;
+        end
         
         % compute the sum -adv_i and Lap_del_i
         sum_pi= Lap_del_pi - adv_pi;
@@ -241,6 +271,14 @@ for i=1:m
         del_p_i = del_pi(:,p,1,:);
         del_p_i = permute(del_p_i,[3 4  1 2]);%(1,d,M)
         del_p_i = reshape(del_p_i,[1 d MX]);%(1,d,Mx,My,(Mz))
+        
+        if param.noise_type > 0
+            if param.noise_type > 1
+                error('not coded yet');
+            end
+            ddel_p_i = gradient_mat(del_p_i,dX);
+            ddel_p_i = permute(ddel_p_i,[ndims(ddel_p_i)+1 1 ndims(ddel_p_i) 3:ndims(ddel_p_i)-1 2]);%(1,1,d!,Mx,My,(Mz),d
+        end
         del_p_i = permute(del_p_i,[ndims(del_p_i)+1 1:ndims(del_p_i)]);%(1,1,d,Mx ,My,(Mz))
         
         % compute the gradient of phi_q
@@ -249,15 +287,24 @@ for i=1:m
             phi_q = permute(phi_q,[2 3 1]);%(1,d,M)
             phi_q = reshape(phi_q,[1 d MX]);%(1,d,Mx,My,(Mz))
             dphi_q = gradient_mat(phi_q,dX);
-            clear phi_q;
             dphi_q = permute(dphi_q,[ndims(dphi_q)+1 1 ndims(dphi_q) 3:ndims(dphi_q)-1 2]);
             %(1,1,d!,Mx,My,(Mz),d
             
             % compute the advection term_piq ::adv_piq
+            if param.noise_type > 0
+                phi_q = permute(phi_q,[ndims(phi_q)+1 1:ndims(phi_q)]);%(1,1,d,Mx ,My,(Mz))
+                adv_piq_2 = bsxfun(@times,ddel_p_i,phi_q); % 1 x (1) x d x Mx x My (x Mz) d
+                adv_piq_2 = sum(adv_piq_2,3);
+                adv_piq_2 = permute(adv_piq_2,[1 2 4:ndims(adv_piq_2) 3]);%(1 1 Mx My (Mz) d)
+            end
+            clear phi_q;
             adv_piq = bsxfun(@times,dphi_q,del_p_i); % 1 x (1) x d x Mx x My (x Mz) d
             clear dphi_q;
             adv_piq = sum(adv_piq,3);
             adv_piq = permute(adv_piq,[1 2 4:ndims(adv_piq) 3]);%(1 1 Mx My (Mz) d)
+            if param.noise_type > 0
+                adv_piq = adv_piq + adv_piq_2;
+            end
             
             % Projection on free divergence space to remove the unknown
             % pressure term
