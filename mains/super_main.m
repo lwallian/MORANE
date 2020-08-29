@@ -130,7 +130,6 @@ global compute_PIV_modes
 compute_PIV_modes = false
 % DEFAULT : compute_PIV_modes = false
 
-svd_pchol = true
 % Type of noise ( new )
 noise_type = 0 ; % usual red lum : v'.grad(w)
 % noise_type = 1 ; % v'.grad(w)+w.grad(v')
@@ -139,6 +138,7 @@ if (noise_type > 0) && ~strcmp(stochastic_integration , 'Str')
     error('Very complex quadratic term');
 end
 
+svd_pchol = 2
 
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis
