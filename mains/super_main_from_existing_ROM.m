@@ -54,6 +54,11 @@ if nargin == 0
 %     type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
     % % type_data = 'incompact3d_wake_episode3_cut_truncated';
     
+    % Data of the Re 100 OpenFOAM simulation
+    % type_data = 'DNS100_OpenFOAM_2D_2020_blocks_truncated'
+    % type_data = 'DNS100_OpenFOAM_2D_2020_blocks'
+    % type_data = 'DNS100_OpenFOAM_2D_2020'
+    
     %% Important parameters
     v_threshold=nan
     vect_modal_dt=false

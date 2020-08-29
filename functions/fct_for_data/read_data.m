@@ -976,6 +976,28 @@ switch type_data
                 b = dy*(1:My);
                 grid = {a b'};
                 U=reshape(U,[Mx*My N_tot d]);
+                
+%             case 'DNS100_OpenFOAM_2D_2020'
+            case {'DNS100_OpenFOAM_2D_2020_blocks_truncated',...
+                    'DNS100_OpenFOAM_2D_2020_blocks', ...
+                    'DNS100_OpenFOAM_2D_2020_blocks_test_basis'}  
+                
+                folder_data_in_blocks = 'folder_DNS100_OpenFOAM_2D_2020/';
+                file_prefix = 'file_DNS100_OpenFOAM_2D_2020_run_';
+                
+                idx_char_idx_block=length(type_whole_data)+1;
+                idx_block = type_data(idx_char_idx_block:end);
+                
+                load([ folder_data folder_data_in_blocks file_prefix idx_block '.mat']);
+                
+                [Mx, My, N_tot, d] = size(U);
+                MX = [Mx My];
+                dx=dX(1);
+                dy=dX(2);
+                a = dx*(1:Mx)';
+                b = dy*(1:My);
+                grid = {a b'};
+                U=reshape(U,[Mx*My N_tot d]);
         end
         
         rho0=1e3;
