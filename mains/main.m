@@ -269,9 +269,16 @@ if bool
     for q=1:param.nb_modes
         I_sto(q)=-trace(diag(param.lambda)*C_sto(:,:,q));
     end
-    ILC.tot.I=I_sto+I_deter;
-    ILC.tot.L=L_sto+L_deter;
-    ILC.tot.C=C_sto+C_deter;
+    
+    ILC.sto.I=I_sto;
+    ILC.sto.L=L_sto;
+    ILC.sto.C=C_sto;
+    I_sto = I_deter + I_sto;
+    L_sto = L_deter + L_sto;
+    C_sto = C_deter + C_sto;
+    ILC.tot.I=I_sto;
+    ILC.tot.L=L_sto;
+    ILC.tot.C=C_sto;
     
     % Noise terms
     r_rate_dt = sqrt(rate_dt);
@@ -284,7 +291,7 @@ if bool
     disp('1st result saved');
     return
 end
-clear param_temp param_ref bool;
+clear param_temp param_ref_tau bool;
 
 %% POD
 
