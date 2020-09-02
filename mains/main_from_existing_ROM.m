@@ -182,54 +182,7 @@ param_ref.adv_corrected = adv_corrected;
 % param_ref.decor_by_subsampl.test_fct = test_fct;
 
 param_ref = fct_name_1st_result_new(param_ref);
-if exist(param_ref.name_file_1st_result,'file') == 2
-    load(param_ref.name_file_1st_result)
-else
-    file_res = fct_file_save_1st_result(param_ref);
-    file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
-    file_res=[file_res '_fullsto'];
-    if ~ adv_corrected
-        file_res=[file_res '_no_correct_drift'];
-    end
-    file_res_save = file_res;
-    file_res=[ file_res '_integ_' stochastic_integration];
-    if estim_rmv_fv
-        file_res=[file_res '_estim_rmv_fv'];
-    end
-    file_res=[ file_res '.mat'];
-    
-    if (~(exist(file_res,'file') == 2)) ...
-            && strcmp(stochastic_integration,'Ito')
-        file_res = file_res_save;
-        if estim_rmv_fv
-            file_res=[file_res '_estim_rmv_fv'];
-            param.estim_rmv_fv = true;
-        end
-        file_res=[file_res '.mat'];
-    else
-        clear file_res_save;
-    end
-    
-    threshold
-    
-    % param_ref.decor_by_subsampl.test_fct = 'db';
-    % param_ref.adv_corrected = adv_corrected;
-    
-    % file_res = fct_file_save_1st_result(param_ref);
-    % file_name_struct = fct_name_1st_result(param_ref);
-    % file_res = file_name_struct.name_file_1st_result;
-    
-    % if correlated_model
-    %     file_res = file_res(1:end - 25); % delete the .mat at the end of the filename
-    %     file_res=[file_res '_fullsto'];
-    %     if ~ adv_corrected
-    %         file_res=[file_res '_no_correct_drift'];
-    %     end
-    %     file_res=[ file_res '_integ_' stochastic_integration];
-    %     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
-    %     file_res=[ file_res '_integ_' stochastic_integration];
-    load(file_res)
-end
+load(param_ref.name_file_1st_result)
 %     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
 %     if ~ adv_corrected
 %         file_res=[file_res '_no_correct_drift'];

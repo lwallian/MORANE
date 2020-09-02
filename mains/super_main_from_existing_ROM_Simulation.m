@@ -94,9 +94,6 @@ if nargin == 0
     v_threshold=nan;
     vect_modal_dt=false
     
-    if strcmp(choice_n_subsample, 'corr_time')
-        v_threshold = NaN;
-    end
 else
 %     global choice_n_subsample;
     global stochastic_integration;
