@@ -24,7 +24,6 @@ if nargin == 0
 %     vect_nb_modes = [16]
     % vect_nb_modes = 2.^(1:4)
     no_subampl_in_forecast = false;
-    vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 %     vect_adv_corrected = [ true false]
     vect_adv_corrected = [ true]
     
@@ -85,6 +84,11 @@ if nargin == 0
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
     % % type_data = 'incompact3d_wake_episode3_cut_truncated';
+    if strcmp(type_data((end-9):end),'_truncated')
+        vect_reconstruction = false;
+    else
+        vect_reconstruction = true;
+    end
     
     %% Important parameters
     v_threshold=nan;

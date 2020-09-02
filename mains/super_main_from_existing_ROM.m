@@ -21,7 +21,6 @@ if nargin == 0
 %     vect_nb_modes = [ 16 8 6 4 2]
     vect_nb_modes = [4]
     no_subampl_in_forecast = false;
-    vect_reconstruction = [ false] % for the super_main_from_existing_ROM
     vect_adv_corrected = [ true false ]
     vect_svd_pchol = 2
 %     vect_svd_pchol = svd_pchol
@@ -58,6 +57,12 @@ if nargin == 0
     % type_data = 'DNS100_OpenFOAM_2D_2020_blocks_truncated'
     % type_data = 'DNS100_OpenFOAM_2D_2020_blocks'
     % type_data = 'DNS100_OpenFOAM_2D_2020'
+    
+    if strcmp(type_data((end-9):end),'_truncated')
+        vect_reconstruction = false;
+    else
+        vect_reconstruction = true;
+    end
     
     %% Important parameters
     v_threshold=nan

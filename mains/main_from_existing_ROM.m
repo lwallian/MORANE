@@ -465,24 +465,24 @@ end
 % if no_subampl_in_forecast & reconstruction
 %     error('The reconstruction is only coded with the subsampled data');
 % end
-if ~ reconstruction
-    %     if param.decor_by_subsampl.no_subampl_in_forecast
-    %         param.dt = param.dt / param.decor_by_subsampl.n_subsampl_decor;
-    %         param.N_test = param.N_test * param.decor_by_subsampl.n_subsampl_decor;
-    %         param.N_tot = param.N_tot * param.decor_by_subsampl.n_subsampl_decor;
-    %         param.decor_by_subsampl.n_subsampl_decor = 1;
-    %     end
-    
-    %% Creation of the test basis
-    n_subsampl_decor_ref = param.decor_by_subsampl.n_subsampl_decor;
-    param.decor_by_subsampl.n_subsampl_decor = 1;
-    [param,bt_tot,truncated_error2]=Chronos_test_basis(param);
-    param.decor_by_subsampl.n_subsampl_decor = n_subsampl_decor_ref;
-    if param.big_data
-        toc;tic;
-        disp('Creation of the test basis done');
-    end
+% if ~ reconstruction
+if param.decor_by_subsampl.no_subampl_in_forecast
+    param.dt = param.dt / param.decor_by_subsampl.n_subsampl_decor;
+    param.N_test = param.N_test * param.decor_by_subsampl.n_subsampl_decor;
+    param.N_tot = param.N_tot * param.decor_by_subsampl.n_subsampl_decor;
+%     param.decor_by_subsampl.n_subsampl_decor = 1;
 end
+
+%% Creation of the test basis
+n_subsampl_decor_ref = param.decor_by_subsampl.n_subsampl_decor;
+param.decor_by_subsampl.n_subsampl_decor = 1;
+[param,bt_tot,truncated_error2]=Chronos_test_basis(param,reconstruction);
+param.decor_by_subsampl.n_subsampl_decor = n_subsampl_decor_ref;
+if param.big_data
+    toc;tic;
+    disp('Creation of the test basis done');
+end
+% end
 
 %% Time integration of the reconstructed Chronos b(t)
 

@@ -10,7 +10,6 @@ igrida=false;
 % vect_nb_modes = 2 % For debugging
 vect_nb_modes = [ 8 6 4 2] % For a full test
  % vect_nb_modes = 2.^(4:-1:1)
-vect_reconstruction = [ false] % for the super_main_from_existing_ROM
 % vect_adv_corrected = [ false]
 vect_adv_corrected = [ true false]
 
@@ -144,6 +143,12 @@ if (noise_type > 0) && ~strcmp(stochastic_integration , 'Str')
 end
 
 svd_pchol = 2
+
+if strcmp(type_data((end-9):end),'_truncated')
+    vect_reconstruction = false;
+else
+    vect_reconstruction = true;
+end
 
 %% Loops on chosen parameters
 % The ROM is constructed and simulated on the learning basis

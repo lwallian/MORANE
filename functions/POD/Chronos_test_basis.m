@@ -1,4 +1,4 @@
-function [param_ref, bt,truncated_error2]=Chronos_test_basis(param_ref)
+function [param_ref, bt,truncated_error2]=Chronos_test_basis(param_ref,reconstruction)
 % Compute the spatial modes phi of the POD, the corresponding temporal coefficients bt,
 % the temporal mean m_U, the time subsampling and
 % the residual velocity U neglected by the Galerkin projection
@@ -51,9 +51,15 @@ else
 %         param_temp = read_data_blocks(...
 %             [ param.type_whole_data(1:(end-10)) '_test_basis' ],...
 %             param.folder_data);
-        param_temp = read_data_blocks(...
-            [ param.type_data(1:(end-10)) '_test_basis' ],...
-            param.folder_data);
+        if ~ reconstruction
+            param_temp = read_data_blocks(...
+                [ param.type_data(1:(end-10)) '_test_basis' ],...
+                param.folder_data);
+        else
+            param_temp = read_data_blocks(...
+                param.type_data,...
+                param.folder_data);
+        end
         N_tot= param_temp.data_in_blocks.nb_blocks ...
             * param_temp.data_in_blocks.len_blocks;
         clear param_temp
@@ -67,7 +73,9 @@ else
         param.data_in_blocks.bool = false;
         len_blocks=inf;
         param.data_in_blocks.nb_blocks = [];
-        param.type_data = [ param.type_data(1:(end-10)) '_test_basis' ];
+        if ~ reconstruction
+            param.type_data = [ param.type_data(1:(end-10)) '_test_basis' ];
+        end
         param.data_in_blocks.type_whole_data = param.type_data;
         % Load new file
         U=read_data(param.type_data,param.folder_data, ...
@@ -89,7 +97,11 @@ else
     %     end
     truncated_error2 = nan([1 N_tot]);
     bt = nan([N_tot 1 1 param.nb_modes]);
-    big_T = param.data_in_blocks.nb_blocks; % index of the file
+    if ~ reconstruction
+        big_T = param.data_in_blocks.nb_blocks; % index of the file
+    else
+        big_T = 0; % index of the file        
+    end
     
     for t=1:n_subsampl*N_tot % loop for all time
         if param.data_in_blocks.bool && ...
