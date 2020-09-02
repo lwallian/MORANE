@@ -441,6 +441,8 @@ elseif ( strcmp(param.type_data, 'DNS100_inc3d_2D_2018_11_16_blocks_truncated') 
 %     %     end
 % % else
 % %     subplot(2,2,(param.nb_modes)/2);
+else
+    subplot(3,1,log2(param.nb_modes));
  end
 k=1;
 
