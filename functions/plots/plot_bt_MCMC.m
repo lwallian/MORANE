@@ -48,6 +48,8 @@ switch param.type_data
         param.N_test = ceil(40/param.dt);
         %        param.N_test = ceil(80/param.dt);
         %        param.N_test = ceil(20/param.dt);
+    case 'DNS100_OpenFOAM_2D_2020_blocks'
+        param.N_test = ceil(200/param.dt);
 end
 
 
