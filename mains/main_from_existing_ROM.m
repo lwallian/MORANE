@@ -225,20 +225,19 @@ else
     %     if ~ adv_corrected
     %         file_res=[file_res '_no_correct_drift'];
     %     end
-    %     file_res=[file_res '_correlated'];
     %     file_res=[ file_res '_integ_' stochastic_integration];
-    %     file_res=[ file_res '.mat'];
-    % else
     %     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
-    %     file_res=[file_res '_fullsto'];
-    %     if ~ adv_corrected
-    %         file_res=[file_res '_no_correct_drift'];
-    %     end
     %     file_res=[ file_res '_integ_' stochastic_integration];
-    %     file_res=[ file_res '.mat'];
-    % end
     load(file_res)
 end
+%     file_res = file_res(1:end - 14); % delete the .mat at the end of the filename
+%     if ~ adv_corrected
+%         file_res=[file_res '_no_correct_drift'];
+%     file_res_save = file_res;
+%     file_res=[ file_res '_integ_' stochastic_integration];
+%     
+%             && strcmp(stochastic_integration,'Ito')
+%         file_res = file_res_save;
 if ~isfield(param.decor_by_subsampl,'threshold_effect_on_tau_corrected')
     param.decor_by_subsampl.threshold_effect_on_tau_corrected = false;
 end

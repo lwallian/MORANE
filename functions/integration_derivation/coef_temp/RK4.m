@@ -9,9 +9,13 @@ function b_tp1 = RK4(bt,I,L,C,dt)
 % The result has the size : N x m
 %
 
-k1 = deriv_bt( I(1,:)', squeeze(L(1,:,:)), C, bt);
-k2 = deriv_bt( I(2,:)', squeeze(L(2,:,:)), C, bt + k1*dt/2);
-k3 = deriv_bt( I(2,:)', squeeze(L(2,:,:)), C, bt + k2*dt/2);
-k4 = deriv_bt( I(3,:)', squeeze(L(3,:,:)), C, bt + k3*dt);
+k1 = deriv_bt( I, L, C, bt);
+k2 = deriv_bt( I, L, C, bt + k1*dt/2);
+k3 = deriv_bt( I, L, C, bt + k2*dt/2);
+k4 = deriv_bt( I, L, C, bt + k3*dt);
+% k1 = deriv_bt( I(1,:)', squeeze(L(1,:,:)), C, bt);
+% k2 = deriv_bt( I(2,:)', squeeze(L(2,:,:)), C, bt + k1*dt/2);
+% k3 = deriv_bt( I(2,:)', squeeze(L(2,:,:)), C, bt + k2*dt/2);
+% k4 = deriv_bt( I(3,:)', squeeze(L(3,:,:)), C, bt + k3*dt);
 
 b_tp1 = bt + (dt/3)*(k1/2 + k2 + k3 + k4/2);

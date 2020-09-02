@@ -317,21 +317,24 @@ param.N_test = param.N_test *n_simu;
 N_test=param.N_test;
 dt_tot=param.dt;
 
-bt_forecast_deter=bt_init;
+bt_forecast_deter=nan([param.N_test+1 param.nb_modes]);
+bt_forecast_deter(1,:)=bt_init;
 for l = 1:N_test
-    bt_forecast_deter= [bt_forecast_deter; ...
-        evol_forward_bt_RK4(I_deter,L_deter,C_deter, dt_tot, bt_forecast_deter)];
+    bt_forecast_deter(l+1,:) = RK4( bt_forecast_deter(l,:),...
+        I_deter,L_deter,C_deter, dt_tot);
 end
-bt_forecast_MEV=bt_init;
 if param.add_noise
     bt_forecast_MEV=nan([param.N_test+1 param.nb_modes param.N_particules]);
     bt_forecast_MEV(1,:,:)=repmat(bt_init,[1 1 param.N_particules]);
 %     bt_forecast_MEV=repmat(bt_forecast_MEV,[1 1 param.N_particules]);
+else
+    bt_forecast_MEV=nan([param.N_test+1 param.nb_modes ]);
+    bt_forecast_MEV(1,:,:)=bt_init;    
 end
 for l = 1:N_test
     if ~param.add_noise
-        bt_forecast_MEV(l+1,:,:) = ...
-            evol_forward_bt_RK4(ILC.MEV.I,ILC.MEV.L,ILC.MEV.C, dt_tot, bt_forecast_MEV);
+        bt_forecast_MEV(l+1,:,:) = RK4(bt_forecast_MEV(l,:,:),...
+            ILC.MEV.I,ILC.MEV.L,ILC.MEV.C, dt_tot);
     else
         bt_forecast_MEV(l+1,:,:) = ...
             evol_forward_bt_MCMC(...
@@ -368,16 +371,18 @@ for l = 1:N_test
         end
     end
 end
-bt_forecast_EV=bt_init;
 if param.add_noise
     bt_forecast_EV=nan([param.N_test+1 param.nb_modes param.N_particules]);
     bt_forecast_EV(1,:,:)=repmat(bt_init,[1 1 param.N_particules]);
 %     bt_forecast_EV=repmat(bt_forecast_EV,[1 1 param.N_particules]);
+else
+    bt_forecast_EV=nan([param.N_test+1 param.nb_modes ]);
+    bt_forecast_EV(1,:,:)=bt_init;    
 end
 for l = 1:N_test
     if ~param.add_noise
-        bt_forecast_EV(l+1,:,:) = ...
-            evol_forward_bt_RK4(ILC.EV.I,ILC.EV.L,ILC.EV.C, dt_tot, bt_forecast_EV);
+        bt_forecast_EV(l+1,:,:) = RK4(bt_forecast_EV(l,:,:),...
+            ILC.EV.I,ILC.EV.L,ILC.EV.C, dt_tot);
     else
         bt_forecast_EV(l+1,:,:) = ...
             evol_forward_bt_MCMC(...
@@ -416,10 +421,11 @@ for l = 1:N_test
         end
     end
 end
-bt_forecast_NLMEV=bt_init;
+bt_forecast_NLMEV=nan([param.N_test+1 param.nb_modes ]);
+bt_forecast_NLMEV(1,:,:)=bt_init;
 for l = 1:N_test
-    bt_forecast_NLMEV= [bt_forecast_NLMEV; ...
-        evol_forward_bt_NLMEV_RK4(ILC.NLMEV, dt_tot, bt_forecast_NLMEV)];
+    bt_forecast_NLMEV(l+1,:,:) = RK4_NLMEV(bt_forecast_NLMEV(l,:,:),...
+        ILC.NLMEV, dt_tot);
 end
 % bt_forecast_sto_scalar=bt_init;
 % for l = 1:N_test
