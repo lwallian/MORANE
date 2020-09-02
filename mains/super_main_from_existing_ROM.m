@@ -20,7 +20,7 @@ if nargin == 0
     %% Number of modes for the the ROM
 %     vect_nb_modes = [ 16 8 6 4 2]
     vect_nb_modes = [4]
-    no_subampl_in_forecast = false;
+    no_subampl_in_forecast = false; % depreciated : forecast is now never subsampled
     vect_adv_corrected = [ true false ]
     vect_svd_pchol = 2
 %     vect_svd_pchol = svd_pchol

@@ -4,13 +4,13 @@ function main_EV(nb_modes,type_data,add_noise,rigorous_EV_noise_estim)
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
 %
-no_subampl_in_forecast= true;
 % no_subampl_in_forecast= false;
 if strcmp(type_data((end-9):end),'_truncated')
     reconstruction = false;
 else
     reconstruction = true;
 end
+no_subampl_in_forecast= false; % depreciated
 
 global stochastic_integration;
 stochastic_integration = 'Ito';
@@ -282,6 +282,7 @@ end
 n_subsampl_decor_ref = param.decor_by_subsampl.n_subsampl_decor;
 param.decor_by_subsampl.n_subsampl_decor = 1;
 [param,bt_tot,truncated_error2]=Chronos_test_basis(param,reconstruction);
+param.decor_by_subsampl.n_subsampl_decor = n_subsampl_decor_ref;
 if param.big_data
     toc;tic;
     disp('Creation of the test basis done');
@@ -315,6 +316,7 @@ bt_init=bt_tot(1,:);
 
 param.dt = param.dt /n_simu;
 param.N_test = param.N_test *n_simu;
+param.dt = param.dt/param.decor_by_subsampl.n_subsampl_decor;
 N_test=param.N_test;
 dt_tot=param.dt;
 

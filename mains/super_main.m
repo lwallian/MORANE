@@ -51,7 +51,7 @@ v_threshold=nan
 modal_dt=false
 
 %% Parameters which should not be modified
-no_subampl_in_forecast = false;
+no_subampl_in_forecast = false; % depreciated : forecast is now never subsampled 
 % Estimation of corrective terms in the ROM
 coef_correctif_estim.learn_coef_a=false;
 % Time variation of the variance tensor

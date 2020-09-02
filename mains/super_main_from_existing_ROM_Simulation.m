@@ -23,9 +23,9 @@ if nargin == 0
 %     vect_nb_modes = [2 4 6 8]
 %     vect_nb_modes = [16]
     % vect_nb_modes = 2.^(1:4)
-    no_subampl_in_forecast = false;
 %     vect_adv_corrected = [ true false]
     vect_adv_corrected = [ true]
+    no_subampl_in_forecast = false; % depreciated : forecast is now never subsampled 
     
     % To choose between the shannon and correlation time downsampling
     % methods
