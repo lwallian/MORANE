@@ -6,6 +6,7 @@ function [param, bt]=POD_and_POD_knowing_phi(param_ref)
 
 % Instantiation of global config
 global correlated_model;
+global stochastic_integration;
 % Set warning to error to be able to try catch it
 % This is to be able to modify the precomputed c matrix file if there is
 % no information about its derivative inside the file

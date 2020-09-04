@@ -2,7 +2,7 @@ function param = sub_sample_U(param)
 % Subsample in time the residual velocity field
 % contained in temporary files
 %
-
+global stochastic_integration;
 %% Initialization
 param.folder_file_U_temp = fct_folder_temp(param);
 

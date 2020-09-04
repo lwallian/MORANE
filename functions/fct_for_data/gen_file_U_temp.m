@@ -1,7 +1,7 @@
 function param = gen_file_U_temp(param)
 % Generate the teporary velocity file names
 %
-
+global stochastic_integration;
 %% Initialization
 param.folder_file_U_temp = fct_folder_temp(param);
 
