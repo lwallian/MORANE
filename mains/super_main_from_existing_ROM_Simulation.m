@@ -178,6 +178,10 @@ for modal_dt=vect_modal_dt
                 if ~ adv_corrected
                     str =[ str '_NoAdvCorect'];
                 end
+                if decor_by_subsampl.threshold_effect_on_tau_corrected
+                    str = [str, ...
+                        '_thrDtCorrect'];
+                end
                 if reconstruction
                     str =[ str '_reconstruction'];
                 else
@@ -201,6 +205,10 @@ for modal_dt=vect_modal_dt
                 end
                 if correlated_model
                     str = [str '_correlated']
+                end
+                if noise_type > 0
+                    str = [str, ...
+                        '_noise_type_' num2str(noise_type)];
                 end
                 if ~ decor_by_subsampl.bug_sampling
                     str = [str, '_noBugSubsampl'];

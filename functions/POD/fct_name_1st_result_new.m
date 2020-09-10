@@ -49,7 +49,7 @@ if correlated_model
 end
 if param.noise_type > 0
     param.name_file_noise_cov = [param.name_file_1st_result, ...
-        '_noise_type_' num2str(param.name_file_1st_result)];    
+        '_noise_type_' num2str(param.noise_type)];    
 end
 if ~ param.decor_by_subsampl.bug_sampling
     param.name_file_1st_result = [param.name_file_1st_result, '_noBugSubsampl'];
