@@ -84,13 +84,27 @@ if nargin == 0
     % Small dataset for debuging
     % type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated';
     % % type_data = 'incompact3d_wake_episode3_cut_truncated';
+
+    % Data of the Re 100 OpenFOAM simulation
+%     type_data = 'DNS100_OpenFOAM_2D_2020_blocks_truncated'
+%     type_data = 'DNS100_OpenFOAM_2D_2020_blocks'
+    % type_data = 'DNS100_OpenFOAM_2D_2020' 
+    
     if strcmp(type_data((end-9):end),'_truncated')
         vect_reconstruction = false;
     else
         vect_reconstruction = true;
     end
     
-    %% Important parameters
+    % Type of noise ( new )
+    noise_type = 0 ; % usual red lum : v'.grad(w)
+    % noise_type = 1 ; % v'.grad(w)+w.grad(v')
+    % noise_type = 2 ; % SALT : TO DO
+    if (noise_type > 0) && ~strcmp(stochastic_integration , 'Str')
+        error('Very complex quadratic term');
+    end
+    
+    %% Depreciated parameters
     v_threshold=nan;
     vect_modal_dt=false
     
@@ -121,6 +135,10 @@ for modal_dt=vect_modal_dt
 %                         eq_proj_div_free,plot_EV_noise)
                     
                     switch type_data
+                        case 'DNS100_OpenFOAM_2D_2020_blocks'
+                            ax = axis;
+                            ax(2)=200;
+                            axis(ax);
                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
                             ax = axis;
                                                     ax(2)=40;
@@ -218,6 +236,7 @@ for modal_dt=vect_modal_dt
                 drawnow
                 pause(1)
                 eval(str);
+                close all
             end
         end
     end

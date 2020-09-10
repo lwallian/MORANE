@@ -85,9 +85,6 @@ if nargin == 0
     % Stochastic integration path : 'Ito' or 'Str'
     stochastic_integration = 'Ito';
     
-    % Definition of global variable to manage methods more easily
-    choice_n_subsample = decor_by_subsampl.choice_n_subsample;
-    
     % During the noise covariance estimation,
     % remove the finite-variation part of the chronos
     estim_rmv_fv = true;
