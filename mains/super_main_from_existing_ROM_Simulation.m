@@ -45,6 +45,10 @@ if nargin == 0
 % %     choice_n_subsample = 'auto_shannon';
 %     choice_n_subsample = 'htgen2'; % 'auto_shanon' 'htgen' 'lms'
     decor_by_subsampl.bug_sampling = false ;
+
+    % Threshold effect on dt_subsampling and effect on the variance tenosr and noise
+%     decor_by_subsampl.threshold_effect_on_tau_corrected=false % historically
+    decor_by_subsampl.threshold_effect_on_tau_corrected=true % new
     
     stochastic_integration = 'Ito'; % 'Str'  'Ito'
     estim_rmv_fv = true;
