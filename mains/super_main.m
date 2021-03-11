@@ -83,8 +83,8 @@ decor_by_subsampl.bug_sampling = false ;
 decor_by_subsampl.choice_n_subsample = 'htgen2';
 
 % Threshold effect on dt_subsampling and effect on the variance tenosr and noise 
-decor_by_subsampl.threshold_effect_on_tau_corrected=false % historically
-% decor_by_subsampl.threshold_effect_on_tau_corrected=true % new
+% decor_by_subsampl.threshold_effect_on_tau_corrected=false % historically
+decor_by_subsampl.threshold_effect_on_tau_corrected=true % new
 
 % Definition of global variable to manage methods more easily
 
