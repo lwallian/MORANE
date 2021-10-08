@@ -1,0 +1,9 @@
+current_tests
+resultats
+*~
+*.pdf
+*.mat
+*.asv
+*.pyc
+*.npy
+*.txt
