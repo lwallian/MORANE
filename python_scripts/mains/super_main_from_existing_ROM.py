@@ -51,6 +51,8 @@ if __name__ == '__main__':
 #    vect_eq_proj_div_free = 2
     vect_eq_proj_div_free = [2]
     EV = False
+    thrDtCorrect = False
+    noBugSubsampl = False
     
     #nb_mutation_steps = 0                # Number of mutation steps in particle filter 
     vect_nb_mutation_steps = [0]                # Number of mutation steps in particle filter 
@@ -99,6 +101,8 @@ if __name__ == '__main__':
                                                        test_fct,svd_pchol,\
                                                        stochastic_integration,\
                                                        estim_rmv_fv,eq_proj_div_free,\
+                                                       thrDtCorrect,\
+                                                       noBugSubsampl,\
                                                        choice_n_subsample,EV,\
                                                        nb_mutation_steps,
                                                        SECONDS_OF_SIMU)

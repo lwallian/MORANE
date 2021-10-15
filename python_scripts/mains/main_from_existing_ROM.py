@@ -193,6 +193,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                            adv_corrected,modal_dt,n_particles,test_fct,svd_pchol,\
                                                stochastic_integration,\
                                                estim_rmv_fv,eq_proj_div_free,\
+                                               thrDtCorrect,\
+                                               noBugSubsampl,\
                                                choice_n_subsample,EV,\
                                                nb_mutation_steps,\
                                                SECONDS_OF_SIMU):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
@@ -295,9 +297,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     file = file + '/'
     if not adv_corrected:
         file = file + '_no_correct_drift'
+    if thrDtCorrect:
+        file = file + '_thrDtCorrect'      
     file = file + '_integ_' + stochastic_integration
     if estim_rmv_fv:
         file = file + '_estim_rmv_fv'
+    if noBugSubsampl:
+        file = file + '_noBugSubsampl'      
     if eq_proj_div_free == 2:
         file = file + '_DFSPN'            
 #    file_save = file
@@ -474,6 +480,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     if not adv_corrected:
         file_plots = file_plots + '_no_correct_drift'
 #    file_plots = file_plots + '_integ_Ito'
+    if thrDtCorrect:
+        file_plots = file_plots + '_thrDtCorrect'
     file_plots = file_plots + '_integ_' + stochastic_integration
     if estim_rmv_fv:
         file_plots = file_plots + '_estim_rmv_fv'
@@ -481,6 +489,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
         file_plots = file_plots + '_svd_pchol'
     elif svd_pchol==2:
         file_plots = file_plots + '_svd_pchol2'
+    if noBugSubsampl:
+        file_plots = file_plots + '_noBugSubsampl'
     if eq_proj_div_free == 2:
         file_plots = file_plots + '_DFSPN'       
     file_plots = file_plots + '/' + assimilate + \
@@ -1974,6 +1984,14 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     
 #        print(time_bt_tot.shape)
 #        print(time.shape)
+    if 'threshold_effect_on_tau_corrected' \
+            in param['decor_by_subsampl']:
+        param['decor_by_subsampl']['thrDtCorrect'] = \
+            param['decor_by_subsampl']['threshold_effect_on_tau_corrected']
+        del param['decor_by_subsampl']['threshold_effect_on_tau_corrected']
+    else:
+        param['decor_by_subsampl']['thrDtCorrect'] = False        
+        
     
     dict_python = {}
     dict_python['param'] = param
