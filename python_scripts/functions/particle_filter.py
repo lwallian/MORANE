@@ -23,13 +23,6 @@ def resample(weigths):
     indexes = np.random.choice(nb_weigths,nb_weigths, p=weigths)
     
     return indexes
-
-def calculate_inv_noise_covariance_matrix(lambda_values,beta_1):
-    
-    cov_matrix = np.power(beta_1,2)*np.diag(lambda_values)
-    
-    
-    return np.linalg.inv(cov_matrix)
     
 def calculate_effective_sample_size(weigths):
     
@@ -58,69 +51,6 @@ def find_tempering_coeff(likelihood,N_threshold,phi):
     
 #    print(resbrute[0])
     return resbrute[0][0]
-
-    
-def propagate_particle(pho,particle_past_original,noise_accepted_original,delta_t,I,L,C, pchol_cov_noises, dt):
-    
-    
-    bt_candidate = particle_past_original[...,np.newaxis]
-    noise_candidate_complete = np.zeros(shape = noise_accepted_original.shape)
-    
-    for iter_i in range(delta_t):
-        bt_candidate,noise_candidate = evol_forward_bt_MCMC(I,L,C, pchol_cov_noises, dt,bt_candidate,0,0,True,noise_accepted_original[iter_i,:],pho)
-        if iter_i==0:
-            noise_candidate_complete = noise_candidate
-        else: 
-            noise_candidate_complete = np.concatenate((noise_candidate_complete,noise_candidate),axis=0)
-    
-    
-    
-    return bt_candidate,noise_candidate_complete
-
-
-
-def create_noise_champ(shape_noise):
-    
-    return np.random.normal(size=(shape_noise))
-    
-def create_virtual_champs_vitesse_DNS(champ_orig,H,L,dimensions,std_space,dX,subsampling_grid):
-    
-    champ_obs_1 = np.zeros(shape=champ_orig.shape)
-    x_size = dimensions['x_size']
-    y_size = dimensions['y_size']
-    z_size = dimensions['z_size']
-    dim    = dimensions['dim'] 
-    
-    
-    
-    # If the flow is going in the direction of x
-    number_of_points_correlated = int(std_space/(dX[0,0]*subsampling_grid))
-    dist = dX[0,0]*np.arange(-number_of_points_correlated,number_of_points_correlated+1,1)
-    h = np.exp(-(dist**2)/(2*std_space**2))
-    sum_h = np.sum(h)
-    
-    h = h/sum_h
-    
-    
-    
-    champ = np.reshape(champ_orig,(x_size,y_size,z_size,dim),order='F')
-                    
-                    
-                    
-    shape_noise = champ_obs_1.shape
-    noise = np.random.normal(size=(shape_noise))
-    champ_obs_1 = champ_obs_1 + L * noise
-
-    return champ_obs_1
-
-def calculate_inverse_covariance(L):
-    
-    sigma = np.matmul(L.T,L)
-    
-    sigma_inverse = np.linalg.inv(sigma) 
-    
-    
-    return sigma_inverse
 
 def calculate_champs_likelihood(particles_chronos,obs_K,phi,Hr_K):
     
