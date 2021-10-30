@@ -230,8 +230,8 @@ param.igrida=igrida; clear igrida
 param.name_file_mode=[ param.folder_data param.name_file_mode ];
 
 %% Correction tau threshold from previous files
-
 bool=false;
+if ~ (compute_PIV_modes || compute_fake_PIV ||computed_PIV_variance_tensor)
 param_ref_tau=param;
 param_temp = param;
 param_temp.decor_by_subsampl.threshold_effect_on_tau_corrected = false;
@@ -294,6 +294,7 @@ if bool
     disp('1st result saved');
     return
 end
+end
 clear param_temp param_ref_tau bool;
 
 %% POD
@@ -313,21 +314,21 @@ end
 if compute_PIV_modes
     PIV_modes(param);
     toc;tic;
-    disp('Fake PIV computation done');
-    return;
+    disp('PIV mode computation done');
 end
 if compute_fake_PIV
     Fake_PIV_data(param,true);
     Fake_PIV_data(param,false);
     toc;tic;
     disp('Fake PIV computation done');
-    return;
 end
 global correlated_model;
 if computed_PIV_variance_tensor
     quadratic_variation_estimation_PIV(param,bt_tot);
     toc;tic;
     disp('PIV variance tensor estimation done');
+end
+if compute_PIV_modes + compute_fake_PIV + computed_PIV_variance_tensor > 0
     return;
 end
 % Computation of the variance tensor a
