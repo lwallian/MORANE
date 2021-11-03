@@ -163,25 +163,25 @@ def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,
 ##    weigths = likelihood/np.sum(likelihood)
 ##    ess = calculate_effective_sample_size(weigths)
 
-#    if (nb_mutation_steps == 0): # No tempering / mutation
-#        
-#        weigths = (likelihood/np.sum(likelihood))[0,:]
-#
-#        index_print = np.where((weigths>0.05))
-#        ess = calculate_effective_sample_size(weigths)
-#        print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
-#        print('ESS: '+ str(ess))
-#        
-##        if (ess <= N_threshold):
-##            #### Resampling
-##            indexes = resample(weigths)
-##            particles_chronos = particles_chronos[:,indexes]
-#        
-#        #### Resampling
-#        indexes = resample(weigths)
-#        particles_chronos = particles_chronos[:,indexes]
-#                
-#        return particles_chronos
+    if (nb_mutation_steps == -1): # No tempering / mutation
+        
+        weigths = (likelihood/np.sum(likelihood))[0,:]
+
+        index_print = np.where((weigths>0.05))
+        ess = calculate_effective_sample_size(weigths)
+        print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
+        print('ESS: '+ str(ess))
+        
+#        if (ess <= N_threshold):
+#            #### Resampling
+#            indexes = resample(weigths)
+#            particles_chronos = particles_chronos[:,indexes]
+        
+        #### Resampling
+        indexes = resample(weigths)
+        particles_chronos = particles_chronos[:,indexes]
+                
+        return particles_chronos
 
     
     r = 0

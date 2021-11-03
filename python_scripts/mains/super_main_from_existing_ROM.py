@@ -55,7 +55,7 @@ if __name__ == '__main__':
     noBugSubsampl = False
     
     #nb_mutation_steps = 0                # Number of mutation steps in particle filter 
-    vect_nb_mutation_steps = [0]                # Number of mutation steps in particle filter 
+    vect_nb_mutation_steps = [-1]                # Number of mutation steps in particle filter 
 #    vect_nb_mutation_steps = [30,0]                # Number of mutation steps in particle filter 
 
 
