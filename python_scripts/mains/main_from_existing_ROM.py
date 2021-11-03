@@ -1455,7 +1455,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
         
         if (assimilate_PIV==True):                      # The Flag assimilate_PIV control the moments that we can assimilate data
             index_of_filtering.append(index)            # Stock the assimilation index
-            print('Index of filtering: '+str(index))    
+            print('Time : '+str(time[-1]))    
             index_pf.append(index+1)                    # Stock the assimilation index to control noise and past particles
 
 #            obs = bt_tot[ int((index+1)/n_simu),:][...,np.newaxis]
@@ -1478,6 +1478,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             delta_t = index_pf[-1] - index_pf[-2]       # Define the delta t as the number of integrations(IMPORTANT: In the case of real time assimilation the dt is variable.....)
             
             # Call particle filter 
+            print('PF Red LUM')
             start = t_exe.time()
             particles = particle_filter(ILC_a_cst,obs,K,Hpiv_Topos_K,particles,N_threshold,\
                                         np.concatenate((noises,noises_centered[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
@@ -1485,6 +1486,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             end = t_exe.time()
             time_exe = time_exe + end - start
             if EV:
+                print('PF EV+noise')
                 start = t_exe.time()
                 particles_EV = particle_filter(ILC_EV,obs,K,Hpiv_Topos_K,particles_EV,N_threshold,\
                                         np.concatenate((noises_EV,noises_centered_EV[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
