@@ -50,7 +50,7 @@ if __name__ == '__main__':
 #    eq_proj_div_free = 1
 #    vect_eq_proj_div_free = 2
     vect_eq_proj_div_free = [2]
-    EV = False
+    EV = True
     thrDtCorrect = False
     noBugSubsampl = False
     
