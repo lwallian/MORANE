@@ -47,14 +47,14 @@ sub_sampling_PIV_data_temporaly = True  # True                                  
 #factor_of_PIV_time_subsampling_gl = int(5 / 0.080833)                                                           # The factor that we will take to subsampled PIV data. 
 
 
-plt_real_time = True                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
+plt_real_time = False                                                                     # It can be chosen to plot chronos evolution in real time or only at the end of the simulation
 plot_period = 2 * float(5/10)/2
 heavy_real_time_plot = True # Compute confidence interval for real-time plots
 #n_frame_plots = 20           
 fig_width= 9
 fig_height = 4      
-plot_Q_crit = True
-plot_ref_gl = False
+plot_Q_crit = False
+plot_ref_gl = True
 
 
 mask_obs = True      # True            # Activate spatial mask in the observed data
