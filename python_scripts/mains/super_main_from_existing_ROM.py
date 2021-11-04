@@ -57,7 +57,7 @@ if __name__ == '__main__':
     #nb_mutation_steps = 0                # Number of mutation steps in particle filter 
     vect_nb_mutation_steps = [-1]                # Number of mutation steps in particle filter 
 #    vect_nb_mutation_steps = [30,0]                # Number of mutation steps in particle filter 
-
+    n_particle = 100
 
 #                           DATASET 
 #    type_data = 'incompact3D_noisy2D_40dt_subsampl_truncated'  #dataset to debug
@@ -96,7 +96,6 @@ if __name__ == '__main__':
                     for adv_corrected in vect_adv_corrected:
                         for reconstruction in vect_reconstruction:
                             for k in vect_nb_modes:
-                                n_particle = 100
                                 main_from_existing_ROM(k,threshold,type_data,nb_period_test,\
                                                        no_subampl_in_forecast,reconstruction,\
                                                        adv_corrected,modal_dt,n_particle,\
