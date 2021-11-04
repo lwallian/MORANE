@@ -169,8 +169,8 @@ def particle_filter(ILC_a_cst,obs,K,Hpiv_K,particles_chronos,N_threshold,noises,
 
         index_print = np.where((weigths>0.05))
         ess = calculate_effective_sample_size(weigths)
-        print('indexes with more than 5% probability of sampling: '+ str(index_print[0]))
-        print('ESS: '+ str(ess))
+        print('  > indexes with more than 5% probability of sampling: '+ str(index_print[0]))
+        print('  > ESS: '+ str(ess))
         
 #        if (ess <= N_threshold):
 #            #### Resampling
