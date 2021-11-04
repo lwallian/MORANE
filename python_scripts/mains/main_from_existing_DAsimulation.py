@@ -361,6 +361,7 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
     file_plots = file_plots + 'beta_2_' + str(int(beta_2))
     file_plots = file_plots + '_nSimu_' + str(int(n_simu))
     file_plots = file_plots + '_nMut_' + str(int(nb_mutation_steps))
+    file_plots = file_plots + '_nPcl_' + str(int(n_particles))
         
 #    file_plots = file_plots.replace(".", "_")
     folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
