@@ -50,7 +50,8 @@ if __name__ == '__main__':
 #    eq_proj_div_free = 1
 #    vect_eq_proj_div_free = 2
     vect_eq_proj_div_free = [2]
-    EV = True
+    EV = 1 # EV=2 : EV with random IC only / EV=1 with noise & random IC / EV=0 no EV model
+    
     thrDtCorrect = False
     noBugSubsampl = False
     

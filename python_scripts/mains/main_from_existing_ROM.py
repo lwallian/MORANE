@@ -217,8 +217,19 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                                                choice_n_subsample,EV,\
                                                nb_mutation_steps,\
                                                SECONDS_OF_SIMU):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
-    
-    
+    if (EV == 2):
+        EV_withoutNoise = True
+        EV = True
+    elif (EV == 1):
+        EV_withoutNoise = False
+        EV = True
+    elif (EV == 0):
+        EV_withoutNoise = False
+        EV = False
+    else:
+        print('ERROR: unknow case for EV')
+        return 0
+
     param_ref['N_particules'] = n_particles # Number of particles to select  
         
     if not mask_obs:   # If we must select a smaller grid inside the observed grid. 
@@ -530,6 +541,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     file_plots = file_plots + '_nSimu_' + str(int(n_simu))
     file_plots = file_plots + '_nMut_' + str(int(nb_mutation_steps))
     file_plots = file_plots + '_nPcl_' + str(int(n_particles))
+    if EV_withoutNoise:
+        file_plots = file_plots + '_EVnoNoise'
         
 #    file_plots = file_plots.replace(".", "_")
     folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
@@ -1260,7 +1273,9 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
-    if EV:
+    if EV_withoutNoise:
+        ILC_EV['pchol_cov_noises'] = np.zeros(ILC_EV['pchol_cov_noises'].shape)
+    elif EV:
         ILC_EV['pchol_cov_noises'] = beta_3*ILC_EV['pchol_cov_noises']
     original_dt_simu = param['dt']                                       # Time simulation step  
     assimilate_PIV = False                                               # Flag to control assimilation moments
