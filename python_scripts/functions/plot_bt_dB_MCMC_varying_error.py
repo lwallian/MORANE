@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 
 color_mean_EV = 'deepskyblue'
 color_quantile_EV = 'paleturquoise'
+linewidth_ = 4.
 
 
 def load_mat(filename,variable_to_load):
@@ -812,16 +813,16 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     plt.fill_between(time_ref,np.sqrt(err_fix[:,0]),\
                      delta+np.sqrt(err_fix[:,0]),color='gray')
     
-    plt.plot(time,np.sqrt(bt_0),'k')
+    plt.plot(time,np.sqrt(bt_0),'k',linewidth=linewidth_)
    
-    plt.plot(time,np.sqrt(err_fix),'--k')
+    plt.plot(time,np.sqrt(err_fix),'--k',linewidth=linewidth_)
   
     
-    plt.plot(time,np.sqrt(struct_bt_MCMC['mean'][:,k]),'b',\
-                     label = 'Red LUM bias')
     plt.plot(time,np.sqrt(struct_bt_MEV_noise['mean'][:,k]),\
                      color=color_mean_EV,\
-                     label = 'EV bias')
+                     label = 'EV bias',linewidth=linewidth_)
+    plt.plot(time,np.sqrt(struct_bt_MCMC['mean'][:,k]),'b',\
+                     label = 'Red LUM bias',linewidth=linewidth_)
     
     
     
@@ -886,7 +887,11 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     plt.ylim(err_min, 1)
     plt.ylabel('Normalized velocity error',fontsize=20)
     plt.xlabel('Time',fontsize=20)
-    plt.legend(fontsize=15)
+    plt.legend(fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.title('n = ' + str(bt_tot.shape[1]) + ' modes',fontsize=20)
+#    plt.legend(fontsize=15)
     file_res_mode = file_plots_res / Path('Error.pdf')
 #            file_res_mode = file_plots_res / Path(str(index+1) + '.png')
 #            file_res_mode = file_plots_res / Path(str(index+1) + '.jpg')
