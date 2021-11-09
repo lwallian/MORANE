@@ -107,6 +107,7 @@ end
 param.name_simu = [param.name_simu  'beta_2_'  num2str(param.DA.beta_2)];
 param.name_simu = [param.name_simu  '_nSimu_'  num2str(param_obs.n_simu)];
 param.name_simu = [param.name_simu  '_nMut_'  num2str(param_obs.nb_mutation_steps)];
+param.name_simu = [param.name_simu  '_nPcl_'  num2str(100)];
 % param.name_simu = [param.name_simu  '_nSimu_'  num2str(param.n_simu)];
 % param.name_simu = [param.name_simu  '_nMut_'  num2str(param.nb_mutation_steps)];
 

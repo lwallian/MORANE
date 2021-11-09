@@ -2,7 +2,8 @@ function main_plot_Q(type_data,nb_modes,...
     threshold,no_subampl_in_forecast,reconstruction,...
     adv_corrected,modal_dt,...
     svd_pchol,eq_proj_div_free,...
-    data_assimilation,coef_bruit_obs,param_obs)
+    data_assimilation,coef_bruit_obs,param_obs,...
+    noise_type)
 % Load simulation results, estimate modal time step by Shanon
 % and compare it with modal Eddy Viscosity ROM and
 % tuned version of the loaded results
@@ -15,11 +16,13 @@ global choice_n_subsample;
 global stochastic_integration;
 global estim_rmv_fv;
 global correlated_model;
+global threshold_effect_on_tau_corrected
+global bug_sampling
 
 
 param.svd_pchol = svd_pchol;
 param.eq_proj_div_free = eq_proj_div_free;
-
+param.noise_type = noise_type;
 param.DA.beta_2 = 1; % beta_2 is the parameter that controls the  noise in the initialization of the filter
 param.DA.init_centred_on_ref = false;  % If True, the initial condition is centered on the reference initial condiion
 
@@ -183,6 +186,9 @@ param.decor_by_subsampl.choice_n_subsample = 'auto_shanon';
 param.data_assimilation=data_assimilation;
 
 param.decor_by_subsampl.choice_n_subsample = choice_n_subsample;
+param.decor_by_subsampl.threshold_effect_on_tau_corrected = ...
+    threshold_effect_on_tau_corrected;
+param.decor_by_subsampl.bug_sampling = bug_sampling;
 
 switch data_assimilation
     case 0

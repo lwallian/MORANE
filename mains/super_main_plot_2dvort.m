@@ -14,6 +14,7 @@ if nargin == 0
     global choice_n_subsample;
     global stochastic_integration;
     global estim_rmv_fv;
+%     global correlated_model;
     
     vect_nb_modes = [2 4 6 8]
     plot_EV=true
@@ -33,9 +34,11 @@ if nargin == 0
     type_data = 'DNS100_inc3d_2D_2018_11_16_blocks_truncated'
     %         type_data = 'turb2D_blocks_truncated'
     choice_n_subsample = 'htgen2'
+    threshold_effect_on_tau_corrected = false
+    bug_sampling = true
     stochastic_integration = 'Ito'
     estim_rmv_fv = true
-    svd_pchol = 1
+    svd_pchol = 2
     vect_eq_proj_div_free = [2]
     
     no_subampl_in_forecast = false;
@@ -46,7 +49,8 @@ if nargin == 0
         vect_adv_corrected = [ true]
 %     vect_adv_corrected = [true false]
     %                 vect_adv_corrected = [true ]
-    
+    noise_type = 0 ; % usual red lum : v'.grad(w)
+
     vect_data_assimilation = [ 2 ]
     % vect_data_assimilation = [ true ]
     %     vect_fake_PIV = [ true false ]
@@ -61,9 +65,10 @@ if nargin == 0
         
         %         param_obs.n_simu = 30;
         param_obs.n_simu = 100;
-        param_obs.nb_mutation_steps = 0;
+        param_obs.nb_mutation_steps = -1;
         %         param_obs.nb_mutation_steps = 0;
         
+        % Case 1
         param_obs.mask_obs = true;      % True            # Activate spatial mask in the observed data
         param_obs.subsampling_PIV_grid_factor = 3;  % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
         param_obs.x0_index = 10;  % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
@@ -246,7 +251,7 @@ for eq_proj_div_free = vect_eq_proj_div_free
                                     adv_corrected,modal_dt,...
                                     svd_pchol,eq_proj_div_free,...
                                     data_assimilation,coef_bruit_obs,param_obs,...
-                                    plot_EV)
+                                    plot_EV,noise_type)
                                 
                                 %                     switch type_data
                                 %                         case 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated'
