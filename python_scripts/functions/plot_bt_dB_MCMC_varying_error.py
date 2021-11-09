@@ -11,9 +11,13 @@ import hdf5storage
 from pathlib import Path
 import matplotlib.pyplot as plt
 
+color_mean_EV_withoutNoise = 'b'
+color_quantile_EV_withoutNoise = 'steelblue'
 color_mean_EV = 'deepskyblue'
 color_quantile_EV = 'paleturquoise'
-linewidth_ = 4.
+color_mean_LU = 'orangered'
+color_quantile_LU = 'sandybrown'
+linewidth_ = 3.
 
 
 def load_mat(filename,variable_to_load):
@@ -603,6 +607,14 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     struct_bt_MEV_noise['mean'] = struct_bt_MEV_noise['mean'][:int(N_test),:]
     struct_bt_MEV_noise['var'] = struct_bt_MEV_noise['var'][:int(N_test),:]
 #    struct_bt_MEV_noise['one_realiz'] = struct_bt_MEV_noise['one_realiz'][:int(N_test),:]
+    if "MEV_withoutNoise" in struct_bt_MEV_noise:
+        EV_withoutNoise = True
+        struct_bt_MEV_withoutNoise = struct_bt_MEV_noise['MEV_withoutNoise']
+        struct_bt_MEV_withoutNoise['mean'] = struct_bt_MEV_withoutNoise['mean'][:int(N_test),:]
+        struct_bt_MEV_withoutNoise['var'] = struct_bt_MEV_withoutNoise['var'][:int(N_test),:]
+    else:
+        EV_withoutNoise = False
+        
     
     bt_tot = bt_tot[:int(N_test),:]
     param['truncated_error2'] = param['truncated_error2'][:int(N_test),:]
@@ -794,6 +806,11 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     struct_bt_MCMC['var'] = struct_bt_MCMC['var']/nrj_tot
     struct_bt_MEV_noise['var'] = struct_bt_MEV_noise['var']/nrj_tot
     
+    if EV_withoutNoise:
+        struct_bt_MEV_withoutNoise['mean'] = np.sum(np.power(struct_bt_MEV_withoutNoise['mean']-bt_tot,2), axis=1)[...,np.newaxis]/nrj_tot + err_fix
+        struct_bt_MEV_withoutNoise['var'] = struct_bt_MEV_withoutNoise['var']/nrj_tot
+
+    
     #%% Plots
     
     plt.figure(param['nb_modes']+1,figsize=(12, 9))
@@ -808,19 +825,29 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
    
     
     plt.fill_between(time_ref,np.sqrt(err_fix[:,0]),\
-                     delta_EV+np.sqrt(err_fix[:,0]),color=color_quantile_EV)
+                     delta_EV+np.sqrt(err_fix[:,0]),color=color_quantile_EV)  
+    
     plt.fill_between(time_ref,np.sqrt(err_fix[:,0]),\
-                     delta+np.sqrt(err_fix[:,0]),color='gray')
+                     delta+np.sqrt(err_fix[:,0]),color=color_quantile_LU)
+    if EV_withoutNoise:
+        delta_EV_withoutNoise = np.sqrt(np.abs(struct_bt_MEV_withoutNoise['var'][:,k]))
+        plt.fill_between(time_ref,np.sqrt(err_fix[:,0]),\
+                         delta_EV_withoutNoise+np.sqrt(err_fix[:,0]),color=color_quantile_EV_withoutNoise)    
     
     plt.plot(time,np.sqrt(bt_0),'k',linewidth=linewidth_)
    
     plt.plot(time,np.sqrt(err_fix),'--k',linewidth=linewidth_)
   
-    
+    if EV_withoutNoise:
+        plt.plot(time,np.sqrt(struct_bt_MEV_withoutNoise['mean'][:,k]),\
+                         color=color_mean_EV_withoutNoise,\
+                         label = 'EV without Noise bias',linewidth=linewidth_)
     plt.plot(time,np.sqrt(struct_bt_MEV_noise['mean'][:,k]),\
                      color=color_mean_EV,\
                      label = 'EV bias',linewidth=linewidth_)
-    plt.plot(time,np.sqrt(struct_bt_MCMC['mean'][:,k]),'b',\
+        
+    plt.plot(time,np.sqrt(struct_bt_MCMC['mean'][:,k]),
+                     color=color_mean_LU,\
                      label = 'Red LUM bias',linewidth=linewidth_)
     
     

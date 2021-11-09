@@ -18,7 +18,7 @@ beta_3 = 1.                              # beta_3 is the parameter that controls
 init_centred_on_ref = False              # If True, the initial condition is centered on the reference initial condiion
 N_threshold = 40                        # Effective sample size in the particle filter
 pho = 0.998                             # Constant that constrol the balance in the new brownian and the old brownian in particle filter
-linewidth_ = 4.
+linewidth_ = 3.
 
 #assimilate = 'real_data'                # The data that will be assimilated : 'real_data'  or 'fake_real_data' 
 #nb_mutation_steps = 500  # 150 30                # Number of mutation steps in particle filter 
@@ -160,8 +160,12 @@ assimilation_period = float(5/10)
 ##factor_of_PIV_time_subsampling_gl = int(5 / 0.080833) 
 #assimilation_period = float(5/10) 
         
+color_mean_EV_withoutNoise = 'b'
+color_quantile_EV_withoutNoise = 'steelblue'
 color_mean_EV = 'deepskyblue'
 color_quantile_EV = 'paleturquoise'
+color_mean_LU = 'orangered'
+color_quantile_LU = 'sandybrown'
         
 plot_debug = False
 pos_Mes = -7
@@ -2012,6 +2016,12 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             plt.fill_between(time,quantiles_EV[0,:,index],quantiles_EV[1,:,index],color=color_quantile_EV)
             line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
                                 color=color_mean_EV, label = 'EV particles mean',linewidth=linewidth_)
+        
+        plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color=color_quantile_LU)
+        if EV_withoutNoise:
+            plt.fill_between(time,quantiles_EV_withoutNoise[0,:,index],quantiles_EV_withoutNoise[1,:,index],color=color_quantile_EV_withoutNoise)
+            line1_EV_withoutNoise = plt.plot(time,particles_mean_EV_withoutNoise[:,index],'-', \
+                                color=color_mean_EV_withoutNoise, label = 'EV without Noise particles mean',linewidth=linewidth_)
         if plot_ref==True:
             if assimilate == 'real_data':
                 plt.plot(time_bt_tot,quantiles_PIV[0,:,index],'k--',label = 'True state',linewidth=linewidth_)
@@ -2019,10 +2029,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             else:
                 plt.plot(time_bt_tot,bt_tot[:,index],'k--',label = 'True state',linewidth=linewidth_)
             
-            
-        plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color='gray')
-            
-        line1 = plt.plot(time,particles_mean[:,index],'b-',label = 'Red LUM particles mean',linewidth=linewidth_)
+        line1 = plt.plot(time,particles_mean[:,index],'-',color=color_mean_LU, \
+                         label = 'Red LUM particles mean',linewidth=linewidth_)
 #            if EV:
 #                line1_EV = plt.plot(time,particles_mean_EV[:,index],'-', \
 #                                    color=color_mean_EV, label = 'EV particles mean')
@@ -2106,6 +2114,13 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             .copy()[:N_:n_simu]
         struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
             .copy()[:N_:n_simu]
+        if EV_withoutNoise:
+            struct_bt_MEV_withoutNoise = {}
+            struct_bt_MEV_withoutNoise['mean'] = particles_mean_EV_withoutNoise\
+                .copy()[:N_:n_simu]
+            struct_bt_MEV_withoutNoise['var'] = np.var(bt_forecast_EV_withoutNoise[:,:,:],axis=2)\
+                .copy()[:N_:n_simu]
+            struct_bt_MEV_noise['MEV_withoutNoise'] = struct_bt_MEV_withoutNoise
         time = time[:N_:n_simu]
                 
         bt_tot_interp = np.zeros(struct_bt_MCMC['mean'].shape)
