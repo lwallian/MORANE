@@ -28,8 +28,9 @@ if init_caxis
 % %     % %     boundcmap = [0.1 0.9];
 % %     %     boundcmap = [0 1];
 end
-factor_satur = 1.3;
-% factor_satur = 1.5;
+factor_satur = 1;
+% factor_satur = 1.3;
+% % factor_satur = 1.5;
 
 %%
 param.name_file_mode_PIV = [ param.folder_data_PIV ...

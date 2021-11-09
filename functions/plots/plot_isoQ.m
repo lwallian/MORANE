@@ -347,16 +347,20 @@ for q=1:n1
     %     X=permute(X,[2 1 3]);
     %     Y=permute(Y,[2 1 3]);
     if ~view_top
-        view(150,40);
-        % view(160,50);
-        % % view(30,50);
+        view(10,-50);
+%         view(150,40);
+%         % view(160,50);
+%         % % view(30,50);
     end
     
     axis vis3d;
     axis equal
     % colormap winter
-    camlight
+    delete(findall(gcf,'Type','light'))
+    camlight('left')
     lighting phong
+
+    set(gca,'visible','off')    
     
     hold on;
     ratio_com = ceil(3/height2);
