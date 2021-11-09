@@ -269,6 +269,8 @@ switch data_assimilation
             end
             bt_forecast_EV = bt_forecast_EV_interp; clear bt_forecast_EV_interp
         end
+        time_inter = time_bt_tot;
+        time = time_bt_tot;
         
         dt_ini = param.dt * n_simu ...
                 / double(param.decor_by_subsampl.n_subsampl_decor);
