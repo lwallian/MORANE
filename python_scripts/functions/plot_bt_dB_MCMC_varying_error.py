@@ -572,7 +572,7 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
 #                                  bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC,plt,varying_error_figure,nb_subplot_cols,current_subplot):
 
 def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
-    param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC):
+    param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC,time):
     
     
     logscale = False
@@ -606,13 +606,12 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     
     bt_tot = bt_tot[:int(N_test),:]
     param['truncated_error2'] = param['truncated_error2'][:int(N_test),:]
+    time = time[:int(N_test)]
     
     N_test = N_test-1
     
     dt_tot = param['dt']
     N_time_final = N_tot
-    time = np.arange(0,int(N_test + 1),1)*float(dt_tot)
-#    time = np.arange(1,int(N_test + 2),1)*float(dt_tot)
     time_ref = time
     
     

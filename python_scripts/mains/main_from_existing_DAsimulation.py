@@ -496,11 +496,21 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
         plt.savefig(file_res_mode,dpi=200 )
 #    
     
-    param['truncated_error2'] = param['truncated_error2'][...,np.newaxis]
 
 
     if EV:
+        param['truncated_error2'] = param['truncated_error2'][0:(int(param['N_test']/n_simu)+1)]
+        
+        
+        n_simu = 1
         N_ = particles_mean.shape[0]
+        time = time[:N_:n_simu]
+        index_time = (time <= time_bt_tot[-1])
+        N_tot = np.sum(index_time);
+        N_ = N_tot
+        param['N_tot']=N_tot
+        param['N_test']=N_tot-1
+        
         struct_bt_MCMC = {}
         struct_bt_MCMC['mean'] = particles_mean\
             .copy()[:N_:n_simu]
@@ -511,11 +521,19 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
             .copy()[:N_:n_simu]
         struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
             .copy()[:N_:n_simu]
-        param['N_test']=int(param['N_test']/n_simu)
-        param['N_tot']=param['N_test']+1
-        param['dt'] = param['dt'] * n_simu
+        time = time[:N_:n_simu]
+                
+        bt_tot_interp = np.zeros(struct_bt_MCMC['mean'].shape)
+        for index in range(bt_tot.shape[1]):
+            interpolant_bt_tot_k = interpolate.interp1d(time_bt_tot, bt_tot[:,index])
+            bt_tot_interp[:,index] = interpolant_bt_tot_k(time)
+        interpolant_error = interpolate.interp1d(time_bt_tot, param['truncated_error2'])
+        param['truncated_error2'] = interpolant_error(time)
+        param['truncated_error2'] = param['truncated_error2'][...,np.newaxis]
+    
         plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
-                param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC)
+                param, bt_tot_interp, struct_bt_MEV_noise, struct_bt_MCMC,time)
+        
         
     del C_deter 
     del C_sto 
