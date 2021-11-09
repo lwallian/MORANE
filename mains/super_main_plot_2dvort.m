@@ -15,6 +15,8 @@ if nargin == 0
     global stochastic_integration;
     global estim_rmv_fv;
 %     global correlated_model;
+    global threshold_effect_on_tau_corrected
+    global bug_sampling
     
     vect_nb_modes = [2 4 6 8]
     plot_EV=true
