@@ -341,33 +341,9 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
         ILC_EV = convert_mat_to_python_EV(str(file_EV_res)) # Call the function and load the matlab data calculated before in matlab scripts.
 
     
-    
-    #%% Redefined path to get acces to data
-    
-    param['nb_period_test'] = nb_period_test
-    param['decor_by_subsampl']['test_fct'] = test_fct
-    folder_data = param_ref['folder_data']
-    folder_results = param_ref['folder_results']
-    
-    big_data = False
-    
-    param['folder_data'] = str(folder_data)
-    param['folder_results'] = str(folder_results)
-    param['big_data'] = big_data
-    param['plots_bts'] = plot_bts
-    
-    
     param['folder_results'] = param_ref['folder_results']
     param['N_particules'] = param_ref['N_particules']
     n_simu = param_ref['n_simu']
-#    param['N_tot'] = bt_tot.shape[0]
-#    param['N_test'] = param['N_tot'] - 1
-#    bt_tot = bt_tot[:param['N_test'] + 1,:]                # Ref. Chronos in the DNS cas
-#    time_bt_tot = np.arange(0,bt_tot.shape[0],1)*param['dt']
-#    bt_tronc=bt_tot[0,:][np.newaxis]                       # Define the initial condition as the reference
-    
-    lambda_values = param['lambda'] # Define the constant lambda (The integral in one period of the square temporal modes )
-
         
     #%% Folder to save data assimilation plot results
     plt.close('all')
@@ -490,7 +466,26 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
         bt_forecast_EV_withoutNoise = dict_python['bt_forecast_EV']
         quantiles_EV_withoutNoise = dict_python['quantiles_EV']
     
+    #%% Redefined path to get acces to data
     
+    param['nb_period_test'] = nb_period_test
+    param['decor_by_subsampl']['test_fct'] = test_fct
+    folder_data = param_ref['folder_data']
+    folder_results = param_ref['folder_results']
+    
+    big_data = False
+    
+    param['folder_data'] = str(folder_data)
+    param['folder_results'] = str(folder_results)
+    param['big_data'] = big_data
+    param['plots_bts'] = plot_bts
+    
+    
+    param['folder_results'] = param_ref['folder_results']
+    param['N_particules'] = param_ref['N_particules']
+    n_simu = param_ref['n_simu']
+    lambda_values = param['lambda'] # Define the constant lambda (The integral in one period of the square temporal modes )
+
     #%% PLOTSSSSSSSSSSSS
     
     ##############################################################################################################
@@ -501,13 +496,7 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
     time_bt_tot = time_bt_tot[0,:]
     time = time[0,:]
     
-    particles_mean = np.mean(bt_MCMC[:,:,:],axis=2)
-    particles_median = np.median(bt_MCMC[:,:,:],axis=2)
-    quantiles = np.quantile(bt_MCMC[:,:,:],q=[0.025,0.975],axis=2)
-    if EV:
-        particles_mean_EV = np.mean(bt_forecast_EV[:,:,:],axis=2)
-        particles_median_EV = np.median(bt_forecast_EV[:,:,:],axis=2)
-        quantiles_EV = np.quantile(bt_forecast_EV[:,:,:],q=[0.025,0.975],axis=2)
+#    particles_median = np.median(bt_MCMC[:,:,:],axis=2)
     n_particles = bt_MCMC.shape[-1] 
 
 
