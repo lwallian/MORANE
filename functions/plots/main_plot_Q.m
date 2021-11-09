@@ -243,15 +243,34 @@ switch data_assimilation
         param.DA.index_of_filtering = index_pf+1;
 %         param.DA.index_of_filtering = [1 (index_of_filtering+1)/n_simu];
         
-%         param.dt = param.dt*N_simu;
+
+        bt_MCMC = mean(bt_MCMC,3);
+        if plot_EV
+            bt_forecast_EV = mean(bt_forecast_EV,3);
+        end
 
         [time,i_time,~] = unique(time,'last');
         bt_MCMC = bt_MCMC(i_time,:,:);
-        bt_forecast_EV = bt_forecast_EV(i_time,:,:);        
-
-        [time_inter,i_time,i_time_bt_tot] = intersect(time,time_bt_tot);
-        time = time_inter;
-        time_bt_tot = time_inter;
+        
+        index_time = (time_bt_tot <= time(end));
+        time_bt_tot = time_bt_tot(index_time);
+        bt_tot = bt_tot(index_time,:);
+        
+        bt_MCMC_interp = nan([length(time_bt_tot),size(bt_MCMC,2)]);
+        for p=1:size(bt_MCMC,2)
+            bt_MCMC_interp(:,p) = interp1(time,bt_MCMC(:,p),time_bt_tot);
+        end
+        bt_MCMC = bt_MCMC_interp; clear bt_MCMC_interp
+        if plot_EV
+            bt_forecast_EV = bt_forecast_EV(i_time,:,:); 
+            bt_forecast_EV_interp = nan([length(time_bt_tot),size(bt_MCMC,2)]);
+            for p=1:size(bt_MCMC,2)
+                bt_forecast_EV_interp(:,p) = interp1(time,bt_forecast_EV(:,p),time_bt_tot);
+            end
+            bt_forecast_EV = bt_forecast_EV_interp; clear bt_forecast_EV_interp
+        end
+        time_inter = time_bt_tot;
+        time = time_bt_tot;
         
         dt_ini = param.dt * param_obs.n_simu ...
                 / double(param.decor_by_subsampl.n_subsampl_decor);
@@ -259,13 +278,8 @@ switch data_assimilation
         param.decor_by_subsampl.n_subsampl_decor = ...
             param.dt/dt_ini;
         
-        bt_tot = bt_tot(i_time_bt_tot,:);
-        bt_MCMC = bt_MCMC(i_time,:,:);
-        bt_forecast_EV = bt_forecast_EV(i_time,:,:);
         param.N_test = size(bt_tot,1);
         
-        bt_MCMC = mean(bt_MCMC,3);
-        bt_forecast_EV = mean(bt_forecast_EV,3);
     otherwise
         error('Unknown DA type')
 end
