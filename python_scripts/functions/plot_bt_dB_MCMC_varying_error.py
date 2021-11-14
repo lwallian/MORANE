@@ -19,6 +19,15 @@ color_mean_LU = 'orangered'
 color_quantile_LU = 'sandybrown'
 linewidth_ = 3.
 
+logscale = False
+LineWidth = 1
+FontSize = 10
+FontSizeTtitle = 11
+width=1
+height=0.7
+
+height = height*3/2
+
 
 def load_mat(filename,variable_to_load):
     
@@ -70,16 +79,6 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
                                   bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC,plt,varying_error_figure,nb_subplot_cols,current_subplot):
     
     
-    logscale = False
-    LineWidth = 1
-    FontSize = 10
-    FontSizeTtitle = 11
-    width=1
-    height=0.7
-    
-    height = height*3/2
-    
-    X0 = np.array([0,0])
 
 
     plot_deter = param['plot']['plot_deter']
@@ -461,119 +460,20 @@ def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_b
 #    axis(ax)
     if logscale:
         pass
-#        set(gca,...
-#        'YGrid','on', ...
-#        'Units','normalized',...
-#        'FontUnits','points',...
-#        'FontWeight','normal',...
-#        'FontSize',FontSize,...
-#        'FontName','Times',...
-#        'YScale','log')
-#        
-#        ylabel({'error(log)'},...
-#        'FontUnits','points',...
-#        'interpreter','latex',...
-#        'FontSize',FontSize,...
-#        'FontName','Times')
     else:
         plt.ylabel('norm. error')
-#        set(gca,...
-#            'YGrid','on', ...
-#            'Units','normalized',...
-#            'FontUnits','points',...
-#            'FontWeight','normal',...
-#            'FontSize',FontSize,...
-#            'FontName','Times')
-#        
-#        ylabel({'norm. error'},...
-#        'FontUnits','points',...
-#        'interpreter','latex',...
-#        'FontSize',FontSize,...
-#        'FontName','Times')
-    
-#        if param['type_data'] == 'incompact3d_wake_episode3_cut_truncated':
-#            ax=[time(1) time(end) err_min 0.37 ];
         
     plt.xlabel('Time')
-#    xlabel('Time',...
-#    'FontUnits','points',...
-#    'FontWeight','normal',...
-#    'FontSize',FontSize,...
-#    'FontName','Times')
     
     plt.title('n = ' + str(int(param['nb_modes'])))
     plt.grid()
-#    title(['$n=' num2str(param.nb_modes) '$'],...
-#    'FontUnits','points',...
-#    'FontWeight','normal',...
-#    'interpreter','latex',...
-#    'FontSize',FontSizeTtitle,...
-#    'FontName','Times')
-#
-#    axis(ax)  
-#        
-    #%% 
-    
-    
-#    if (logscale == True) and (param['type_data'] == 'inc3D_Re3900_blocks_truncated'):
-#        err_min=0.45
-#        YTick = np.arange(0.4,1+0.1,0.1)
-#    
-#        set(gca,...
-#        'YGrid','on', ...
-#        'Units','normalized',...
-#        'FontUnits','points',...
-#        'FontWeight','normal',...
-#        'FontSize',FontSize,...
-#        'FontName','Times',...
-#        'YTick',YTick,...
-#        'YScale','log')
-    
-#    threshold = str(param['decor_by_subsampl']['spectrum_threshold'])
-#    iii = (threshold =='.');
-#    threshold(iii)='_';
-#    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-#    '''
+
     return idx_min_error, idx_min_err_tot
     
     
     
 #%% 
     
-
-
-#def plot_bt_dB_MCMC_varying_error(param,bt_forecast_sto_scalar,bt_forecast_sto_beta,bt_forecast_sto_a_cst_modal_dt,\
-#                                  bt_forecast_sto_a_NC_modal_dt, bt_forecast_deter,bt_forecast_MEV,bt_sans_coef1,\
-#                                  bt_sans_coef2,bt_tot,struct_bt_MCMC,bt_MCMC,plt,varying_error_figure,nb_subplot_cols,current_subplot):
 
 def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     param, bt_tot, struct_bt_MEV_noise, struct_bt_MCMC,time):
@@ -586,9 +486,7 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     width=1
     height=0.7
     
-    height = height*3/2
-    
-    X0 = np.array([0,0])
+#    X0 = np.array([0,0])
     
     dt_tot = param['dt']
     
@@ -882,32 +780,6 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
     
     else:
         err_min = 0
-
-    
-##    ax=[time[0] time[-1] err_min 1 ]
-##    axis(ax)
-#    if logscale:
-#        pass
-#    else:
-#        plt.ylabel('norm. error')
-#        
-#    plt.xlabel('Time')
-##    xlabel('Time',...
-##    'FontUnits','points',...
-##    'FontWeight','normal',...
-##    'FontSize',FontSize,...
-##    'FontName','Times')
-#    
-#    plt.title('n = ' + str(int(param['nb_modes'])))
-#    plt.grid()
-##    title(['$n=' num2str(param.nb_modes) '$'],...
-##    'FontUnits','points',...
-##    'FontWeight','normal',...
-##    'interpreter','latex',...
-##    'FontSize',FontSizeTtitle,...
-##    'FontName','Times')
-##
-##    axis(ax)  
     
     
     plt.ylim(err_min, 1)
@@ -925,7 +797,107 @@ def plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
 #            plt.savefig(file_res_mode)
     plt.savefig(file_res_mode,dpi=200 )
     
+    #%% Compute mean error
     
+    index_crop = ( (time>=10) & (time<=60) )
+#    struct_bt_MCMC['sq_bias_crop'] = struct_bt_MCMC['mean'][index_crop,:]
+    mean_bias_bt_0 = np.sqrt(np.mean(bt_0[index_crop,:],axis=0)[0])
+    print("mean_bias_bt_0 : " + str(mean_bias_bt_0))
+    mean_bias_fix = np.sqrt(np.mean(err_fix[index_crop,:],axis=0)[0])
+    print("mean_bias_fix : " + str(mean_bias_fix))
+    struct_bt_MCMC['mean_bias_crop'] = np.sqrt(np.mean(struct_bt_MCMC['mean'][index_crop,:],axis=0)[0])
+    print("mean_bias LU : " + str(struct_bt_MCMC['mean_bias_crop']))
+#    struct_bt_MEV_noise['sq_bias_crop'] = struct_bt_MEV_noise['mean'][index_crop,:]
+    struct_bt_MEV_noise['mean_bias_crop'] = np.sqrt(np.mean(struct_bt_MEV_noise['mean'][index_crop,:],axis=0)[0])
+    print("mean_bias EV_noise : " + str(struct_bt_MEV_noise['mean_bias_crop']))
+
+    struct_mean_bias = {}
+    struct_mean_bias['LU'] = struct_bt_MCMC['mean_bias_crop'].copy()
+    struct_mean_bias['EV_noise'] = struct_bt_MEV_noise['mean_bias_crop'].copy()
+    struct_mean_bias['fix'] = mean_bias_fix.copy()
+    struct_mean_bias['bt_0'] = mean_bias_bt_0.copy()
+    if EV_withoutNoise:
+#        struct_bt_MEV_withoutNoise['sq_bias_crop'] = struct_bt_MEV_withoutNoise['mean'][index_crop,:]
+        struct_bt_MEV_withoutNoise['mean_bias_crop'] = \
+        np.sqrt(np.mean(struct_bt_MEV_withoutNoise['mean'][index_crop,:],axis=0)[0])
+        struct_bt_MEV_noise['MEV_withoutNoise'] = struct_bt_MEV_withoutNoise
+        print("mean_bias EV without noise : " + str(struct_bt_MEV_withoutNoise['mean_bias_crop']))
+        struct_mean_bias['EV_withoutNoise'] = struct_bt_MEV_noise['mean_bias_crop'].copy()
+
+    return struct_mean_bias, file_plots_res,param
+
+    
+
+def plot_varying_error_param(file_plots_res, param,struct_mean_bias,vect_n_particle):
+    
+
+    #%% Plots
+    
+    plt.figure(param['nb_modes']+2,figsize=(12, 9))  
+    
+    plt.loglog(vect_n_particle,struct_mean_bias['bt_0'],'k',linewidth=linewidth_)
+   
+    plt.plot(vect_n_particle,struct_mean_bias['fix'],'--k',linewidth=linewidth_)
+  
+    if "MEV_withoutNoise" in struct_mean_bias:
+        plt.plot(vect_n_particle,struct_mean_bias['EV_withoutNoise'],\
+                         color=color_mean_EV_withoutNoise,\
+                         label = 'EV without Noise bias',linewidth=linewidth_)
+    plt.plot(vect_n_particle,struct_mean_bias['EV_noise'],\
+                     color=color_mean_EV,\
+                     label = 'EV bias',linewidth=linewidth_)
+    plt.plot(vect_n_particle,struct_mean_bias['LU'],\
+                     color=color_mean_LU,\
+                     label = 'Red LUM bias',linewidth=linewidth_)
+    
+    
+    
+    #%%
+    if param['type_data'] == 'DNS300_inc3d_3D_2017_04_02_NOT_BLURRED_blocks_truncated':
+        err_min = 0.4
+    elif np.logical_not(logscale):
+        err_min = 0
+    elif param['type_data'] == 'incompact3d_wake_episode3_cut':
+        err_min = 0.15
+            
+    elif  param['type_data'] == 'incompact3d_wake_episode3_cut_truncated':
+        err_min = 0.005;
+        
+        if param.nb_modes > 16:
+            err_min = 0.005
+        
+        
+        if np.logical_not(logscale):
+            err_min = 0
+        
+            
+    elif  param['type_data'] == 'LES_3D_tot_sub_sample_blurred':
+        err_min = 0.3
+    
+    elif  param['type_data'] in [ 'inc3D_Re3900_blocks','inc3D_Re3900_blocks119']:
+        err_min = 0.4
+
+    elif  param['type_data'] == 'inc3D_Re3900_blocks_truncated':
+        err_min=0.4
+    
+    else:
+        err_min = 0
+    
+    
+    plt.ylim(err_min, 1.5)
+    plt.ylabel('Normalized velocity error',fontsize=20)
+    plt.xlabel('Ensemble size',fontsize=20)
+    plt.legend(fontsize=20)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.title('n = ' + str(int(param['nb_modes'])) + ' modes',fontsize=20)
+#    plt.legend(fontsize=15)
+    file_res_mode = file_plots_res / Path('Error_EnsembleSize.pdf')
+#            file_res_mode = file_plots_res / Path(str(index+1) + '.png')
+#            file_res_mode = file_plots_res / Path(str(index+1) + '.jpg')
+#            file_res_mode = file_plots_res / str(index) + '.png'
+#            plt.savefig(file_res_mode)
+    plt.savefig(file_res_mode,dpi=200 )
     
     
     

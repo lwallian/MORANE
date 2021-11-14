@@ -11,6 +11,7 @@ import numpy as np
 import math
 import time
 from main_from_existing_DAsimulation import main_from_existing_DAsimulation
+from plot_bt_dB_MCMC_varying_error import plot_varying_error_param
 
     
 def switch_type_data(argument):
@@ -92,17 +93,38 @@ if __name__ == '__main__':
                     for adv_corrected in vect_adv_corrected:
                         for reconstruction in vect_reconstruction:
                             for k in vect_nb_modes:
-                                main_from_existing_DAsimulation(k,threshold,type_data,nb_period_test,\
-                                                       no_subampl_in_forecast,reconstruction,\
-                                                       adv_corrected,modal_dt,n_particle,\
-                                                       test_fct,svd_pchol,\
-                                                       stochastic_integration,\
-                                                       estim_rmv_fv,eq_proj_div_free,\
-                                                       thrDtCorrect,\
-                                                       noBugSubsampl,\
-                                                       choice_n_subsample,EV,\
-                                                       nb_mutation_steps,
-                                                       SECONDS_OF_SIMU)
+                                struct_mean_bias = {}
+                                struct_mean_bias['LU'] = []
+                                struct_mean_bias['EV_noise'] = []
+                                struct_mean_bias['fix'] = []
+                                struct_mean_bias['bt_0'] = []
+                                if EV == 2 :
+                                    struct_mean_bias['EV_withoutNoise'] = []      
+#                                j_n_pcl = 0
+                                for n_particle in vect_n_particle:
+                                    struct_mean_bias_temp,file_plots_res, param = \
+                                        main_from_existing_DAsimulation(k,threshold,type_data,nb_period_test,\
+                                                           no_subampl_in_forecast,reconstruction,\
+                                                           adv_corrected,modal_dt,n_particle,\
+                                                           test_fct,svd_pchol,\
+                                                           stochastic_integration,\
+                                                           estim_rmv_fv,eq_proj_div_free,\
+                                                           thrDtCorrect,\
+                                                           noBugSubsampl,\
+                                                           choice_n_subsample,EV,\
+                                                           nb_mutation_steps,
+                                                           SECONDS_OF_SIMU)
+                                    struct_mean_bias['LU'].append(struct_mean_bias_temp['LU'])
+                                    struct_mean_bias['EV_noise'].append(struct_mean_bias_temp['EV_noise'])
+                                    struct_mean_bias['fix'].append(struct_mean_bias_temp['fix'])
+                                    struct_mean_bias['bt_0'].append(struct_mean_bias_temp['bt_0'])
+                                    if EV == 2 :
+                                        struct_mean_bias['EV_withoutNoise'].append(struct_mean_bias_temp['EV_withoutNoise'])
+#                                    j_n_pcl = j_n_pcl +1
+                                if len(vect_n_particle) > 1 :
+                                    plot_varying_error_param(file_plots_res, \
+                                        param,struct_mean_bias,vect_n_particle)
+                                    
     
 
     

@@ -586,8 +586,9 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
         param['truncated_error2'] = interpolant_error(time)
         param['truncated_error2'] = param['truncated_error2'][...,np.newaxis]
     
-        plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
-                param, bt_tot_interp, struct_bt_MEV_noise, struct_bt_MCMC,time)
+        struct_mean_bias, file_plots_res,param = \
+            plot_bt_dB_MCMC_varying_error_DA(file_plots_res, \
+            param, bt_tot_interp, struct_bt_MEV_noise, struct_bt_MCMC,time)
         
         
     del C_deter 
@@ -597,7 +598,8 @@ def main_from_existing_DAsimulation(nb_modes,threshold,type_data,nb_period_test,
     del I_deter 
     del I_sto
 
-    return 0 #var
+    return struct_mean_bias,file_plots_res,param
+
     
     #%%
     
