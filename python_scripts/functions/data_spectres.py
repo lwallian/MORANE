@@ -11,15 +11,39 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 from sklearn.linear_model import LinearRegression
 
+fontsize_ = 13
+linewidth_ = 2.
+#fontsize_ = 20
+#linewidth_ = 3.
 
-path_data = 'C:\\Users\\matheus.ladvig\\Desktop\\mecanique de fluides\\spectres\\spectres\\cdm\\dsp_piv_bulles'
-path_to_file = Path(path_data)
+logscale = False
+LineWidth = 1
+FontSize = 10
+FontSizeTtitle = 11
+width=1
+height=0.7
+
+height = height*3/2
+
+
+current_pwd = Path(__file__).parents[1] # Select the path
+#folder_results = current_pwd.parents[0].joinpath('resultats').joinpath('current_results') # Select the current results path
+folder_data = current_pwd.parents[1].joinpath(\
+    'F:\\MATLAB\\RedLUM\\Romain_Schuster\\spectres\\cdm\\') # Select the data path
+
+
+#F:\MATLAB\RedLUM\Romain_Schuster\spectres\cdm\dsp_fil_chaud
+
+path_data = 'dsp_piv_bulles'
+#path_data = 'C:\\Users\\matheus.ladvig\\Desktop\\mecanique de fluides\\spectres\\spectres\\cdm\\dsp_piv_bulles'
+path_to_file = folder_data / Path(path_data)
 path_to_file_piv = path_to_file.joinpath('dsp_-003dw_123.txt')
 print(path_to_file_piv)
 
 
-path_data = 'C:\\Users\\matheus.ladvig\\Desktop\\mecanique de fluides\\spectres\\spectres\\cdm\\dsp_fil_chaud'
-path_to_file = Path(path_data)
+path_data = 'dsp_fil_chaud'
+#path_data = 'C:\\Users\\matheus.ladvig\\Desktop\\mecanique de fluides\\spectres\\spectres\\cdm\\dsp_fil_chaud'
+path_to_file = folder_data / Path(path_data)
 path_to_file_fil = path_to_file.joinpath('dsp_bulles_-003dw.txt')
 print(path_to_file_fil)
 
@@ -72,19 +96,24 @@ mean_noise = np.mean(amplitude_energy_noise)
 
 
 plt.figure()
-plt.loglog(freq_fil,dsp_fil_u,'b--',label = 'Fil chaud')
-plt.loglog(freq_piv,dsp_piv_u,'g--',label = 'PIV')
-plt.loglog(freq_noise,amplitude_energy_noise,'y',label = 'Noise')
-plt.loglog(freq_noise,mean_noise*np.ones(len(freq_noise)),'r',label = 'Average noise')
+plt.loglog(freq_fil,dsp_fil_u,'b--',label = 'Fil chaud',linewidth=linewidth_)
+plt.loglog(freq_piv,dsp_piv_u,'g--',label = 'PIV',linewidth=linewidth_)
+plt.loglog(freq_noise,amplitude_energy_noise,'y',label = 'Noise',linewidth=linewidth_)
+plt.loglog(freq_noise,mean_noise*np.ones(len(freq_noise)),'r',label = 'Average noise',linewidth=linewidth_)
 plt.grid(True,which="both",ls="-")
-plt.xlabel('Frequency(Hz)')
-plt.ylabel('Energy(J)')
-plt.legend()
+plt.xlabel('Frequency(Hz)',fontsize=fontsize_)
+plt.ylabel('Energy(J)',fontsize=fontsize_)
+plt.legend(fontsize=fontsize_)
+plt.xticks(fontsize=fontsize_)
+plt.yticks(fontsize=fontsize_)
 
+
+file_res = folder_data / Path('2_reponses_freq.pdf')
+plt.savefig(file_res,dpi=200 )
 
 plt.figure()
-plt.loglog(freq_fil,dsp_fil_v)
-plt.loglog(freq_piv,dsp_piv_v)
+plt.loglog(freq_fil,dsp_fil_v,linewidth=linewidth_)
+plt.loglog(freq_piv,dsp_piv_v,linewidth=linewidth_)
 plt.grid(True,which="both",ls="-")
 
 ########################################### Noise estimation ###########################################
@@ -106,12 +135,14 @@ signal_original = dsp_fil_u[indexes_freq_fil]
 
 
 plt.figure()
-plt.loglog(freq_filter_piv,signal_filtered,label = 'Signal Filtered')
-plt.loglog(freq_filter_fil,signal_original,label = 'Signal')
+plt.loglog(freq_filter_piv,signal_filtered,label = 'Signal Filtered',linewidth=linewidth_)
+plt.loglog(freq_filter_fil,signal_original,label = 'Signal',linewidth=linewidth_)
 plt.grid(True,which="both",ls="-")
-plt.xlabel('Frequency(Hz)')
-plt.ylabel('Energy(J)')
-plt.legend()
+plt.xlabel('Frequency(Hz)',fontsize=fontsize_)
+plt.ylabel('Energy(J)',fontsize=fontsize_)
+plt.legend(fontsize=fontsize_)
+plt.xticks(fontsize=fontsize_)
+plt.yticks(fontsize=fontsize_)
 
 
 
@@ -123,12 +154,14 @@ signal_original_interpo = interpolate.splev(freq_filter_piv, tck, der=0)
 
 
 plt.figure()
-plt.loglog(freq_filter_fil,signal_original,'o-',label = 'Signal sampled')
-plt.loglog(freq_filter_piv,signal_original_interpo,'.-',label = 'Signal interpolated to simulate another sampling frequency')
+plt.loglog(freq_filter_fil,signal_original,'o-',label = 'Signal sampled',linewidth=linewidth_)
+plt.loglog(freq_filter_piv,signal_original_interpo,'.-',label = 'Signal interpolated to simulate another sampling frequency',linewidth=linewidth_)
 plt.grid(True,which="both",ls="-")
-plt.xlabel('Frequency(Hz)')
-plt.ylabel('Energy(J)')
-plt.legend()
+plt.xlabel('Frequency(Hz)',fontsize=fontsize_)
+plt.ylabel('Energy(J)',fontsize=fontsize_)
+plt.legend(fontsize=fontsize_)
+plt.xticks(fontsize=fontsize_)
+plt.yticks(fontsize=fontsize_)
 
 
 # Filter H estimation
@@ -138,10 +171,12 @@ H_filter = np.sqrt(signal_filtered/signal_original_interpo)
 H_filter = H_filter/H_filter[0]
 
 plt.figure()
-plt.plot(freq_filter_piv,H_filter,label = 'Filter frequency response')
-plt.xlabel('Frequency(Hz)')
-plt.ylabel('Amplitude')
-plt.legend()
+plt.plot(freq_filter_piv,H_filter,label = 'Filter frequency response',linewidth=linewidth_)
+plt.xlabel('Frequency(Hz)',fontsize=fontsize_)
+plt.ylabel('Amplitude',fontsize=fontsize_)
+plt.legend(fontsize=fontsize_)
+plt.xticks(fontsize=fontsize_)
+plt.yticks(fontsize=fontsize_)
 plt.grid()
 
 # Find gaussian curve over the H Filter
@@ -158,14 +193,18 @@ b1 = model.coef_
 data = np.exp(b1[0,0]*x)
 
 plt.figure()
-plt.plot(freq_filter_piv,H_filter,label = 'Filter frequency response')
-plt.plot(freq_filter_piv,data,label = 'Equivalent Gaussian filter frequency response')
-plt.xlabel('Frequency(Hz)')
-plt.ylabel('Amplitude')
-plt.legend()
+plt.plot(freq_filter_piv,H_filter,label = 'Filter frequency response',linewidth=linewidth_)
+plt.plot(freq_filter_piv,data,label = 'Equivalent Gaussian filter frequency response',linewidth=linewidth_)
+plt.xlabel('Frequency(Hz)',fontsize=fontsize_)
+plt.ylabel('Amplitude',fontsize=fontsize_)
+plt.legend(fontsize=fontsize_)
+plt.xticks(fontsize=fontsize_)
+plt.yticks(fontsize=fontsize_)
 plt.grid()
 
 
+file_res = folder_data / Path('gaussian_filter.pdf')
+plt.savefig(file_res,dpi=200 )
 
 #################### following the fourier transform in time domain, we have the std deviation as
 
