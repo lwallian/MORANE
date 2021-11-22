@@ -2143,7 +2143,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     
     if EV:
         param['truncated_error2'] = param['truncated_error2'][0:(int(param['N_test']/n_simu)+1)]
-        
+        time=np.array(time)
         
         n_simu = 1
         N_ = particles_mean.shape[0]
@@ -2177,7 +2177,7 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
         for index in range(bt_tot.shape[1]):
             interpolant_bt_tot_k = interpolate.interp1d(time_bt_tot, bt_tot[:,index])
             bt_tot_interp[:,index] = interpolant_bt_tot_k(time)
-        interpolant_error = interpolate.interp1d(time_bt_tot, param['truncated_error2'])
+        interpolant_error = interpolate.interp1d(time_bt_tot, param['truncated_error2'][:,0])
         param['truncated_error2'] = interpolant_error(time)
         param['truncated_error2'] = param['truncated_error2'][...,np.newaxis]
     
