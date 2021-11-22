@@ -201,6 +201,7 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 #from scipy import sparse as svds
 import scipy.sparse as sps
+from sklearn import linear_model
 from PIL import Image
 import time as t_exe
 import json 
@@ -258,12 +259,19 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                                                nb_mutation_steps,\
                                                SECONDS_OF_SIMU):#nb_modes,threshold,type_data,nb_period_test,no_subampl_in_forecast,reconstruction,adv_corrected,modal_dt):
     if (EV == 2):
+        LeastSquare = False
         EV_withoutNoise = True
         EV = True
     elif (EV == 1):
+        LeastSquare = False
+        EV_withoutNoise = True
+        EV = True
+    elif (EV == 3):
+        LeastSquare = True
         EV_withoutNoise = False
         EV = True
     elif (EV == 0):
+        LeastSquare = False
         EV_withoutNoise = False
         EV = False
     else:
@@ -583,6 +591,8 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     file_plots = file_plots + '_nPcl_' + str(int(n_particles))
     if EV_withoutNoise:
         file_plots = file_plots + '_EVnoNoise'
+    if LeastSquare:
+        file_plots = file_plots + '_LS'
         
 #    file_plots = file_plots.replace(".", "_")
     folder_results_plot = os.path.dirname(os.path.dirname(os.path.dirname(folder_results)))
@@ -1313,7 +1323,15 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
     
     #%% Begin propagation and assimilation
     pchol_cov_noises = beta_3*pchol_cov_noises                           # Cholesky de la matrix de covariance                          
-    if EV_withoutNoise:
+    if LeastSquare:
+        ILC_EV['pchol_cov_noises'] = np.zeros(ILC_EV['pchol_cov_noises'].shape)  
+        ILC_EV['I'] = np.zeros(ILC_EV['I'].shape)  
+        ILC_EV['L'] = np.zeros(ILC_EV['L'].shape)  
+        ILC_EV['C'] = np.zeros(ILC_EV['C'].shape)  
+        Hpiv_Topos_otimization = Hpiv_Topos[:,:-1].copy()
+#        for j in range(int(nb_modes)): 
+#            Hpiv_Topos_otimization[:,j] = Hpiv_Topos_otimization[:,j] / diag_reg[j]
+    elif EV_withoutNoise:
         ILC_EV['pchol_cov_noises'] = np.zeros(ILC_EV['pchol_cov_noises'].shape)
     elif EV:
         ILC_EV['pchol_cov_noises'] = beta_3*ILC_EV['pchol_cov_noises']
@@ -1563,7 +1581,30 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             if EV:
                 print(' PF EV+noise')
                 start = t_exe.time()
-                particles_EV = particle_filter(ILC_EV,obs,K,Hpiv_Topos_K,particles_EV,N_threshold,\
+                if LeastSquare:
+                    '''
+                                                      
+#                    Reshape Piv data in order to compare with topos
+#                    '''
+#                    y = np.reshape(y,(y.shape[0],int(y.shape[1]*y.shape[2])),order='F')
+#                    
+#                    
+#                    '''
+#                    get error from PIV with average velocity
+#                    '''
+                    y_less_average = obs[:,0] - Hpiv_Topos[...,-1].copy()
+#                    y_less_average = y.copy() - Hpiv_Topos[...,-1].copy()
+                    
+                    reg = linear_model.LinearRegression()
+                    reg.fit(Hpiv_Topos_otimization,y_less_average.T)       
+#                    valeurs[time,:] = reg.coef_                    
+#                    particles_EV = np.tile(reg.coef_,(1,param['N_particules']))
+                    particles_EV = np.tile(reg.coef_[:,np.newaxis],(1,param['N_particules']))
+#                    for j in range(int(nb_modes)): 
+#                        valeurs[:,j] = valeurs[:,j] * diag_reg[j]
+                        
+                else:
+                    particles_EV = particle_filter(ILC_EV,obs,K,Hpiv_Topos_K,particles_EV,N_threshold,\
                                         np.concatenate((noises_EV,noises_centered_EV[np.newaxis,...]),axis=0)[index_pf[-2]:index_pf[-1],...],\
                                         particles_past_EV,nb_mutation_steps,original_dt_simu,param['dt'],pho,delta_t,ILC_EV['pchol_cov_noises'],time[-1]) 
                 end = t_exe.time()
