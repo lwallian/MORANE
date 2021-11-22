@@ -80,7 +80,7 @@ else
     Y=Y-mean(Y);
     % [X,Y]=ndgrid(X,Y);
 end
-
+y_unique_PIV = y_unique_PIV(end:-1:1); % meshgrid like in python
 
 
 % vol_cyl = fct_remove_cylindar(ones(sizQ(1:2)), x_cylinder-x_cut,param.dX);
@@ -194,6 +194,78 @@ if param.data_assimilation > 0
     [X_mes,Y_mes]=ndgrid(X_mes,Y_mes);
     X_mes=X_mes(:);
     Y_mes=Y_mes(:);
+    
+    param_obs_ref = param.param_obs;
+    
+    % Case 7 !!!
+    param.param_obs.subsampling_PIV_grid_factor = 30;   % 1     % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+    param.param_obs.x0_index = 10;  % 10                                                                                           % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_x = 3;     % 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    param.param_obs.y0_index = 10;         % 10                                                                                   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_y = 3;     % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    
+    X_mes_case7 = x_unique_PIV( 1 + param.param_obs.x0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_x-1)) );
+    Y_mes_case7 = y_unique_PIV( 1 + param.param_obs.y0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_y-1)) );
+    [X_mes_case7,Y_mes_case7]=ndgrid(X_mes_case7,Y_mes_case7);
+    X_mes_case7=X_mes_case7(:);
+    Y_mes_case7=Y_mes_case7(:);
+            
+    % Case 8 !!!
+    param.param_obs.subsampling_PIV_grid_factor = 3;   % 1     % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+    param.param_obs.x0_index = 0;  % 10                                                                                           % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_x = 1;     % 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    param.param_obs.y0_index = 0;         % 10                                                                                   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_y = 1;     % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    
+    X_mes_case8 = x_unique_PIV( 1 + param.param_obs.x0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_x-1)) );
+    Y_mes_case8 = y_unique_PIV( 1 + param.param_obs.y0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_y-1)) );
+    [X_mes_case8,Y_mes_case8]=ndgrid(X_mes_case8,Y_mes_case8);
+    X_mes_case8=X_mes_case8(:);
+    Y_mes_case8=Y_mes_case8(:);
+    
+    % Case 9 !!!
+    param.param_obs.subsampling_PIV_grid_factor = 3;   % 1     % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+    param.param_obs.x0_index = 200;  % 10                                                                                           % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_x = 1;     % 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    param.param_obs.y0_index = 10;         % 10                                                                                   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_y = 1;     % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    
+    X_mes_case9 = x_unique_PIV( 1 + param.param_obs.x0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_x-1)) );
+    Y_mes_case9 = y_unique_PIV( 1 + param.param_obs.y0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_y-1)) );
+    [X_mes_case9,Y_mes_case9]=ndgrid(X_mes_case9,Y_mes_case9);
+    X_mes_case9=X_mes_case9(:);
+    Y_mes_case9=Y_mes_case9(:);
+    
+    % Case 10 !!!
+    param.param_obs.subsampling_PIV_grid_factor = 3;   % 1     % Subsampling constant that will be applied in the observed data, i.e if 3 we will take 1 point in 3
+    param.param_obs.x0_index = 10;  % 10                                                                                           % Parameter necessary to chose the grid that we will observe(i.e if 6 we will start the select the start of the observed grid in the 6th x index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_x = 1;     % 70    nbPoints_x <= (202 - x0_index) /subsampling_PIV_grid_factor                  % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    param.param_obs.y0_index = 40;         % 10                                                                                   % Parameter necessary to chose the grid that we will observe(i.e if 30 we will start the observed grid in the 30th y index, hence we will reduce the observed grid).
+    param.param_obs.nbPoints_y = 1;     % 30   nbPoints_y <= (74 - y0_index) /subsampling_PIV_grid_factor                       % Number of points that we will take in account in the observed grid. Therefore, with this two parameters we can select any possible subgrid inside the original PIV/DNS grid to observe.
+    
+    X_mes_case10 = x_unique_PIV( 1 + param.param_obs.x0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_x-1)) );
+    Y_mes_case10 = y_unique_PIV( 1 + param.param_obs.y0_index + ...
+        param.param_obs.subsampling_PIV_grid_factor * ...
+        (0:(param.param_obs.nbPoints_y-1)) );
+    [X_mes_case10,Y_mes_case10]=ndgrid(X_mes_case10,Y_mes_case10);
+    X_mes_case10=X_mes_case10(:);
+    Y_mes_case10=Y_mes_case10(:);
+    
+    param.param_obs=param_obs_ref;
 else
     X_mes=[];Y_mes=[];
 end
@@ -308,8 +380,13 @@ for q=1:n1
     %     end
     
     hold on;
-    plot(X_mes,Y_mes,'.r','MarkerSize',10)
+    plot(X_mes_case7,Y_mes_case7,'or','MarkerSize',10)
+    plot(X_mes_case8,Y_mes_case8,'vr','MarkerSize',10)
+    plot(X_mes_case9,Y_mes_case9,'xr','MarkerSize',10)
+    plot(X_mes_case10,Y_mes_case10,'+r','MarkerSize',10)
+    plot(X_mes,Y_mes,'*r','MarkerSize',10)
     %         plot(X_mes,Y_mes,'.r')
+    Y_mes_case10
     hold off;
     
     drawnow
