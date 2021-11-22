@@ -2068,10 +2068,6 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
                                 color=color_mean_EV, label = 'EV particles mean',linewidth=linewidth_)
         
         plt.fill_between(time,quantiles[0,:,index],quantiles[1,:,index],color=color_quantile_LU)
-        if EV_withoutNoise:
-            plt.fill_between(time,quantiles_EV_withoutNoise[0,:,index],quantiles_EV_withoutNoise[1,:,index],color=color_quantile_EV_withoutNoise)
-            line1_EV_withoutNoise = plt.plot(time,particles_mean_EV_withoutNoise[:,index],'-', \
-                                color=color_mean_EV_withoutNoise, label = 'EV without Noise particles mean',linewidth=linewidth_)
         if plot_ref==True:
             if assimilate == 'real_data':
                 plt.plot(time_bt_tot,quantiles_PIV[0,:,index],'k--',label = 'True state',linewidth=linewidth_)
@@ -2164,13 +2160,6 @@ def main_from_existing_ROM(nb_modes,threshold,type_data,nb_period_test,\
             .copy()[:N_:n_simu]
         struct_bt_MEV_noise['var'] = np.var(bt_forecast_EV[:,:,:],axis=2)\
             .copy()[:N_:n_simu]
-        if EV_withoutNoise:
-            struct_bt_MEV_withoutNoise = {}
-            struct_bt_MEV_withoutNoise['mean'] = particles_mean_EV_withoutNoise\
-                .copy()[:N_:n_simu]
-            struct_bt_MEV_withoutNoise['var'] = np.var(bt_forecast_EV_withoutNoise[:,:,:],axis=2)\
-                .copy()[:N_:n_simu]
-            struct_bt_MEV_noise['MEV_withoutNoise'] = struct_bt_MEV_withoutNoise
         time = time[:N_:n_simu]
                 
         bt_tot_interp = np.zeros(struct_bt_MCMC['mean'].shape)
